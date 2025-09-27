@@ -1,198 +1,141 @@
-'use client'; // Necessário para usar hooks como useState e useEffect
+'use client';
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState } from 'react';
+
+// URL do Backend na DigitalOcean (Certifique-se de que está correta)
+const BACKEND_URL = 'https://api.brandaocontador.com.br';
 
 export default function Home() {
-    // 1. Estados para o status da API (GET)
-    const [apiStatus, setApiStatus] = useState("Conectando ao Backend...");
-    const [isLoading, setIsLoading] = useState(true);
+  const [statusGet, setStatusGet] = useState('');
+  const [statusPost, setStatusPost] = useState('');
+  const [loadingGet, setLoadingGet] = useState(false);
+  const [loadingPost, setLoadingPost] = useState(false);
+  
+  // NOVOS ESTADOS PARA O FORMULÁRIO
+  const [valorNota, setValorNota] = useState('1000.50');
+  const [idCliente, setIdCliente] = useState('C007');
 
-    // 2. Novo Estado para o resultado da emissão (POST)
-    const [postStatus, setPostStatus] = useState("Aguardando teste de POST...");
-    const [isPosting, setIsPosting] = useState(false);
+  // --- 1. TESTE GET: Status da Integração ---
+  const handleGetTest = async () => {
+    setLoadingGet(true);
+    setStatusGet('Verificando status do Backend...');
+    try {
+      const response = await fetch(`${BACKEND_URL}/nfe/teste`);
+      const data = await response.json();
 
-    // Variáveis de Rota
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-    const testRoute = '/nfe/teste'; // GET
-    const emitirRoute = '/nfe/emitir'; // POST
+      if (response.ok) {
+        // Exibe o JSON completo (incluindo status do certificado e ambiente)
+        setStatusGet(`SUCESSO! Mensagem do Backend: "${data.status}" | Ambiente: ${data.ambiente_atual} | Certificado: ${data.certificado_status}`);
+      } else {
+        setStatusGet(`ERRO! Status: ${response.status}. Mensagem: ${data.status}`);
+      }
+    } catch (error: any) {
+      setStatusGet(`ERRO de Conexão: O Backend não respondeu. ${error.message}`);
+    } finally {
+      setLoadingGet(false);
+    }
+  };
 
-    // --- Função de Teste da Rota GET ---
-    useEffect(() => {
-        async function checkApiStatus() {
-            if (!API_BASE_URL) {
-                setApiStatus("ERRO: Variável NEXT_PUBLIC_API_URL não configurada!");
-                setIsLoading(false);
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}${testRoute}`);
-                const data = await response.json();
-
-                if (response.ok) {
-                    setApiStatus(`SUCESSO! Mensagem do Backend: "${data.status}"`);
-                } else {
-                    setApiStatus(`ERRO DE API: Falha ao buscar status. Status: ${response.status}`);
-                }
-            } catch (error) {
-                setApiStatus("ERRO DE CONEXÃO: Não foi possível alcançar o Backend.");
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        checkApiStatus();
-    }, []); 
+  // --- 2. EMISSÃO POST: Envio de Dados Reais ---
+  const handlePostTest = async () => {
+    setLoadingPost(true);
+    setStatusPost('Iniciando Emissão de NF-e...');
     
-    // --- Nova Função para Envio POST ---
-    const sendNfeData = async () => {
-        if (!API_BASE_URL) {
-            setPostStatus("ERRO: NEXT_PUBLIC_API_URL não configurada.");
-            return;
-        }
-
-        setIsPosting(true);
-        setPostStatus("Enviando dados POST para o backend...");
-
-        // Dados simulados para emissão da NF-e
-        const simulatedData = {
-            identificacao: 'nf-0001',
-            destinatario: 'Cliente Teste Vercel',
-            valor_total: 50.99,
-            timestamp: new Date().toISOString()
-        };
-
-        try {
-            const response = await fetch(`${API_BASE_URL}${emitirRoute}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(simulatedData)
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setPostStatus(`✅ POST SUCESSO! Status: ${data.status}. Dados recebidos: ${data.dados_recebidos.identificacao}`);
-            } else {
-                setPostStatus(`❌ POST ERRO DE API: Status ${response.status}. Mensagem: ${data.mensagem || 'Falha desconhecida.'}`);
-            }
-
-        } catch (error) {
-            console.error("Erro no POST:", error);
-            setPostStatus("❌ ERRO DE CONEXÃO: Falha ao enviar dados POST.");
-        } finally {
-            setIsPosting(false);
-        }
+    // Dados dinâmicos do formulário para envio
+    const postData = {
+      // Usaremos o ID do cliente e o valor como dados essenciais
+      cliente_id: idCliente,
+      valor_total: valorNota,
+      // Aqui entrariam todos os campos da NF-e (produtos, impostos, etc.)
+      itens: [{ produto: 'Serviço de Contabilidade', valor: parseFloat(valorNota) }],
+      ambiente: 'homologacao'
     };
 
+    try {
+      const response = await fetch(`${BACKEND_URL}/nfe/emitir`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      });
 
-    return (
-        <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-            <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-                <h1 className="text-3xl font-bold text-center sm:text-left">
-                    Status da Integração Backend
-                </h1>
-                
-                {/* 1. Status da Rota GET (/nfe/teste) */}
-                <div className="p-4 rounded-lg shadow-md w-full text-center">
-                    {isLoading ? (
-                        <p className="text-blue-500 font-semibold">Carregando...</p>
-                    ) : (
-                        <p className={`text-lg font-bold ${apiStatus.startsWith('SUCESSO') ? 'text-green-600' : 'text-red-600'}`}>
-                            {apiStatus}
-                        </p>
-                    )}
-                </div>
+      const data = await response.json();
 
-                {/* --- SEÇÃO DE TESTE POST: EMISSÃO NFE --- */}
-                <h2 className="text-2xl font-bold mt-8 text-center sm:text-left">
-                    Teste de Emissão de NF-e (POST)
-                </h2>
-                <div className="flex flex-col gap-4 w-full">
-                    
-                    <button
-                        onClick={sendNfeData}
-                        disabled={isPosting}
-                        className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-gray-400 transition duration-150 ease-in-out"
-                    >
-                        {isPosting ? 'Enviando...' : 'Enviar Dados de Emissão (POST)'}
-                    </button>
+      if (response.ok) {
+        setStatusPost(`✅ POST SUCESSO! Status: ${data.mensagem}. Chave: ${data.chave_nfe}`);
+      } else {
+        // Se a senha do certificado estiver errada no backend, o erro aparece aqui
+        setStatusPost(`❌ POST FALHOU! Status: ${response.status}. Erro: ${data.mensagem}`);
+      }
+    } catch (error: any) {
+      setStatusPost(`❌ ERRO de Conexão: Falha ao enviar dados para o Backend. ${error.message}`);
+    } finally {
+      setLoadingPost(false);
+    }
+  };
 
-                    {/* Status da Rota POST (/nfe/emitir) */}
-                    <div className="p-4 rounded-lg shadow-md w-full text-center border">
-                        <p className={`text-md font-medium ${postStatus.startsWith('✅') ? 'text-green-600' : postStatus.startsWith('❌') ? 'text-red-600' : 'text-gray-500'}`}>
-                            {postStatus}
-                        </p>
-                    </div>
-                </div>
-                {/* -------------------------------------- */}
-                
-                <Image
-                    className="dark:invert mt-8"
-                    src="/next.svg"
-                    alt="Next.js logo"
-                    width={180}
-                    height={38}
-                    priority
-                />
-                
-                <p className="mt-4 text-sm text-gray-500">
-                    Esta página está testando a conexão com seu Backend na DigitalOcean.
-                </p>
-                
-            </main>
-            
-            {/* Footer original do Next.js */}
-            <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-                <a
-                    className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-                    href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <Image
-                        aria-hidden
-                        src="/file.svg"
-                        alt="File icon"
-                        width={16}
-                        height={16}
-                    />
-                    Learn
-                </a>
-                <a
-                    className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-                    href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <Image
-                        aria-hidden
-                        src="/window.svg"
-                        alt="Window icon"
-                        width={16}
-                        height={16}
-                    />
-                    Examples
-                </a>
-                <a
-                    className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-                    href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <Image
-                        aria-hidden
-                        src="/globe.svg"
-                        alt="Globe icon"
-                        width={16}
-                        height={16}
-                    />
-                    Go to nextjs.org →
-                </a>
-            </footer>
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-8">
+      <h1 className="text-4xl font-bold mb-8 text-indigo-700">Contador NF-e | Integração Next.js & Node.js</h1>
+      <p className="mb-8 text-gray-600">Teste da comunicação segura entre Frontend Vercel e Backend DigitalOcean/PM2.</p>
+
+      {/* STATUS DA INTEGRAÇÃO GET */}
+      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Status da Integração Backend (GET)</h2>
+        <button
+          onClick={handleGetTest}
+          disabled={loadingGet}
+          className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-150 disabled:bg-indigo-300"
+        >
+          {loadingGet ? 'Verificando...' : 'Verificar Status da API NF-e'}
+        </button>
+        <div className="mt-4 p-3 bg-gray-100 rounded text-sm whitespace-pre-wrap">
+          {statusGet || 'Clique para verificar a conexão, ambiente e status do certificado.'}
         </div>
-    );
+      </div>
+
+      {/* FORMULÁRIO DE EMISSÃO POST */}
+      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Teste de Emissão de NF-e (POST)</h2>
+        
+        {/* CAMPOS DO FORMULÁRIO */}
+        <div className="mb-4">
+          <label htmlFor="valorNota" className="block text-sm font-medium text-gray-700">Valor da Nota (R$)</label>
+          <input
+            id="valorNota"
+            type="number"
+            value={valorNota}
+            onChange={(e) => setValorNota(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          />
+        </div>
+        <div className="mb-6">
+          <label htmlFor="idCliente" className="block text-sm font-medium text-gray-700">ID do Cliente (Simulação)</label>
+          <input
+            id="idCliente"
+            type="text"
+            value={idCliente}
+            onChange={(e) => setIdCliente(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          />
+        </div>
+
+        {/* BOTÃO DE ENVIO */}
+        <button
+          onClick={handlePostTest}
+          disabled={loadingPost}
+          className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-150 disabled:bg-green-300"
+        >
+          {loadingPost ? 'Emitindo Nota...' : 'Emitir NF-e em Homologação'}
+        </button>
+
+        <div className="mt-4 p-3 bg-green-50 rounded text-sm font-medium whitespace-pre-wrap border border-green-200">
+          {statusPost || 'Os dados acima serão enviados ao Backend para simular a emissão fiscal.'}
+        </div>
+      </div>
+      
+      <p className="mt-6 text-xs text-gray-400">Desenvolvido com Next.js (Vercel) e Node.js/PM2 (DigitalOcean).</p>
+    </div>
+  );
 }

@@ -29,8 +29,10 @@ export default function Home() {
       } else {
         setStatusGet(`ERRO! Status: ${response.status}. Mensagem: ${data.status}`);
       }
-    } catch (error: any) {
-      setStatusGet(`ERRO de Conexão: O Backend não respondeu. ${error.message}`);
+    } catch (error) {
+      // CORREÇÃO: Tratamento seguro do tipo 'unknown' (error)
+      const message = (error as { message?: string }).message || "Erro de conexão desconhecido.";
+      setStatusGet(`ERRO de Conexão: O Backend não respondeu. ${message}`);
     } finally {
       setLoadingGet(false);
     }
@@ -68,8 +70,10 @@ export default function Home() {
         // Se a senha do certificado estiver errada no backend, o erro aparece aqui
         setStatusPost(`❌ POST FALHOU! Status: ${response.status}. Erro: ${data.mensagem}`);
       }
-    } catch (error: any) {
-      setStatusPost(`❌ ERRO de Conexão: Falha ao enviar dados para o Backend. ${error.message}`);
+    } catch (error) {
+      // CORREÇÃO: Tratamento seguro do tipo 'unknown' (error)
+      const message = (error as { message?: string }).message || "Falha ao enviar dados para o Backend.";
+      setStatusPost(`❌ ERRO de Conexão: ${message}`);
     } finally {
       setLoadingPost(false);
     }

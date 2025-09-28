@@ -105,17 +105,15 @@ export default function Configuracoes() {
   const carregarConfiguracoes = async () => {
     setLoading(true);
     try {
-      // Simular chamada para o backend
-      // const response = await fetch(`${BACKEND_URL}/configuracoes`);
-      // const data = await response.json();
-      // setConfig(data);
-      
-      // Por enquanto, usar dados mock
-      setTimeout(() => {
-        setLoading(false);
-      }, 500);
+      const response = await fetch(`${BACKEND_URL}/configuracoes`);
+      if (response.ok) {
+        const data = await response.json();
+        setConfig(data);
+      }
+      // Se não houver configurações, manter estado inicial vazio
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
+    } finally {
       setLoading(false);
     }
   };
@@ -308,23 +306,35 @@ export default function Configuracoes() {
     setMessage(null);
 
     try {
-      // Simular busca na Receita Federal
-      // Em produção, usar API real como ReceitaWS ou similar
-      setTimeout(() => {
-        // Dados simulados da Receita Federal baseados no CNPJ
-        const dadosReceita = {
-          razaoSocial: `EMPRESA ${cnpjLimpo.slice(-4)} LTDA`,
-          nomeFantasia: `Empresa ${cnpjLimpo.slice(-4)}`,
-          inscricaoEstadual: `${cnpjLimpo.slice(0, 3)}.${cnpjLimpo.slice(3, 6)}.${cnpjLimpo.slice(6, 9)}-${cnpjLimpo.slice(9, 11)}`,
-          endereco: 'RUA COMERCIAL',
-          numero: Math.floor(Math.random() * 9999 + 1).toString(),
-          complemento: 'SALA ' + Math.floor(Math.random() * 999 + 1),
-          bairro: 'CENTRO',
-          cidade: 'SÃO PAULO',
-          uf: 'SP',
-          cep: `${cnpjLimpo.slice(0, 2)}${cnpjLimpo.slice(2, 5)}-${cnpjLimpo.slice(5, 8)}`,
-          telefone: `(11) ${cnpjLimpo.slice(0, 4)}-${cnpjLimpo.slice(4, 8)}`,
-          email: `contato@empresa${cnpjLimpo.slice(-4)}.com.br`
+      // Buscar dados reais na Receita Federal via ReceitaWS
+      const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cnpjLimpo}`);
+      
+      if (response.ok) {
+        const dadosReceita = await response.json();
+        
+        if (dadosReceita.status === 'ERROR') {
+          setMessage({
+            type: 'error',
+            text: dadosReceita.message || 'CNPJ não encontrado na Receita Federal'
+          });
+          setBuscandoCNPJ(false);
+          return;
+        }
+
+        // Mapear dados da API para o formato do sistema
+        const dadosFormatados = {
+          razaoSocial: dadosReceita.nome || '',
+          nomeFantasia: dadosReceita.fantasia || dadosReceita.nome || '',
+          inscricaoEstadual: '', // Não disponível na ReceitaWS
+          endereco: dadosReceita.logradouro || '',
+          numero: dadosReceita.numero || '',
+          complemento: dadosReceita.complemento || '',
+          bairro: dadosReceita.bairro || '',
+          cidade: dadosReceita.municipio || '',
+          uf: dadosReceita.uf || '',
+          cep: dadosReceita.cep || '',
+          telefone: dadosReceita.telefone || '',
+          email: dadosReceita.email || ''
         };
 
         // Atualizar dados da empresa
@@ -332,7 +342,7 @@ export default function Configuracoes() {
           ...prev,
           empresa: {
             ...prev.empresa,
-            ...dadosReceita,
+            ...dadosFormatados,
             cnpj: formatarCNPJ(cnpjLimpo)
           }
         }));
@@ -344,7 +354,13 @@ export default function Configuracoes() {
           type: 'success',
           text: 'Dados da empresa carregados com sucesso! Você pode agora editar os campos conforme necessário.'
         });
-      }, 2000);
+      } else {
+        setMessage({
+          type: 'error',
+          text: 'Erro ao consultar CNPJ na Receita Federal'
+        });
+        setBuscandoCNPJ(false);
+      }
 
     } catch (error) {
       setBuscandoCNPJ(false);

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { 
   FileText, 
   CheckCircle, 
@@ -23,6 +25,7 @@ interface DashboardStats {
 }
 
 export default function Home() {
+  const { data: session } = useSession();
   const [stats, setStats] = useState<DashboardStats>({
     nfesEmitidas: 0,
     nfesValidadas: 0,
@@ -49,14 +52,35 @@ export default function Home() {
   };
 
   const loadDashboardStats = async () => {
-    // Simulando dados para o dashboard
-    // Em produção, estes dados viriam do backend
-    setStats({
-      nfesEmitidas: 1247,
-      nfesValidadas: 1189,
-      valorTotal: 2847392.50,
-      clientesAtivos: 89
-    });
+    try {
+      // Tentar carregar dados reais do backend
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      if (backendUrl) {
+        const response = await fetch(`${backendUrl}/dashboard/stats`);
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+          return;
+        }
+      }
+      
+      // Estado inicial vazio para novo sistema
+      setStats({
+        nfesEmitidas: 0,
+        nfesValidadas: 0,
+        valorTotal: 0,
+        clientesAtivos: 0
+      });
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
+      // Estado inicial vazio em caso de erro
+      setStats({
+        nfesEmitidas: 0,
+        nfesValidadas: 0,
+        valorTotal: 0,
+        clientesAtivos: 0
+      });
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -78,15 +102,25 @@ export default function Home() {
             </p>
           </div>
           <div className="mt-4 sm:mt-0">
-            <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${
-                systemStatus === 'online' ? 'bg-green-500' : 
-                systemStatus === 'offline' ? 'bg-red-500' : 'bg-yellow-500'
-              }`}></div>
-              <span className="text-sm text-gray-600">
-                Sistema {systemStatus === 'online' ? 'Online' : 
-                        systemStatus === 'offline' ? 'Offline' : 'Verificando...'}
-              </span>
+            <div className="flex items-center space-x-4">
+              {session?.user?.role === 'admin' && (
+                <Link
+                  href="/admin"
+                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center text-sm"
+                >
+                  🛡️ Painel Admin
+                </Link>
+              )}
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${
+                  systemStatus === 'online' ? 'bg-green-500' : 
+                  systemStatus === 'offline' ? 'bg-red-500' : 'bg-yellow-500'
+                }`}></div>
+                <span className="text-sm text-gray-600">
+                  Sistema {systemStatus === 'online' ? 'Online' : 
+                          systemStatus === 'offline' ? 'Offline' : 'Verificando...'}
+                </span>
+              </div>
             </div>
           </div>
         </div>

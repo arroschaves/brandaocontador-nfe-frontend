@@ -55,65 +55,7 @@ export default function HistoricoNFe() {
     numero: ''
   });
 
-  // Dados mock para demonstração
-  const nfesMock: NFe[] = [
-    {
-      id: '1',
-      numero: '000000001',
-      serie: '1',
-      chaveAcesso: '35240145669746000120550010000000011123456789',
-      dataEmissao: '2024-01-15T10:30:00Z',
-      destinatario: {
-        nome: 'João Silva',
-        cpfCnpj: '123.456.789-00'
-      },
-      valorTotal: 500.00,
-      status: 'emitida',
-      ambiente: 'homologacao',
-      protocolo: '135240000000001'
-    },
-    {
-      id: '2',
-      numero: '000000002',
-      serie: '1',
-      chaveAcesso: '35240145669746000120550010000000021123456789',
-      dataEmissao: '2024-01-14T14:20:00Z',
-      destinatario: {
-        nome: 'Maria Santos',
-        cpfCnpj: '987.654.321-00'
-      },
-      valorTotal: 750.00,
-      status: 'emitida',
-      ambiente: 'homologacao',
-      protocolo: '135240000000002'
-    },
-    {
-      id: '3',
-      numero: '000000003',
-      serie: '1',
-      dataEmissao: '2024-01-13T09:15:00Z',
-      destinatario: {
-        nome: 'Empresa ABC Ltda',
-        cpfCnpj: '12.345.678/0001-90'
-      },
-      valorTotal: 1200.00,
-      status: 'pendente',
-      ambiente: 'homologacao'
-    },
-    {
-      id: '4',
-      numero: '000000004',
-      serie: '1',
-      dataEmissao: '2024-01-12T16:45:00Z',
-      destinatario: {
-        nome: 'Pedro Costa',
-        cpfCnpj: '456.789.123-00'
-      },
-      valorTotal: 300.00,
-      status: 'erro',
-      ambiente: 'homologacao'
-    }
-  ];
+  // Estado inicial vazio - dados serão carregados do backend
 
   useEffect(() => {
     carregarNFes();
@@ -122,59 +64,48 @@ export default function HistoricoNFe() {
   const carregarNFes = async () => {
     setLoading(true);
     try {
-      // Simular chamada para o backend
-      // const response = await fetch(`${BACKEND_URL}/nfe/historico`);
-      // const data = await response.json();
-      
-      // Por enquanto, usar dados mock
-      setTimeout(() => {
-        setNfes(nfesMock);
-        setLoading(false);
-      }, 1000);
+      const response = await fetch(`${BACKEND_URL}/nfe/historico`);
+      if (response.ok) {
+        const data = await response.json();
+        setNfes(data.nfes || []);
+      } else {
+        // Sistema novo - sem NFes ainda
+        setNfes([]);
+      }
     } catch (error) {
       console.error('Erro ao carregar NFes:', error);
-      setNfes(nfesMock); // Fallback para dados mock
+      // Sistema novo - sem NFes ainda
+      setNfes([]);
+    } finally {
       setLoading(false);
     }
   };
 
-  const aplicarFiltros = () => {
-    let nfesFiltradas = [...nfesMock];
+  const aplicarFiltros = async () => {
+    setLoading(true);
+    try {
+      // Construir query string com filtros
+      const params = new URLSearchParams();
+      if (filtros.dataInicio) params.append('dataInicio', filtros.dataInicio);
+      if (filtros.dataFim) params.append('dataFim', filtros.dataFim);
+      if (filtros.status) params.append('status', filtros.status);
+      if (filtros.ambiente) params.append('ambiente', filtros.ambiente);
+      if (filtros.destinatario) params.append('destinatario', filtros.destinatario);
+      if (filtros.numero) params.append('numero', filtros.numero);
 
-    if (filtros.dataInicio) {
-      nfesFiltradas = nfesFiltradas.filter(nfe => 
-        new Date(nfe.dataEmissao) >= new Date(filtros.dataInicio)
-      );
+      const response = await fetch(`${BACKEND_URL}/nfe/historico?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setNfes(data.nfes || []);
+      } else {
+        setNfes([]);
+      }
+    } catch (error) {
+      console.error('Erro ao aplicar filtros:', error);
+      setNfes([]);
+    } finally {
+      setLoading(false);
     }
-
-    if (filtros.dataFim) {
-      nfesFiltradas = nfesFiltradas.filter(nfe => 
-        new Date(nfe.dataEmissao) <= new Date(filtros.dataFim)
-      );
-    }
-
-    if (filtros.status) {
-      nfesFiltradas = nfesFiltradas.filter(nfe => nfe.status === filtros.status);
-    }
-
-    if (filtros.ambiente) {
-      nfesFiltradas = nfesFiltradas.filter(nfe => nfe.ambiente === filtros.ambiente);
-    }
-
-    if (filtros.destinatario) {
-      nfesFiltradas = nfesFiltradas.filter(nfe => 
-        nfe.destinatario.nome.toLowerCase().includes(filtros.destinatario.toLowerCase()) ||
-        nfe.destinatario.cpfCnpj.includes(filtros.destinatario)
-      );
-    }
-
-    if (filtros.numero) {
-      nfesFiltradas = nfesFiltradas.filter(nfe => 
-        nfe.numero.includes(filtros.numero)
-      );
-    }
-
-    setNfes(nfesFiltradas);
   };
 
   const limparFiltros = () => {

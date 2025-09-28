@@ -39,10 +39,12 @@ export default function Home() {
 
   const checkSystemStatus = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/nfe/teste`);
+      // Usa a rota interna da API que bypassa o Cloudflare
+      const response = await fetch('/api/status');
       const data = await response.json();
       setSystemStatus(data.sucesso ? 'online' : 'offline');
     } catch (error) {
+      console.error('Erro ao verificar status:', error);
       setSystemStatus('offline');
     }
   };

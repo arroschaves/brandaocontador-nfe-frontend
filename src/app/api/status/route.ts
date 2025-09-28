@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Tenta conectar diretamente com o backend local
-    const response = await fetch('http://localhost:3001/nfe/teste', {
+    // Determina a URL do backend baseada no ambiente
+    const backendUrl = process.env.NODE_ENV === 'production' 
+      ? 'http://159.223.83.207:3001' 
+      : 'http://localhost:3001';
+    
+    const response = await fetch(`${backendUrl}/nfe/teste`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

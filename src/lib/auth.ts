@@ -110,11 +110,14 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-for-development',
+  
+  // URL base para callbacks
+  url: process.env.NEXTAUTH_URL || (process.env.NODE_ENV === 'production' ? 'https://nfe.brandaocontador.com.br' : 'http://localhost:3000'),
 
-  // Configurações para desenvolvimento
+  // Configurações de desenvolvimento
   debug: process.env.NODE_ENV === 'development',
   
-  // Desabilitar HTTPS em desenvolvimento
+  // Configurações de produção
   useSecureCookies: process.env.NODE_ENV === 'production',
 }

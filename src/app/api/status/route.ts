@@ -2,18 +2,21 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Determina a URL do backend baseada no ambiente
+    // Determinar URL do backend baseado no ambiente
     const backendUrl = process.env.NODE_ENV === 'production' 
-      ? 'http://159.223.83.207:3001' 
-      : 'http://localhost:3001';
+      ? 'https://api.brandaocontador.com.br'  // Usar domínio configurado no Nginx
+      : 'http://localhost:3001';              // Local para desenvolvimento
+    
+    console.log('Tentando conectar com backend:', backendUrl);
     
     const response = await fetch(`${backendUrl}/nfe/teste`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': 'NFe-Frontend/1.0'
       },
-      // Timeout de 5 segundos
-      signal: AbortSignal.timeout(5000)
+      // Timeout de 15 segundos para dar tempo ao Cloudflare
+      signal: AbortSignal.timeout(15000)
     });
 
     if (!response.ok) {
@@ -23,18 +26,19 @@ export async function GET() {
     const data = await response.json();
     
     return NextResponse.json({
-      sucesso: data.sucesso || false,
-      mensagem: data.mensagem || 'Status verificado',
-      timestamp: new Date().toISOString()
+      sucesso: true,
+      mensagem: 'API NFe funcionando corretamente!',
+      timeStamp: new Date().toISOString(),
+      backend: data
     });
 
-  } catch (error) {
-    console.error('Erro ao verificar status do sistema:', error);
+  } catch (error: any) {
+    console.error('Erro ao conectar com backend:', error);
     
     return NextResponse.json({
       sucesso: false,
       mensagem: 'Erro ao conectar com o backend',
-      erro: error instanceof Error ? error.message : 'Erro desconhecido',
+      erro: error.message,
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }

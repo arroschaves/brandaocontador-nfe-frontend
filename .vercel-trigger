@@ -1,6 +1,8 @@
-Deploy trigger: 2025-01-28 09:41
-Build corrections applied:
-- Removed turbopack from package.json
-- Fixed HTML quotes escaping
-- Simplified vercel.json configuration
+Deploy trigger: 2025-01-28 20:18
+Admin panel deployment:
+- Added complete admin panel with user management
+- Implemented NextAuth authentication system
+- Added admin middleware and route protection
+- Created admin APIs for stats and user management
+- Updated navigation and UI components
 - Disabled ESLint during builds

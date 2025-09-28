@@ -1116,7 +1116,7 @@ export default function Configuracoes() {
                               <li>• Deve estar válido e dentro do prazo de validade</li>
                               <li>• A senha é necessária para usar o certificado</li>
                               <li>• Os dados são armazenados de forma segura</li>
-                              <li>• Use os botões "Salvar" para validar e "Editar" para alterar</li>
+                              <li>• Use os botões &quot;Salvar&quot; para validar e &quot;Editar&quot; para alterar</li>
                             </ul>
                           </div>
                         </div>

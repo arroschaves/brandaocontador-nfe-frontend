@@ -259,7 +259,7 @@ export default function ValidarNFe() {
                     Nenhuma validação realizada
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Insira os dados JSON e clique em "Validar Dados"
+                    Insira os dados JSON e clique em &quot;Validar Dados&quot;
                   </p>
                 </div>
               )}

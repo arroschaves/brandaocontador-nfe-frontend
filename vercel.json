@@ -1,22 +1,19 @@
 {
-  "version": 2,
-  "name": "brandaocontador-nfe-frontend",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "https://api.brandaocontador.com.br/api/$1"
-    }
-  ],
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
   "env": {
     "NEXT_PUBLIC_API_URL": "https://api.brandaocontador.com.br",
+    "NEXT_PUBLIC_BACKEND_URL": "https://api.brandaocontador.com.br",
     "NEXT_PUBLIC_ENVIRONMENT": "production"
   },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.brandaocontador.com.br/api/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

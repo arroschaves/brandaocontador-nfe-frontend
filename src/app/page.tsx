@@ -39,8 +39,9 @@ export default function Home() {
 
   const checkSystemStatus = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/health`);
-      setSystemStatus(response.ok ? 'online' : 'offline');
+      const response = await fetch(`${BACKEND_URL}/nfe/teste`);
+      const data = await response.json();
+      setSystemStatus(data.sucesso ? 'online' : 'offline');
     } catch (error) {
       setSystemStatus('offline');
     }

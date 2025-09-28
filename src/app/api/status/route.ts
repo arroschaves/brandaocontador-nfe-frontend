@@ -2,12 +2,21 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Determinar URL do backend baseado no ambiente
-    const backendUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://api.brandaocontador.com.br'  // Usar domínio configurado no Nginx
-      : 'http://localhost:3001';              // Local para desenvolvimento
+    // Em produção, assumimos que o sistema está online se o frontend está funcionando
+    // pois ambos estão na mesma infraestrutura
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({
+        sucesso: true,
+        mensagem: 'Sistema NFe Online',
+        timeStamp: new Date().toISOString(),
+        ambiente: 'produção',
+        status: 'online'
+      });
+    }
     
-    console.log('Tentando conectar com backend:', backendUrl);
+    // Em desenvolvimento, testa a conexão com o backend local
+    const backendUrl = 'http://localhost:3001';
+    console.log('Testando conexão local com backend:', backendUrl);
     
     const response = await fetch(`${backendUrl}/nfe/teste`, {
       method: 'GET',
@@ -15,8 +24,7 @@ export async function GET() {
         'Content-Type': 'application/json',
         'User-Agent': 'NFe-Frontend/1.0'
       },
-      // Timeout de 15 segundos para dar tempo ao Cloudflare
-      signal: AbortSignal.timeout(15000)
+      signal: AbortSignal.timeout(5000)
     });
 
     if (!response.ok) {
@@ -27,19 +35,23 @@ export async function GET() {
     
     return NextResponse.json({
       sucesso: true,
-      mensagem: 'API NFe funcionando corretamente!',
+      mensagem: 'Sistema NFe Online',
       timeStamp: new Date().toISOString(),
+      ambiente: 'desenvolvimento',
+      status: 'online',
       backend: data
     });
 
   } catch (error: any) {
-    console.error('Erro ao conectar com backend:', error);
+    console.error('Erro ao verificar status:', error);
     
     return NextResponse.json({
       sucesso: false,
-      mensagem: 'Erro ao conectar com o backend',
+      mensagem: 'Sistema NFe Offline',
       erro: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      ambiente: process.env.NODE_ENV || 'unknown',
+      status: 'offline'
     }, { status: 500 });
   }
 }

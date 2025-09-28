@@ -11,7 +11,7 @@ import {
   Eye
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+import { buildApiUrl, API_ENDPOINTS } from '@/config/api';
 
 interface ValidationResult {
   valido: boolean;

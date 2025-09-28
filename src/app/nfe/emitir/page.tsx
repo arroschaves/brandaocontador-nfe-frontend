@@ -12,7 +12,7 @@ import {
   Calculator
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+import { buildApiUrl, API_ENDPOINTS, DEFAULT_FETCH_CONFIG } from '@/config/api';
 
 interface ItemNFe {
   id: string;
@@ -200,11 +200,9 @@ export default function EmitirNFe() {
     };
 
     try {
-      const response = await fetch(`${BACKEND_URL}/nfe/emitir`, {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.NFE.EMITIR), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        ...DEFAULT_FETCH_CONFIG,
         body: JSON.stringify(dadosNFe),
       });
 

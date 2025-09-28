@@ -13,8 +13,7 @@ import {
   Activity
 } from 'lucide-react';
 
-// URL do Backend
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+import { buildApiUrl, API_ENDPOINTS } from '@/config/api';
 
 interface DashboardStats {
   nfesEmitidas: number;

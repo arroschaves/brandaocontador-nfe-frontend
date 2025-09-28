@@ -1,145 +1,320 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Layout from '@/components/Layout';
+import { 
+  FileText, 
+  CheckCircle, 
+  AlertTriangle, 
+  TrendingUp,
+  Calendar,
+  DollarSign,
+  Users,
+  Activity
+} from 'lucide-react';
 
-// URL do Backend na DigitalOcean (Certifique-se de que está correta)
-const BACKEND_URL = 'https://api.brandaocontador.com.br';
+// URL do Backend
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
+interface DashboardStats {
+  nfesEmitidas: number;
+  nfesValidadas: number;
+  valorTotal: number;
+  clientesAtivos: number;
+}
 
 export default function Home() {
-  const [statusGet, setStatusGet] = useState('');
-  const [statusPost, setStatusPost] = useState('');
-  const [loadingGet, setLoadingGet] = useState(false);
-  const [loadingPost, setLoadingPost] = useState(false);
-  
-  // NOVOS ESTADOS PARA O FORMULÁRIO
-  const [valorNota, setValorNota] = useState('1000.50');
-  const [idCliente, setIdCliente] = useState('C007');
+  const [stats, setStats] = useState<DashboardStats>({
+    nfesEmitidas: 0,
+    nfesValidadas: 0,
+    valorTotal: 0,
+    clientesAtivos: 0
+  });
+  const [systemStatus, setSystemStatus] = useState<'online' | 'offline' | 'checking'>('checking');
 
-  // --- 1. TESTE GET: Status da Integração ---
-  const handleGetTest = async () => {
-    setLoadingGet(true);
-    setStatusGet('Verificando status do Backend...');
+  useEffect(() => {
+    checkSystemStatus();
+    loadDashboardStats();
+  }, []);
+
+  const checkSystemStatus = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/nfe/teste`);
-      const data = await response.json();
-
-      if (response.ok) {
-        // Exibe o JSON completo (incluindo status do certificado e ambiente)
-        setStatusGet(`SUCESSO! Mensagem do Backend: "${data.status}" | Ambiente: ${data.ambiente_atual} | Certificado: ${data.certificado_status}`);
-      } else {
-        setStatusGet(`ERRO! Status: ${response.status}. Mensagem: ${data.status}`);
-      }
+      const response = await fetch(`${BACKEND_URL}/health`);
+      setSystemStatus(response.ok ? 'online' : 'offline');
     } catch (error) {
-      // CORREÇÃO: Tratamento seguro do tipo 'unknown' (error)
-      const message = (error as { message?: string }).message || "Erro de conexão desconhecido.";
-      setStatusGet(`ERRO de Conexão: O Backend não respondeu. ${message}`);
-    } finally {
-      setLoadingGet(false);
+      setSystemStatus('offline');
     }
   };
 
-  // --- 2. EMISSÃO POST: Envio de Dados Reais ---
-  const handlePostTest = async () => {
-    setLoadingPost(true);
-    setStatusPost('Iniciando Emissão de NF-e...');
-    
-    // Dados dinâmicos do formulário para envio
-    const postData = {
-      // Usaremos o ID do cliente e o valor como dados essenciais
-      cliente_id: idCliente,
-      valor_total: valorNota,
-      // Aqui entrariam todos os campos da NF-e (produtos, impostos, etc.)
-      itens: [{ produto: 'Serviço de Contabilidade', valor: parseFloat(valorNota) }],
-      ambiente: 'homologacao'
-    };
+  const loadDashboardStats = async () => {
+    // Simulando dados para o dashboard
+    // Em produção, estes dados viriam do backend
+    setStats({
+      nfesEmitidas: 1247,
+      nfesValidadas: 1189,
+      valorTotal: 2847392.50,
+      clientesAtivos: 89
+    });
+  };
 
-    try {
-      const response = await fetch(`${BACKEND_URL}/nfe/emitir`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatusPost(`✅ POST SUCESSO! Status: ${data.mensagem}. Chave: ${data.chave_nfe}`);
-      } else {
-        // Se a senha do certificado estiver errada no backend, o erro aparece aqui
-        setStatusPost(`❌ POST FALHOU! Status: ${response.status}. Erro: ${data.mensagem}`);
-      }
-    } catch (error) {
-      // CORREÇÃO: Tratamento seguro do tipo 'unknown' (error)
-      const message = (error as { message?: string }).message || "Falha ao enviar dados para o Backend.";
-      setStatusPost(`❌ ERRO de Conexão: ${message}`);
-    } finally {
-      setLoadingPost(false);
-    }
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-8">
-      <h1 className="text-4xl font-bold mb-8 text-indigo-700">Contador NF-e | Integração Next.js & Node.js</h1>
-      <p className="mb-8 text-gray-600">Teste da comunicação segura entre Frontend Vercel e Backend DigitalOcean/PM2.</p>
+    <Layout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Visão geral do sistema de NFe
+            </p>
+          </div>
+          <div className="mt-4 sm:mt-0">
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${
+                systemStatus === 'online' ? 'bg-green-500' : 
+                systemStatus === 'offline' ? 'bg-red-500' : 'bg-yellow-500'
+              }`}></div>
+              <span className="text-sm text-gray-600">
+                Sistema {systemStatus === 'online' ? 'Online' : 
+                        systemStatus === 'offline' ? 'Offline' : 'Verificando...'}
+              </span>
+            </div>
+          </div>
+        </div>
 
-      {/* STATUS DA INTEGRAÇÃO GET */}
-      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg mb-8">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Status da Integração Backend (GET)</h2>
-        <button
-          onClick={handleGetTest}
-          disabled={loadingGet}
-          className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-150 disabled:bg-indigo-300"
-        >
-          {loadingGet ? 'Verificando...' : 'Verificar Status da API NF-e'}
-        </button>
-        <div className="mt-4 p-3 bg-gray-100 rounded text-sm whitespace-pre-wrap">
-          {statusGet || 'Clique para verificar a conexão, ambiente e status do certificado.'}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      NFes Emitidas
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.nfesEmitidas.toLocaleString('pt-BR')}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      NFes Validadas
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.nfesValidadas.toLocaleString('pt-BR')}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <DollarSign className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Valor Total
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {formatCurrency(stats.valorTotal)}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Users className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Clientes Ativos
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.clientesAtivos}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+              Ações Rápidas
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <a
+                href="/nfe/emitir"
+                className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+              >
+                <div>
+                  <span className="rounded-lg inline-flex p-3 bg-blue-50 text-blue-600 ring-4 ring-white">
+                    <FileText className="h-6 w-6" />
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Emitir NFe
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Criar e emitir uma nova Nota Fiscal Eletrônica
+                  </p>
+                </div>
+              </a>
+
+              <a
+                href="/nfe/validar"
+                className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+              >
+                <div>
+                  <span className="rounded-lg inline-flex p-3 bg-green-50 text-green-600 ring-4 ring-white">
+                    <CheckCircle className="h-6 w-6" />
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Validar NFe
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Validar dados de uma Nota Fiscal antes da emissão
+                  </p>
+                </div>
+              </a>
+
+              <a
+                href="/nfe/historico"
+                className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+              >
+                <div>
+                  <span className="rounded-lg inline-flex p-3 bg-purple-50 text-purple-600 ring-4 ring-white">
+                    <Activity className="h-6 w-6" />
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Histórico
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Consultar histórico de NFes emitidas
+                  </p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+              Atividade Recente
+            </h3>
+            <div className="flow-root">
+              <ul className="-mb-8">
+                <li>
+                  <div className="relative pb-8">
+                    <div className="relative flex space-x-3">
+                      <div>
+                        <span className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                          <CheckCircle className="h-5 w-5 text-white" />
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            NFe <span className="font-medium text-gray-900">#000001247</span> emitida com sucesso
+                          </p>
+                        </div>
+                        <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                          <time>2 min atrás</time>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div className="relative pb-8">
+                    <div className="relative flex space-x-3">
+                      <div>
+                        <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                          <FileText className="h-5 w-5 text-white" />
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Validação realizada para cliente <span className="font-medium text-gray-900">João Silva</span>
+                          </p>
+                        </div>
+                        <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                          <time>5 min atrás</time>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div className="relative">
+                    <div className="relative flex space-x-3">
+                      <div>
+                        <span className="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white">
+                          <AlertTriangle className="h-5 w-5 text-white" />
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Certificado digital expira em <span className="font-medium text-gray-900">30 dias</span>
+                          </p>
+                        </div>
+                        <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                          <time>1 hora atrás</time>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* FORMULÁRIO DE EMISSÃO POST */}
-      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Teste de Emissão de NF-e (POST)</h2>
-        
-        {/* CAMPOS DO FORMULÁRIO */}
-        <div className="mb-4">
-          <label htmlFor="valorNota" className="block text-sm font-medium text-gray-700">Valor da Nota (R$)</label>
-          <input
-            id="valorNota"
-            type="number"
-            value={valorNota}
-            onChange={(e) => setValorNota(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-          />
-        </div>
-        <div className="mb-6">
-          <label htmlFor="idCliente" className="block text-sm font-medium text-gray-700">ID do Cliente (Simulação)</label>
-          <input
-            id="idCliente"
-            type="text"
-            value={idCliente}
-            onChange={(e) => setIdCliente(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-          />
-        </div>
-
-        {/* BOTÃO DE ENVIO */}
-        <button
-          onClick={handlePostTest}
-          disabled={loadingPost}
-          className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-150 disabled:bg-green-300"
-        >
-          {loadingPost ? 'Emitindo Nota...' : 'Emitir NF-e em Homologação'}
-        </button>
-
-        <div className="mt-4 p-3 bg-green-50 rounded text-sm font-medium whitespace-pre-wrap border border-green-200">
-          {statusPost || 'Os dados acima serão enviados ao Backend para simular a emissão fiscal.'}
-        </div>
-      </div>
-      
-      <p className="mt-6 text-xs text-gray-400">Desenvolvido com Next.js (Vercel) e Node.js/PM2 (DigitalOcean).</p>
-    </div>
+    </Layout>
   );
 }

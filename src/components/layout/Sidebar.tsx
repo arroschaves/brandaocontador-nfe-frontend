@@ -7,6 +7,7 @@ import {
   History,
   BarChart3,
   Settings,
+  Users,
   LogOut,
   Menu,
   X
@@ -60,6 +61,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       description: 'Configurações do sistema'
     }
   ];
+
+  // Itens de menu específicos para administradores
+  const adminMenuItems = [
+    {
+      path: '/gerenciar-usuarios',
+      icon: Users,
+      label: 'Gerenciar Usuários',
+      description: 'Administrar usuários do sistema'
+    }
+  ];
+
+  // Combinar itens de menu baseado no perfil do usuário
+  const allMenuItems = user?.perfil === 'admin' 
+    ? [...menuItems, ...adminMenuItems] 
+    : menuItems;
 
   const handleLogout = () => {
     logout();
@@ -125,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item) => {
+          {allMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
 

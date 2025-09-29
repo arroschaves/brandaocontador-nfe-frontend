@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com chrome-extension:",
               "style-src 'self' 'unsafe-inline' https://www.gstatic.com",
               "img-src 'self' data: blob: https://www.gstatic.com",
               "font-src 'self' https://fonts.gstatic.com",

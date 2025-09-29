@@ -16,14 +16,14 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "http://164.90.157.173:3001",
+    "VITE_API_URL": "https://api.brandaocontador.com.br",
     "VITE_APP_NAME": "Sistema NFe",
     "VITE_APP_VERSION": "1.0.0",
     "VITE_ENVIRONMENT": "production"
   },
   "build": {
     "env": {
-      "VITE_API_URL": "http://164.90.157.173:3001",
+      "VITE_API_URL": "https://api.brandaocontador.com.br",
       "VITE_APP_NAME": "Sistema NFe",
       "VITE_APP_VERSION": "1.0.0",
       "VITE_ENVIRONMENT": "production"

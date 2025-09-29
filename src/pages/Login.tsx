@@ -18,15 +18,15 @@ const Login: React.FC = () => {
   const { login, isAuthenticated, error, clearError } = useAuth();
   const { showToast } = useToast();
 
-  // Redirecionar se já estiver autenticado
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   // Limpar erro quando componente montar
   useEffect(() => {
     clearError();
   }, []);
+
+  // Redirecionar se já estiver autenticado
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -81,14 +81,14 @@ const Login: React.FC = () => {
   const fillTestCredentials = (type: 'admin' | 'user') => {
     if (type === 'admin') {
       setFormData({
-        email: 'admin@brandao.com',
-        password: '123456'
+        email: 'admin@brandaocontador.com.br',
+        password: 'admin123'
       });
       showToast('Credenciais de administrador preenchidas', 'info');
     } else {
       setFormData({
-        email: 'usuario@brandao.com',
-        password: '123456'
+        email: 'usuario@brandaocontador.com.br',
+        password: 'usuario123'
       });
       showToast('Credenciais de usuário preenchidas', 'info');
     }

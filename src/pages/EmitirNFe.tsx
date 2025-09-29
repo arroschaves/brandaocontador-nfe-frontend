@@ -20,6 +20,7 @@ import { Button, ButtonLoading } from '../components/ui/button';
 import { useToast } from '../contexts/ToastContext';
 import notificationService from '../services/notificationService';
 import errorService from '../services/errorService';
+import { API_BASE_URL } from '../config/api';
 
 interface ItemNFe {
   id: string;
@@ -377,7 +378,7 @@ const EmitirNFe: React.FC = () => {
     const loadingToast = notificationService.loading('Salvando rascunho...');
     
     try {
-      const response = await fetch('http://localhost:3001/nfe/rascunho', {
+      const response = await fetch(`${API_BASE_URL}/nfe/rascunho`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -410,7 +411,7 @@ const EmitirNFe: React.FC = () => {
     const loadingToast = notificationService.loading('Emitindo NFe...');
     
     try {
-      const response = await fetch('http://localhost:3001/nfe/emitir', {
+      const response = await fetch(`${API_BASE_URL}/nfe/emitir`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

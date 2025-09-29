@@ -128,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { showToast } = useToast();
 
   // API de autenticação integrada com backend
-  const API_BASE_URL = 'http://localhost:3001';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.brandaocontador.com.br';
   
   const authAPI = {
     login: async (email: string, password: string) => {

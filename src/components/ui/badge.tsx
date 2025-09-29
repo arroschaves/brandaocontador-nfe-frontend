@@ -1,46 +1,257 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva, type VariantProps } from "class-variance-authority"
+import React from 'react';
+import { LucideIcon } from 'lucide-react';
 
-import { cn } from "@/lib/utils"
-
-const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
-        destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-function Badge({
-  className,
-  variant,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "span"
-
-  return (
-    <Comp
-      data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
-      {...props}
-    />
-  )
+interface BadgeProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'success' | 'error' | 'warning' | 'info' | 'secondary';
+  size?: 'sm' | 'md' | 'lg';
+  icon?: LucideIcon;
+  className?: string;
+  onClick?: () => void;
 }
 
-export { Badge, badgeVariants }
+interface StatusBadgeProps {
+  status: 'autorizada' | 'cancelada' | 'rejeitada' | 'pendente' | 'processando' | 'erro';
+  className?: string;
+}
+
+const Badge: React.FC<BadgeProps> = ({
+  children,
+  variant = 'default',
+  size = 'md',
+  icon: Icon,
+  className = '',
+  onClick
+}) => {
+  const getVariantClasses = () => {
+    switch (variant) {
+      case 'success':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'error':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'info':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'secondary':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getSizeClasses = () => {
+    switch (size) {
+      case 'sm':
+        return 'px-2 py-1 text-xs';
+      case 'lg':
+        return 'px-4 py-2 text-base';
+      default:
+        return 'px-3 py-1 text-sm';
+    }
+  };
+
+  const baseClasses = 'inline-flex items-center font-medium rounded-full border';
+  const interactiveClasses = onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : '';
+  
+  return (
+    <span
+      className={`${baseClasses} ${getVariantClasses()} ${getSizeClasses()} ${interactiveClasses} ${className}`}
+      onClick={onClick}
+    >
+      {Icon && (
+        <Icon className={`${size === 'sm' ? 'h-3 w-3' : size === 'lg' ? 'h-5 w-5' : 'h-4 w-4'} ${children ? 'mr-1' : ''}`} />
+      )}
+      {children}
+    </span>
+  );
+};
+
+const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => {
+  const getStatusConfig = () => {
+    switch (status) {
+      case 'autorizada':
+        return {
+          variant: 'success' as const,
+          text: 'Autorizada'
+        };
+      case 'cancelada':
+        return {
+          variant: 'secondary' as const,
+          text: 'Cancelada'
+        };
+      case 'rejeitada':
+        return {
+          variant: 'error' as const,
+          text: 'Rejeitada'
+        };
+      case 'pendente':
+        return {
+          variant: 'warning' as const,
+          text: 'Pendente'
+        };
+      case 'processando':
+        return {
+          variant: 'info' as const,
+          text: 'Processando'
+        };
+      case 'erro':
+        return {
+          variant: 'error' as const,
+          text: 'Erro'
+        };
+      default:
+        return {
+          variant: 'default' as const,
+          text: 'Desconhecido'
+        };
+    }
+  };
+
+  const config = getStatusConfig();
+
+  return (
+    <Badge variant={config.variant} className={className}>
+      {config.text}
+    </Badge>
+  );
+};
+
+// Badge para prioridade
+interface PriorityBadgeProps {
+  priority: 'alta' | 'media' | 'baixa';
+  className?: string;
+}
+
+const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority, className = '' }) => {
+  const getPriorityConfig = () => {
+    switch (priority) {
+      case 'alta':
+        return {
+          variant: 'error' as const,
+          text: 'Alta'
+        };
+      case 'media':
+        return {
+          variant: 'warning' as const,
+          text: 'Média'
+        };
+      case 'baixa':
+        return {
+          variant: 'success' as const,
+          text: 'Baixa'
+        };
+      default:
+        return {
+          variant: 'default' as const,
+          text: 'Normal'
+        };
+    }
+  };
+
+  const config = getPriorityConfig();
+
+  return (
+    <Badge variant={config.variant} size="sm" className={className}>
+      {config.text}
+    </Badge>
+  );
+};
+
+// Badge para tipo de documento
+interface DocumentTypeBadgeProps {
+  type: 'nfe' | 'nfce' | 'cte' | 'mdfe';
+  className?: string;
+}
+
+const DocumentTypeBadge: React.FC<DocumentTypeBadgeProps> = ({ type, className = '' }) => {
+  const getTypeConfig = () => {
+    switch (type) {
+      case 'nfe':
+        return {
+          variant: 'info' as const,
+          text: 'NF-e'
+        };
+      case 'nfce':
+        return {
+          variant: 'success' as const,
+          text: 'NFC-e'
+        };
+      case 'cte':
+        return {
+          variant: 'warning' as const,
+          text: 'CT-e'
+        };
+      case 'mdfe':
+        return {
+          variant: 'secondary' as const,
+          text: 'MDF-e'
+        };
+      default:
+        return {
+          variant: 'default' as const,
+          text: 'Documento'
+        };
+    }
+  };
+
+  const config = getTypeConfig();
+
+  return (
+    <Badge variant={config.variant} size="sm" className={className}>
+      {config.text}
+    </Badge>
+  );
+};
+
+// Badge para ambiente
+interface EnvironmentBadgeProps {
+  environment: 'producao' | 'homologacao';
+  className?: string;
+}
+
+const EnvironmentBadge: React.FC<EnvironmentBadgeProps> = ({ environment, className = '' }) => {
+  const getEnvironmentConfig = () => {
+    switch (environment) {
+      case 'producao':
+        return {
+          variant: 'success' as const,
+          text: 'Produção'
+        };
+      case 'homologacao':
+        return {
+          variant: 'warning' as const,
+          text: 'Homologação'
+        };
+      default:
+        return {
+          variant: 'default' as const,
+          text: 'Ambiente'
+        };
+    }
+  };
+
+  const config = getEnvironmentConfig();
+
+  return (
+    <Badge variant={config.variant} size="sm" className={className}>
+      {config.text}
+    </Badge>
+  );
+};
+
+export {
+  Badge,
+  StatusBadge,
+  PriorityBadge,
+  DocumentTypeBadge,
+  EnvironmentBadge
+};
+
+export type {
+  BadgeProps,
+  StatusBadgeProps,
+  PriorityBadgeProps,
+  DocumentTypeBadgeProps,
+  EnvironmentBadgeProps
+};

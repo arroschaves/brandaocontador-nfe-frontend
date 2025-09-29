@@ -1,12 +1,12 @@
 // Configuração da API para diferentes ambientes
 export const getApiUrl = (): string => {
   // Em produção, usar a API do Cloudflare
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.VITE_NODE_ENV === 'production') {
     return 'https://api.brandaocontador.com.br';
   }
   
   // Em desenvolvimento, usar localhost
-  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
 };
 
 // URL base da API

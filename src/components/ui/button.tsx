@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Loader2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -55,4 +56,34 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
+// Componente ButtonLoading para botões com estado de carregamento
+interface ButtonLoadingProps extends React.ComponentProps<"button">, VariantProps<typeof buttonVariants> {
+  loading?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}
+
+function ButtonLoading({
+  className,
+  variant,
+  size,
+  loading = false,
+  children,
+  disabled,
+  ...props
+}: ButtonLoadingProps) {
+  return (
+    <Button
+      className={className}
+      variant={variant}
+      size={size}
+      disabled={disabled || loading}
+      {...props}
+    >
+      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {children}
+    </Button>
+  );
+}
+
+export { Button, ButtonLoading, buttonVariants }

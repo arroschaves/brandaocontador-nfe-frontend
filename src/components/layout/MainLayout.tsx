@@ -110,7 +110,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // Fechar sidebar ao navegar (mobile)
   useEffect(() => {
     setSidebarOpen(false);
-  }, [location.pathname]);
+  }, [location]);
 
   return (
     <div className="min-h-screen bg-gray-50">

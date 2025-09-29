@@ -15,13 +15,23 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { login, isAuthenticated, error, clearError } = useAuth();
+  const { login, isAuthenticated, error, clearError, user, isLoading: authLoading } = useAuth();
   const { showToast } = useToast();
 
   // Limpar erro quando componente montar
   useEffect(() => {
     clearError();
   }, []);
+
+  // Debug logs temporários
+  useEffect(() => {
+    console.log('Login - Estado de autenticação:', {
+      isAuthenticated,
+      user,
+      authLoading,
+      error
+    });
+  }, [isAuthenticated, user, authLoading, error]);
 
   // Redirecionar se já estiver autenticado
   if (isAuthenticated) {
@@ -224,13 +234,24 @@ const Login: React.FC = () => {
           </div>
 
           {/* Footer Links */}
-          <div className="mt-6 text-center">
-            <Link
-              to="/esqueci-senha"
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              Esqueceu sua senha?
-            </Link>
+          <div className="mt-6 text-center space-y-2">
+            <div>
+              <Link
+                to="/esqueci-senha"
+                className="text-sm text-blue-600 hover:text-blue-500"
+              >
+                Esqueceu sua senha?
+              </Link>
+            </div>
+            <div className="text-sm text-gray-600">
+              Não possui uma conta?{' '}
+              <Link
+                to="/cadastro"
+                className="text-blue-600 hover:text-blue-500 font-medium"
+              >
+                Cadastre-se aqui
+              </Link>
+            </div>
           </div>
         </div>
 

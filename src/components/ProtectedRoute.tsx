@@ -15,6 +15,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, isLoading, user, checkPermission } = useAuth();
   const location = useLocation();
 
+  // Debug log temporário
+  React.useEffect(() => {
+    console.log('ProtectedRoute - Estado:', {
+      isAuthenticated,
+      isLoading,
+      user,
+      location: location.pathname,
+      requiredPermissions
+    });
+  }, [isAuthenticated, isLoading, user, location.pathname, requiredPermissions]);
+
   // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
     return <Loading fullScreen />;

@@ -41,6 +41,11 @@ interface SystemStatus {
 
 const Dashboard: React.FC = () => {
   const { user, checkPermission } = useAuth();
+  
+  // Debug log temporário
+  useEffect(() => {
+    console.log('Dashboard - Componente carregado:', { user });
+  }, [user]);
   const [stats, setStats] = useState<DashboardStats>({
     total: 0,
     emitidas: 0,

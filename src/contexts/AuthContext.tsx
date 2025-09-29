@@ -132,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const authAPI = {
     login: async (email: string, password: string) => {
+      console.log('authAPI.login - Fazendo requisição para:', `${API_BASE_URL}/auth/login`);
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -140,7 +141,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, senha: password }),
       });
 
+      console.log('authAPI.login - Resposta recebida:', { status: response.status, ok: response.ok });
       const data = await response.json();
+      console.log('authAPI.login - Dados da resposta:', data);
 
       if (!response.ok) {
         throw new Error(data.erro || 'Erro ao fazer login');
@@ -203,9 +206,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Funções do contexto
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log('AuthContext - Iniciando login:', { email, API_BASE_URL });
       dispatch({ type: 'LOGIN_START' });
       
       const { user, token } = await authAPI.login(email, password);
+      console.log('AuthContext - Login bem-sucedido:', { user, token: token ? 'presente' : 'ausente' });
       
       // Salvar no localStorage
       localStorage.setItem('auth_token', token);

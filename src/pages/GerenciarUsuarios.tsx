@@ -18,6 +18,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { buildApiUrl } from '@/config/api';
 import { PageLayout } from '../components/layout/PageLayout';
 import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card';
 import { Button, ButtonLoading } from '../components/ui/button';
@@ -220,7 +221,7 @@ const GerenciarUsuarios: React.FC = () => {
       };
 
       // Fazer chamada para o backend
-      const response = await fetch('/auth/register', {
+      const response = await fetch(buildApiUrl('/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

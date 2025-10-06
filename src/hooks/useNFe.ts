@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import { nfeService } from '../services/api';
+import { buildApiUrl } from '../config/api';
 
 // Tipos
 interface NFe {
@@ -61,59 +63,34 @@ export const useNFe = (): UseNFeReturn => {
     setError(null);
     
     try {
-      // Simulação de dados - substituir por chamada real à API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockNFes: NFe[] = [
-        {
-          id: '1',
-          numero: '000001',
-          serie: '001',
-          chaveAcesso: '35200714200166000187550010000000015123456789',
-          dataEmissao: '2024-01-15T10:30:00Z',
-          destinatario: {
-            nome: 'João Silva',
-            documento: '123.456.789-00'
-          },
-          valorTotal: 1500.00,
-          status: 'autorizada',
-          protocolo: '135200000123456'
+      const params = {
+        pagina: pagination.page,
+        limite: pagination.limit,
+        ...(filters || {})
+      };
+      const { data } = await nfeService.historico(params);
+
+      const lista = (data.nfes || []).map((item: any) => ({
+        id: item.id?.toString?.() || String(item.id),
+        numero: item.numero,
+        serie: item.serie || '001',
+        chaveAcesso: item.chave,
+        dataEmissao: item.dataEmissao,
+        destinatario: {
+          nome: item.destinatario,
+          documento: item.documento
         },
-        {
-          id: '2',
-          numero: '000002',
-          serie: '001',
-          chaveAcesso: '35200714200166000187550010000000025123456789',
-          dataEmissao: '2024-01-16T14:20:00Z',
-          destinatario: {
-            nome: 'Maria Santos',
-            documento: '987.654.321-00'
-          },
-          valorTotal: 2300.50,
-          status: 'autorizada',
-          protocolo: '135200000123457'
-        },
-        {
-          id: '3',
-          numero: '000003',
-          serie: '001',
-          chaveAcesso: '35200714200166000187550010000000035123456789',
-          dataEmissao: '2024-01-17T09:15:00Z',
-          destinatario: {
-            nome: 'Empresa ABC Ltda',
-            documento: '12.345.678/0001-90'
-          },
-          valorTotal: 5750.25,
-          status: 'pendente'
-        }
-      ];
-      
-      setNfes(mockNFes);
+        valorTotal: item.valor,
+        status: item.status,
+        protocolo: item.protocolo
+      }));
+
+      setNfes(lista);
       setPagination({
-        page: 1,
-        limit: 10,
-        total: mockNFes.length,
-        totalPages: Math.ceil(mockNFes.length / 10)
+        page: data.pagina || params.pagina,
+        limit: data.limite || params.limite,
+        total: data.total || lista.length,
+        totalPages: Math.ceil((data.total || lista.length) / (data.limite || params.limite))
       });
       
     } catch (err) {
@@ -123,7 +100,7 @@ export const useNFe = (): UseNFeReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, pagination.page, pagination.limit]);
 
   // Função para carregar NFe por chave de acesso
   const loadNFeByChave = useCallback(async (chave: string): Promise<NFe | null> => {
@@ -131,26 +108,25 @@ export const useNFe = (): UseNFeReturn => {
     setError(null);
     
     try {
-      // Simulação de busca por chave
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const mockNFe: NFe = {
-        id: '1',
-        numero: '000001',
-        serie: '001',
-        chaveAcesso: chave,
-        dataEmissao: '2024-01-15T10:30:00Z',
+      const { data } = await nfeService.consultar(chave);
+
+      const nfe: NFe = {
+        id: data.id?.toString?.() || data.id || '1',
+        numero: data.numero || '000000',
+        serie: data.serie || '001',
+        chaveAcesso: data.chave || chave,
+        dataEmissao: data.dataEmissao || new Date().toISOString(),
         destinatario: {
-          nome: 'João Silva',
-          documento: '123.456.789-00'
+          nome: data.destinatario?.nome || data.destinatario || 'Destinatário',
+          documento: data.destinatario?.documento || data.documento || ''
         },
-        valorTotal: 1500.00,
-        status: 'autorizada',
-        protocolo: '135200000123456'
+        valorTotal: data.valor || data.valorTotal || 0,
+        status: data.status || 'autorizada',
+        protocolo: data.protocolo
       };
-      
-      setCurrentNFe(mockNFe);
-      return mockNFe;
+
+      setCurrentNFe(nfe);
+      return nfe;
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao consultar NFe';
@@ -168,9 +144,7 @@ export const useNFe = (): UseNFeReturn => {
     setError(null);
     
     try {
-      // Simulação de emissão
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await nfeService.emitir(nfeData);
       showToast('NFe emitida com sucesso!', 'success');
       return true;
       
@@ -190,9 +164,7 @@ export const useNFe = (): UseNFeReturn => {
     setError(null);
     
     try {
-      // Simulação de cancelamento
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await nfeService.cancelar(chave, justificativa);
       showToast('NFe cancelada com sucesso!', 'success');
       return true;
       
@@ -209,12 +181,17 @@ export const useNFe = (): UseNFeReturn => {
   // Função para download do XML
   const downloadXML = useCallback(async (chave: string): Promise<void> => {
     try {
-      // Simulação de download
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Criar um blob simulado e fazer download
-      const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<NFe>\n  <chaveAcesso>${chave}</chaveAcesso>\n</NFe>`;
-      const blob = new Blob([xmlContent], { type: 'application/xml' });
+      const response = await fetch(buildApiUrl(`/nfe/download/xml/${chave}`), {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar XML');
+      }
+
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -223,9 +200,8 @@ export const useNFe = (): UseNFeReturn => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       showToast('XML baixado com sucesso!', 'success');
-      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao baixar XML';
       showToast(errorMessage, 'error');
@@ -235,11 +211,27 @@ export const useNFe = (): UseNFeReturn => {
   // Função para download do PDF
   const downloadPDF = useCallback(async (chave: string): Promise<void> => {
     try {
-      // Simulação de download
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      const response = await fetch(buildApiUrl(`/nfe/download/pdf/${chave}`), {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `NFe_${chave}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
       showToast('PDF baixado com sucesso!', 'success');
-      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao baixar PDF';
       showToast(errorMessage, 'error');

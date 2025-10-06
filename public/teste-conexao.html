@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Conexão - Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .teste { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .sucesso { background-color: #d4edda; border-color: #c3e6cb; }
+        .erro { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .log { background-color: #f8f9fa; padding: 10px; margin: 10px 0; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Conexão - Debug</h1>
+    <p>Teste para identificar o problema de "Failed to fetch"</p>
+    
+    <div class="teste">
+        <h3>Teste 1: Verificar URL da API</h3>
+        <button onclick="verificarUrl()">Verificar URL</button>
+        <div id="url-result" class="log"></div>
+    </div>
+    
+    <div class="teste">
+        <h3>Teste 2: Testar Conexão Simples</h3>
+        <button onclick="testarConexao()">Testar Conexão</button>
+        <div id="conexao-result" class="log"></div>
+    </div>
+    
+    <div class="teste">
+        <h3>Teste 3: Testar Cadastro Completo</h3>
+        <button onclick="testarCadastro()">Testar Cadastro</button>
+        <div id="cadastro-result" class="log"></div>
+    </div>
+    
+    <div class="teste">
+        <h3>Teste 4: Testar CORS</h3>
+        <button onclick="testarCors()">Testar CORS</button>
+        <div id="cors-result" class="log"></div>
+    </div>
+
+    <script>
+        // Função para construir URL da API (copiada do frontend)
+        function getApiUrl() {
+            // Em produção, usar a API do Cloudflare
+        if (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost') {
+            return 'https://api.brandaocontador.com.br';
+        }
+            
+            // Em desenvolvimento, usar localhost
+            return 'http://localhost:3001';
+        }
+        
+        function buildApiUrl(endpoint) {
+            return `${getApiUrl()}${endpoint}`;
+        }
+        
+        function log(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.className = isError ? 'log erro' : 'log';
+        }
+        
+        function verificarUrl() {
+            const result = document.getElementById('url-result');
+            result.textContent = '';
+            
+            try {
+                const url = buildApiUrl('/auth/register');
+                log('url-result', `✅ URL construída: ${url}`);
+                log('url-result', `🔍 Protocolo: ${url.startsWith('https:') ? 'HTTPS' : 'HTTP'}`);
+                log('url-result', `🌐 Hostname: ${new URL(url).hostname}`);
+                log('url-result', `📍 Porta: ${new URL(url).port || 'padrão'}`);
+            } catch (error) {
+                log('url-result', `❌ Erro ao construir URL: ${error.message}`, true);
+                log('url-result', `🔥 Stack: ${error.stack}`, true);
+            }
+        }
+        
+        async function testarConexao() {
+            const result = document.getElementById('conexao-result');
+            result.textContent = '';
+            
+            try {
+                log('conexao-result', '🔄 Testando conexão com /nfe/teste...');
+                
+                const response = await fetch('http://localhost:3001/nfe/teste', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                log('conexao-result', `📡 Status: ${response.status}`);
+                log('conexao-result', `📡 Status Text: ${response.statusText}`);
+                log('conexao-result', `📡 Headers: ${JSON.stringify(Object.fromEntries(response.headers))}`);
+                
+                const data = await response.json();
+                log('conexao-result', `✅ Dados recebidos: ${JSON.stringify(data, null, 2)}`);
+                
+            } catch (error) {
+                log('conexao-result', `❌ Erro: ${error.message}`, true);
+                log('conexao-result', `🔥 Tipo: ${error.constructor.name}`, true);
+                log('conexao-result', `🔥 Stack: ${error.stack}`, true);
+                
+                if (error instanceof TypeError) {
+                    log('conexao-result', '⚠️  TypeError detectado - possível problema de CORS, HTTPS ou conexão', true);
+                }
+                if (error.message.includes('CORS')) {
+                    log('conexao-result', '🔒 Problema de CORS detectado', true);
+                }
+                if (error.message.includes('https')) {
+                    log('conexao-result', '🔐 Problema de HTTPS/HTTP detectado', true);
+                }
+            }
+        }
+        
+        async function testarCadastro() {
+            const result = document.getElementById('cadastro-result');
+            result.textContent = '';
+            
+            const dadosTeste = {
+                nome: "João Teste",
+                email: "joao@teste.com",
+                senha: "123456",
+                documento: "12345678901",
+                telefone: "11999999999",
+                tipoCliente: "cpf",
+                endereco: {
+                    cep: "01001000",
+                    logradouro: "Rua Teste",
+                    numero: "123",
+                    bairro: "Centro",
+                    cidade: "São Paulo",
+                    uf: "SP"
+                }
+            };
+            
+            try {
+                log('cadastro-result', '🔄 Testando cadastro completo...');
+                log('cadastro-result', `📦 Dados: ${JSON.stringify(dadosTeste, null, 2)}`);
+                
+                const url = buildApiUrl('/auth/register');
+                log('cadastro-result', `🌐 URL: ${url}`);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dadosTeste)
+                });
+                
+                log('cadastro-result', `📡 Status: ${response.status}`);
+                log('cadastro-result', `📡 Status Text: ${response.statusText}`);
+                
+                const data = await response.json();
+                log('cadastro-result', `✅ Resposta: ${JSON.stringify(data, null, 2)}`);
+                
+            } catch (error) {
+                log('cadastro-result', `❌ Erro: ${error.message}`, true);
+                log('cadastro-result', `🔥 Tipo: ${error.constructor.name}`, true);
+                log('cadastro-result', `🔥 Stack: ${error.stack}`, true);
+            }
+        }
+        
+        async function testarCors() {
+            const result = document.getElementById('cors-result');
+            result.textContent = '';
+            
+            try {
+                log('cors-result', '🔄 Testando CORS com requisição OPTIONS...');
+                
+                const response = await fetch('http://localhost:3001/auth/register', {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': 'http://localhost:3002',
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                log('cors-result', `📡 Status: ${response.status}`);
+                log('cors-result', `📡 Headers CORS:`);
+                
+                const corsHeaders = [
+                    'Access-Control-Allow-Origin',
+                    'Access-Control-Allow-Methods', 
+                    'Access-Control-Allow-Headers',
+                    'Access-Control-Allow-Credentials'
+                ];
+                
+                corsHeaders.forEach(header => {
+                    const value = response.headers.get(header);
+                    log('cors-result', `  ${header}: ${value || 'não encontrado'}`);
+                });
+                
+                if (response.status === 204) {
+                    log('cors-result', '✅ CORS configurado corretamente');
+                } else {
+                    log('cors-result', `⚠️  Status inesperado: ${response.status}`);
+                }
+                
+            } catch (error) {
+                log('cors-result', `❌ Erro: ${error.message}`, true);
+                log('cors-result', `🔥 Tipo: ${error.constructor.name}`, true);
+            }
+        }
+        
+        // Executar testes automáticos ao carregar
+        window.addEventListener('load', () => {
+            console.log('🧪 Página de teste carregada');
+            verificarUrl();
+            setTimeout(testarConexao, 1000);
+            setTimeout(testarCors, 2000);
+        });
+    </script>
+</body>
+</html>

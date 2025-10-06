@@ -69,40 +69,17 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError('');
       
-      // Simular dados para demonstração
+      // Dados zerados para ambiente de teste
       const mockStats = {
-        total: 1250,
-        emitidas: 1180,
-        canceladas: 45,
-        pendentes: 25,
-        valorTotal: 2850000.50
+        total: 0,
+        emitidas: 0,
+        canceladas: 0,
+        pendentes: 0,
+        valorTotal: 0.00
       };
       
       const mockRecentNfes = [
-        {
-          id: '1',
-          numero: '000001234',
-          destinatario: 'Empresa ABC Ltda',
-          valor: 15000.00,
-          status: 'emitida' as const,
-          dataEmissao: '2024-01-15T10:30:00Z'
-        },
-        {
-          id: '2',
-          numero: '000001235',
-          destinatario: 'Comércio XYZ S/A',
-          valor: 8500.75,
-          status: 'emitida' as const,
-          dataEmissao: '2024-01-15T09:15:00Z'
-        },
-        {
-          id: '3',
-          numero: '000001236',
-          destinatario: 'Indústria DEF Ltda',
-          valor: 32000.00,
-          status: 'pendente' as const,
-          dataEmissao: '2024-01-15T08:45:00Z'
-        }
+        // Array vazio - sem NFes para demonstrar sistema limpo
       ];
       
       const mockSystemStatus = {

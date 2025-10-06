@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Bell, Settings, User, Menu } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from './Sidebar';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -80,7 +81,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
 const MainContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <main className="lg:pl-64 min-h-screen bg-gray-50">
-      <div className="pt-16"> {/* Espaço para o TopBar fixo */}
+      <div className="pt-20 px-4 py-6"> {/* Espaço para o TopBar fixo + padding */}
         {children}
       </div>
     </main>
@@ -124,7 +125,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       
       {/* Conteúdo principal */}
       <MainContent>
-        {children || <Outlet />}
+        <ErrorBoundary>
+          {children || <Outlet />}
+        </ErrorBoundary>
       </MainContent>
     </div>
   );

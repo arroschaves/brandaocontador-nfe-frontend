@@ -12,6 +12,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useNFe } from '../hooks/useNFe';
 import notificationService from '../services/notificationService';
 import errorService from '../services/errorService';
+import { buildApiUrl, API_ENDPOINTS } from '../config/api';
 
 interface NFe {
   id: string;
@@ -105,9 +106,10 @@ function Historico() {
         )
       });
 
-      const response = await fetch(`/api/nfe/historico?${params}`, {
+      const url = `${buildApiUrl(API_ENDPOINTS.NFE.HISTORICO)}?${params}`;
+      const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
           'Content-Type': 'application/json'
         }
       });
@@ -187,10 +189,10 @@ function Historico() {
 
       notificationService.loading('Cancelando NFe...');
       
-      const response = await fetch(`/api/nfe/cancelar`, {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.NFE.CANCELAR), {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -216,9 +218,9 @@ function Historico() {
     try {
       notificationService.loading(`Gerando ${tipo.toUpperCase()}...`);
       
-      const response = await fetch(`/api/nfe/download/${tipo}/${nfe.chave}`, {
+      const response = await fetch(buildApiUrl(`/nfe/download/${tipo}/${nfe.chave}`), {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       });
 

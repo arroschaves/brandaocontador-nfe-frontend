@@ -25,16 +25,21 @@ const Login: React.FC = () => {
 
   // Debug logs temporários
   useEffect(() => {
-    console.log('Login - Estado de autenticação:', {
+    console.log('🔄 Login - Estado de autenticação mudou:', {
       isAuthenticated,
       user,
       authLoading,
       error
     });
+    
+    if (isAuthenticated) {
+      console.log('🔄 Login - Usuário autenticado detectado! Redirecionando para /dashboard...');
+    }
   }, [isAuthenticated, user, authLoading, error]);
 
   // Redirecionar se já estiver autenticado
   if (isAuthenticated) {
+    console.log('🚀 Login - Redirecionando para /dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -70,21 +75,35 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🔑 Login - Iniciando processo de login');
+    console.log('🔑 Login - Email:', formData.email);
+    console.log('🔑 Login - Password:', formData.password ? '***' : 'vazio');
+    
     if (!validateForm()) {
+      console.log('🔑 Login - Validação falhou');
       return;
     }
 
     setIsLoading(true);
     
     try {
+      console.log('🔑 Login - Chamando função login do AuthContext');
       const success = await login(formData.email, formData.password);
+      console.log('🔑 Login - Resultado do login:', success ? 'SUCESSO' : 'FALHA');
+      
       if (success) {
+        console.log('🔑 Login - Login bem-sucedido! Redirecionamento automático...');
         // Redirecionamento será feito automaticamente pelo Navigate acima
+      } else {
+        console.log('🔑 Login - Login falhou, verifique as credenciais');
       }
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error('🔑 Login - Erro capturado:', error);
+      console.error('🔑 Login - Tipo do erro:', error.constructor.name);
+      console.error('🔑 Login - Mensagem:', error.message);
     } finally {
       setIsLoading(false);
+      console.log('🔑 Login - Processo finalizado');
     }
   };
 

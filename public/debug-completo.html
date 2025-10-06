@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Debug Completo - Navegador</title>
+    <style>
+        body { 
+            font-family: 'Courier New', monospace; 
+            padding: 20px; 
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .teste { 
+            margin: 10px 0; 
+            padding: 15px; 
+            border: 1px solid #333; 
+            background: #2a2a2a;
+            border-radius: 5px;
+        }
+        .sucesso { background-color: #0d4f0d; border-color: #28a745; }
+        .erro { background-color: #4f0d0d; border-color: #dc3545; }
+        button { 
+            padding: 10px 20px; 
+            margin: 5px; 
+            cursor: pointer; 
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+        button:hover { background: #0056b3; }
+        .log { 
+            background: #000; 
+            padding: 10px; 
+            margin: 10px 0; 
+            white-space: pre-wrap; 
+            font-size: 12px;
+            border: 1px solid #333;
+            border-radius: 3px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .info-box {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        h1, h2 { color: #00ff00; }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .warning { color: #ffd43b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 DEBUG COMPLETO - NAVEGADOR</h1>
+        <p>Teste para identificar o problema de "Failed to fetch" no navegador</p>
+        
+        <div class="info-box">
+            <h3>ℹ️ Informações do Navegador:</h3>
+            <div id="browser-info"></div>
+        </div>
+        
+        <div class="info-box">
+            <h3>🌐 Informações da Página:</h3>
+            <div id="page-info"></div>
+        </div>
+
+        <div class="teste">
+            <h3>1️⃣ Teste: Informações do Ambiente</h3>
+            <button onclick="mostrarInfoAmbiente()">Mostrar Informações</button>
+            <div id="info-ambiente" class="log"></div>
+        </div>
+        
+        <div class="teste">
+            <h3>2️⃣ Teste: Verificar Mixed Content (HTTP/HTTPS)</h3>
+            <button onclick="verificarMixedContent()">Verificar Mixed Content</button>
+            <div id="mixed-content" class="log"></div>
+        </div>
+        
+        <div class="teste">
+            <h3>3️⃣ Teste: Conexão com Backend (Sem CORS)</h3>
+            <button onclick="testarConexaoSimples()">Testar Conexão Simples</button>
+            <div id="conexao-simples" class="log"></div>
+        </div>
+        
+        <div class="teste">
+            <h3>4️⃣ Teste: Conexão com Backend (Com CORS)</h3>
+            <button onclick="testarConexaoCors()">Testar Conexão CORS</button>
+            <div id="conexao-cors" class="log"></div>
+        </div>
+        
+        <div class="teste">
+            <h3>5️⃣ Teste: XMLHttpRequest (Alternativa ao fetch)</h3>
+            <button onclick="testarXMLHttpRequest()">Testar XMLHttpRequest</button>
+            <div id="xmlhttp-test" class="log"></div>
+        </div>
+        
+        <div class="teste">
+            <h3>6️⃣ Teste: Verificar Extensões/Ad Blockers</h3>
+            <button onclick="verificarAdBlockers()">Verificar Bloqueios</button>
+            <div id="adblock-test" class="log"></div>
+        </div>
+
+        <div class="teste">
+            <h3>7️⃣ Teste: Todos os Testes Automáticos</h3>
+            <button onclick="executarTodosTestes()">Executar Todos os Testes</button>
+            <div id="todos-testes" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para logar mensagens
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'warning';
+            element.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        // 1️⃣ Mostrar informações do ambiente
+        function mostrarInfoAmbiente() {
+            const log = document.getElementById('info-ambiente');
+            log.innerHTML = '';
+            
+            log('info-ambiente', '📱 User Agent: ' + navigator.userAgent);
+            log('info-ambiente', '🔒 Protocolo da Página: ' + window.location.protocol);
+            log('info-ambiente', '🌐 Host da Página: ' + window.location.host);
+            log('info-ambiente', '📍 Porta da Página: ' + window.location.port);
+            log('info-ambiente', '🔄 HTTPS: ' + (window.location.protocol === 'https:'));
+            log('info-ambiente', '🎯 Origin: ' + window.location.origin);
+            log('info-ambiente', '🔗 Referrer: ' + document.referrer);
+            
+            // Testar se estamos em ambiente de desenvolvimento
+            const isLocalhost = window.location.hostname === 'localhost' || 
+                              window.location.hostname === '127.0.0.1' ||
+                              window.location.hostname.includes('192.168.');
+            log('info-ambiente', '🏠 Ambiente Local: ' + isLocalhost);
+        }
+
+        // 2️⃣ Verificar Mixed Content
+        function verificarMixedContent() {
+            const log = document.getElementById('mixed-content');
+            log.innerHTML = '';
+            
+            const pageProtocol = window.location.protocol;
+            const apiProtocol = 'http:'; // Nossa API está em HTTP
+            
+            log('mixed-content', '🔒 Protocolo da Página: ' + pageProtocol);
+            log('mixed-content', '🌐 Protocolo da API: ' + apiProtocol);
+            
+            if (pageProtocol === 'https:' && apiProtocol === 'http:') {
+                log('mixed-content', '�️ MIXED CONTENT DETECTADO! HTTPS → HTTP', 'error');
+                log('mixed-content', '🔒 O navegador pode estar bloqueando por segurança', 'error');
+                log('mixed-content', '💡 Solução: Use HTTPS para a API ou HTTP para a página', 'warning');
+            } else {
+                log('mixed-content', '✅ Sem problema de Mixed Content', 'success');
+            }
+        }
+
+        // 3️⃣ Testar conexão simples (sem headers complexos)
+        async function testarConexaoSimples() {
+            const log = document.getElementById('conexao-simples');
+            log.innerHTML = '';
+            
+            try {
+                log('conexao-simples', '🔄 Testando conexão simples com http://localhost:3001/nfe/teste...');
+                
+                const response = await fetch('http://localhost:3001/nfe/teste', {
+                    method: 'GET',
+                    mode: 'no-cors', // Desabilitar CORS
+                    cache: 'no-cache'
+                });
+                
+                log('conexao-simples', '📡 Status (opaco): ' + response.status, 'warning');
+                log('conexao-simples', '📡 Tipo de resposta: ' + response.type, 'warning');
+                log('conexao-simples', '✅ Conexão estabelecida (sem CORS)', 'success');
+                
+            } catch (error) {
+                log('conexao-simples', '❌ Erro: ' + error.message, 'error');
+                log('conexao-simples', '🔥 Tipo: ' + error.constructor.name, 'error');
+                
+                if (error.message.includes('Failed to fetch')) {
+                    log('conexao-simples', '❓ Possíveis causas:', 'error');
+                    log('conexao-simples', '   - Servidor offline', 'error');
+                    log('conexao-simples', '   - Porta bloqueada', 'error');
+                    log('conexao-simples', '   - Firewall/Antivírus', 'error');
+                    log('conexao-simples', '   - Mixed Content (HTTPS→HTTP)', 'error');
+                }
+            }
+        }
+
+        // 4️⃣ Testar conexão com CORS
+        async function testarConexaoCors() {
+            const log = document.getElementById('conexao-cors');
+            log.innerHTML = '';
+            
+            try {
+                log('conexao-cors', '🔄 Testando conexão com CORS...');
+                
+                const response = await fetch('http://localhost:3001/nfe/teste', {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                
+                log('conexao-cors', '📡 Status: ' + response.status);
+                log('conexao-cors', '📡 Headers: ' + JSON.stringify(Object.fromEntries(response.headers.entries())));
+                
+                const data = await response.json();
+                log('conexao-cors', '✅ Dados: ' + JSON.stringify(data), 'success');
+                
+            } catch (error) {
+                log('conexao-cors', '❌ Erro CORS: ' + error.message, 'error');
+                log('conexao-cors', '🔥 Tipo: ' + error.constructor.name, 'error');
+                
+                if (error.message.includes('CORS')) {
+                    log('conexao-cors', '🔒 CORS bloqueado!', 'error');
+                    log('conexao-cors', '💡 Verifique os headers do servidor', 'warning');
+                }
+            }
+        }
+
+        // 5️⃣ Testar XMLHttpRequest
+        function testarXMLHttpRequest() {
+            const log = document.getElementById('xmlhttp-test');
+            log.innerHTML = '';
+            
+            try {
+                log('xmlhttp-test', '🔄 Testando XMLHttpRequest...');
+                
+                const xhr = new XMLHttpRequest();
+                
+                xhr.onreadystatechange = function() {
+                    log('xmlhttp-test', '📡 ReadyState: ' + xhr.readyState);
+                    
+                    if (xhr.readyState === 4) {
+                        log('xmlhttp-test', '📡 Status: ' + xhr.status);
+                        log('xmlhttp-test', '📡 Status Text: ' + xhr.statusText);
+                        log('xmlhttp-test', '📡 Response Headers: ' + xhr.getAllResponseHeaders());
+                        
+                        if (xhr.status === 200) {
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                log('xmlhttp-test', '✅ Dados: ' + JSON.stringify(data), 'success');
+                            } catch (e) {
+                                log('xmlhttp-test', '✅ Resposta: ' + xhr.responseText, 'success');
+                            }
+                        } else {
+                            log('xmlhttp-test', '❌ Erro HTTP: ' + xhr.status, 'error');
+                        }
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    log('xmlhttp-test', '❌ XMLHttpRequest Error', 'error');
+                    log('xmlhttp-test', '🔥 Network Error ou CORS bloqueado', 'error');
+                };
+                
+                xhr.open('GET', 'http://localhost:3001/nfe/teste', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send();
+                
+                log('xmlhttp-test', '📤 Requisição enviada...');
+                
+            } catch (error) {
+                log('xmlhttp-test', '❌ Erro: ' + error.message, 'error');
+            }
+        }
+
+        // 6️⃣ Verificar Ad Blockers
+        function verificarAdBlockers() {
+            const log = document.getElementById('adblock-test');
+            log.innerHTML = '';
+            
+            log('adblock-test', '🔍 Verificando bloqueios...');
+            
+            // Testar se o navegador bloqueia requisições para localhost
+            setTimeout(() => {
+                log('adblock-test', '🔄 Testando requisição para localhost:3001...');
+                
+                fetch('http://localhost:3001/nfe/teste', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                }).then(() => {
+                    log('adblock-test', '✅ Requisição permitida', 'success');
+                }).catch(() => {
+                    log('adblock-test', '❌ Requisição bloqueada', 'error');
+                    log('adblock-test', '💡 Verifique: Ad Blocker, Antivírus, Firewall', 'warning');
+                });
+                
+            }, 1000);
+        }
+
+        // 7️⃣ Executar todos os testes
+        async function executarTodosTestes() {
+            const log = document.getElementById('todos-testes');
+            log.innerHTML = '';
+            
+            log('todos-testes', '🚀 Iniciando testes automáticos...', 'warning');
+            
+            mostrarInfoAmbiente();
+            await delay(1000);
+            
+            verificarMixedContent();
+            await delay(1000);
+            
+            await testarConexaoSimples();
+            await delay(2000);
+            
+            await testarConexaoCors();
+            await delay(2000);
+            
+            testarXMLHttpRequest();
+            await delay(2000);
+            
+            verificarAdBlockers();
+            await delay(2000);
+            
+            log('todos-testes', '✅ Testes concluídos! Analise os resultados acima.', 'success');
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Executar informações iniciais ao carregar
+        window.addEventListener('load', () => {
+            console.log('🔍 Página de debug carregada');
+            
+            // Mostrar informações do navegador
+            document.getElementById('browser-info').innerHTML = `
+                <p><strong>Navegador:</strong> ${navigator.userAgent}</p>
+                <p><strong>Plataforma:</strong> ${navigator.platform}</p>
+                <p><strong>Idioma:</strong> ${navigator.language}</p>
+                <p><strong>Cookies:</strong> ${navigator.cookieEnabled ? 'Ativados' : 'Desativados'}</p>
+            `;
+            
+            // Mostrar informações da página
+            document.getElementById('page-info').innerHTML = `
+                <p><strong>URL:</strong> ${window.location.href}</p>
+                <p><strong>Protocolo:</strong> ${window.location.protocol}</p>
+                <p><strong>Host:</strong> ${window.location.host}</p>
+                <p><strong>Origin:</strong> ${window.location.origin}</p>
+            `;
+        });
+    </script>
+</body>
+</html>

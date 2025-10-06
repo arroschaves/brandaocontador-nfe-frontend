@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { useToast } from './ToastContext';
+import { API_BASE_URL } from '../config/api';
 
 // Tipos
 interface User {
@@ -127,23 +128,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [state, dispatch] = useReducer(authReducer, initialState);
   const { showToast } = useToast();
 
-  // API de autenticação integrada com backend
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.brandaocontador.com.br';
+  // API de autenticação integrada com backend (padronizada)
   
   const authAPI = {
     login: async (email: string, password: string) => {
-      console.log('authAPI.login - Fazendo requisição para:', `${API_BASE_URL}/auth/login`);
+      console.log('🔐 authAPI.login - Iniciando login');
+      console.log('🔐 authAPI.login - Email:', email);
+      console.log('🔐 authAPI.login - Password:', password ? '***' : 'vazio');
+      console.log('🔐 authAPI.login - URL:', `${API_BASE_URL}/auth/login`);
+      
+      const body = JSON.stringify({ email, senha: password });
+      console.log('🔐 authAPI.login - Body enviado:', body);
+      
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, senha: password }),
+        body: body,
       });
 
-      console.log('authAPI.login - Resposta recebida:', { status: response.status, ok: response.ok });
-      const data = await response.json();
-      console.log('authAPI.login - Dados da resposta:', data);
+      console.log('🔐 authAPI.login - Response status:', response.status);
+      console.log('🔐 authAPI.login - Response ok:', response.ok);
+      console.log('🔐 authAPI.login - Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const responseText = await response.text();
+      console.log('🔐 authAPI.login - Response text bruto:', responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('🔐 authAPI.login - Response data parseado:', data);
+      } catch (parseError) {
+        console.error('🔐 authAPI.login - Erro ao parsear JSON:', parseError);
+        throw new Error(`Erro ao processar resposta do servidor: ${responseText}`);
+      }
 
       if (!response.ok) {
         throw new Error(data.erro || 'Erro ao fazer login');
@@ -206,30 +225,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Funções do contexto
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log('AuthContext - Iniciando login:', { email, API_BASE_URL });
+      console.log('🎯 AuthContext.login - Iniciando processo de login');
+      console.log('🎯 AuthContext.login - Email:', email);
+      console.log('🎯 AuthContext.login - Password:', password ? '***' : 'vazio');
+      
       dispatch({ type: 'LOGIN_START' });
+      console.log('🎯 AuthContext.login - Estado alterado para LOGIN_START');
       
       const { user, token } = await authAPI.login(email, password);
-      console.log('AuthContext - Login bem-sucedido:', { user, token: token ? 'presente' : 'ausente' });
+      console.log('🎯 AuthContext.login - Login API retornou sucesso');
+      console.log('🎯 AuthContext.login - User:', user);
+      console.log('🎯 AuthContext.login - Token:', token ? 'presente' : 'ausente');
       
       // Salvar no localStorage
+      console.log('🎯 AuthContext.login - Salvando no localStorage...');
       localStorage.setItem('auth_token', token);
       localStorage.setItem('auth_user', JSON.stringify(user));
+      console.log('🎯 AuthContext.login - Dados salvos no localStorage');
       
       dispatch({ 
         type: 'LOGIN_SUCCESS', 
         payload: { user, token } 
       });
+      console.log('🎯 AuthContext.login - Estado alterado para LOGIN_SUCCESS');
       
       showToast('Login realizado com sucesso!', 'success');
+      console.log('🎯 AuthContext.login - Toast de sucesso exibido');
       return true;
     } catch (error) {
+      console.error('🎯 AuthContext.login - Erro capturado:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro ao fazer login';
+      console.error('🎯 AuthContext.login - Mensagem de erro:', errorMessage);
+      
       dispatch({ 
         type: 'LOGIN_FAILURE', 
         payload: errorMessage 
       });
+      console.log('🎯 AuthContext.login - Estado alterado para LOGIN_FAILURE');
+      
       showToast(errorMessage, 'error');
+      console.log('🎯 AuthContext.login - Toast de erro exibido');
       return false;
     }
   };

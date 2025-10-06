@@ -17,6 +17,7 @@ import {
   removerFormatacao,
   obterNivelSenha
 } from '../utils/validations';
+import { buildApiUrl } from '../config/api';
 
 interface FormData {
   tipoCliente: 'cpf' | 'cnpj';
@@ -54,6 +55,8 @@ const Cadastro: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [nivelSenha, setNivelSenha] = useState<string>('');
+  const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'error'>('checking');
+  const [apiMessage, setApiMessage] = useState('');
 
   const [formData, setFormData] = useState<FormData>({
     tipoCliente: 'cpf',
@@ -77,98 +80,97 @@ const Cadastro: React.FC = () => {
     inscricaoEstadual: ''
   });
 
-  // Validação de CPF
-  const validarCPF = (cpf: string): boolean => {
-    cpf = cpf.replace(/[^\d]/g, '');
-    if (cpf.length !== 11) return false;
-    if (/^(\d)\1{10}$/.test(cpf)) return false;
+  // Testar conectividade com a API ao carregar o componente
+  React.useEffect(() => {
+    const testarConexao = async () => {
+      try {
+        console.log('🔍 Testando conexão com API...');
+        setApiStatus('checking');
+        setApiMessage('Verificando conexão com servidor...');
+        
+        const response = await fetch(buildApiUrl('/nfe/teste'));
+        console.log('📡 Resposta do teste:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ Conexão estabelecida:', data);
+          setApiStatus('connected');
+          setApiMessage('Conexão com servidor estabelecida');
+        } else {
+          console.log('❌ Erro na conexão:', response.status);
+          setApiStatus('error');
+          setApiMessage('Erro ao conectar com servidor');
+        }
+      } catch (error) {
+        console.error('🔥 Erro de conexão:', error);
+        setApiStatus('error');
+        setApiMessage('Erro de conexão: ' + (error as Error).message);
+      }
+    };
 
-    let soma = 0;
-    for (let i = 0; i < 9; i++) {
-      soma += parseInt(cpf.charAt(i)) * (10 - i);
-    }
-    let resto = 11 - (soma % 11);
-    if (resto === 10 || resto === 11) resto = 0;
-    if (resto !== parseInt(cpf.charAt(9))) return false;
+    testarConexao();
+  }, []);
 
-    soma = 0;
-    for (let i = 0; i < 10; i++) {
-      soma += parseInt(cpf.charAt(i)) * (11 - i);
-    }
-    resto = 11 - (soma % 11);
-    if (resto === 10 || resto === 11) resto = 0;
-    if (resto !== parseInt(cpf.charAt(10))) return false;
-
-    return true;
-  };
-
-  // Validação de CNPJ
-  const validarCNPJ = (cnpj: string): boolean => {
-    cnpj = cnpj.replace(/[^\d]/g, '');
-    if (cnpj.length !== 14) return false;
-    if (/^(\d)\1{13}$/.test(cnpj)) return false;
-
-    let tamanho = cnpj.length - 2;
-    let numeros = cnpj.substring(0, tamanho);
-    let digitos = cnpj.substring(tamanho);
-    let soma = 0;
-    let pos = tamanho - 7;
-
-    for (let i = tamanho; i >= 1; i--) {
-      soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
-      if (pos < 2) pos = 9;
-    }
-
-    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-    if (resultado !== parseInt(digitos.charAt(0))) return false;
-
-    tamanho = tamanho + 1;
-    numeros = cnpj.substring(0, tamanho);
-    soma = 0;
-    pos = tamanho - 7;
-
-    for (let i = tamanho; i >= 1; i--) {
-      soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
-      if (pos < 2) pos = 9;
-    }
-
-    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-    return resultado === parseInt(digitos.charAt(1));
-  };
-
-  // Formatação de documentos
-  const formatarDocumento = (valor: string, tipo: 'cpf' | 'cnpj'): string => {
-    const numeros = valor.replace(/[^\d]/g, '');
+  // Função para debug detalhado da conexão
+  const debugConexao = async () => {
+    console.log('🧪 INICIANDO DEBUG DE CONEXÃO...');
+    console.log('📅 Horário:', new Date().toLocaleString());
+    console.log('🌐 URL da API:', buildApiUrl('/auth/register'));
+    console.log('🧭 User Agent:', navigator.userAgent);
+    console.log('🔒 Protocolo:', window.location.protocol);
+    console.log('📍 Host:', window.location.host);
     
-    if (tipo === 'cpf') {
-      return numeros
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-        .replace(/(-\d{2})\d+?$/, '$1');
-    } else {
-      return numeros
-        .replace(/(\d{2})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1/$2')
-        .replace(/(\d{4})(\d{1,2})/, '$1-$2')
-        .replace(/(-\d{2})\d+?$/, '$1');
+    try {
+      // Testar se o navegador consegue acessar a URL
+      const url = buildApiUrl('/nfe/teste');
+      console.log('🔄 Testando URL:', url);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos de timeout
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      console.log('📡 Status da resposta:', response.status);
+      console.log('📡 Headers da resposta:', Object.fromEntries(response.headers.entries()));
+      
+      const data = await response.json();
+      console.log('✅ Dados recebidos:', data);
+      
+      alert('✅ Conexão bem-sucedida! Verifique o console para detalhes.');
+      
+    } catch (error) {
+      const err = error as Error;
+      console.error('❌ Erro detalhado:', err);
+      console.error('🔥 Tipo do erro:', err.constructor.name);
+      console.error('🔥 Mensagem:', err.message);
+      console.error('🔥 Stack:', err.stack);
+      
+      if (err.name === 'AbortError') {
+        console.error('⏰ Timeout - servidor não respondeu em 5 segundos');
+        alert('❌ Timeout - servidor não respondeu em 5 segundos');
+      } else if (err.name === 'TypeError') {
+        console.error('🔒 Problema de CORS ou conexão bloqueada');
+        alert('❌ Problema de CORS ou conexão bloqueada - verifique o console');
+      } else if (err.message.includes('Failed to fetch')) {
+        console.error('🌐 Falha geral de conexão - possíveis causas:');
+        console.error('   - CORS bloqueado');
+        console.error('   - HTTPS/HTTP misto');
+        console.error('   - Servidor fora do ar');
+        console.error('   - Firewall/Antivírus');
+        console.error('   - Ad Blocker');
+        alert('❌ Failed to fetch - verifique o console para detalhes');
+      } else {
+        alert(`❌ Erro: ${err.message}`);
+      }
     }
-  };
-
-  // Formatação de telefone
-  const formatarTelefone = (valor: string): string => {
-    const numeros = valor.replace(/[^\d]/g, '');
-    return numeros
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{4,5})(\d{4})/, '$1-$2')
-      .replace(/(-\d{4})\d+?$/, '$1');
-  };
-
-  // Formatação de CEP
-  const formatarCEP = (valor: string): string => {
-    const numeros = valor.replace(/[^\d]/g, '');
-    return numeros.replace(/(\d{5})(\d{1,3})/, '$1-$2').replace(/(-\d{3})\d+?$/, '$1');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -230,43 +232,51 @@ const Cadastro: React.FC = () => {
   };
 
   const validarFormulario = (): boolean => {
+    console.log('Iniciando validação do formulário...');
     const newErrors: FormErrors = {};
 
-    // Validações básicas
-    if (!formData.nome.trim()) newErrors.nome = 'Nome é obrigatório';
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email é obrigatório';
-    } else if (!validarEmail(formData.email)) {
-      newErrors.email = 'Email inválido';
+    try {
+      // Validações básicas
+      if (!formData.nome.trim()) newErrors.nome = 'Nome é obrigatório';
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email é obrigatório';
+      } else {
+        // Validação simples de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          newErrors.email = 'Email inválido';
+        }
+      }
+    } catch (error) {
+      console.error('Erro na validação de email:', error);
+      newErrors.email = 'Erro na validação de email';
     }
     
+    // Validação simples de senha
     if (!formData.senha) {
       newErrors.senha = 'Senha é obrigatória';
-    } else {
-      const validacaoSenha = validarSenha(formData.senha);
-      if (!validacaoSenha.valida) {
-        newErrors.senha = 'Senha deve ter pelo menos 6 caracteres e atender a critérios de segurança';
-      }
+    } else if (formData.senha.length < 6) {
+      newErrors.senha = 'Senha deve ter pelo menos 6 caracteres';
     }
     
     if (formData.senha !== formData.confirmarSenha) newErrors.confirmarSenha = 'Senhas não coincidem';
     
+    // Validação simples de telefone
     if (!formData.telefone.trim()) {
       newErrors.telefone = 'Telefone é obrigatório';
-    } else if (!validarTelefone(formData.telefone)) {
-      newErrors.telefone = 'Telefone inválido';
+    } else if (formData.telefone.replace(/\D/g, '').length < 10) {
+      newErrors.telefone = 'Telefone deve ter pelo menos 10 dígitos';
     }
 
-    // Validação de documento
+    // Validação simples de documento
     if (!formData.documento.trim()) {
       newErrors.documento = `${formData.tipoCliente.toUpperCase()} é obrigatório`;
     } else {
-      const documentoValido = formData.tipoCliente === 'cpf' 
-        ? validarCPF(formData.documento)
-        : validarCNPJ(formData.documento);
-      
-      if (!documentoValido) {
-        newErrors.documento = `${formData.tipoCliente.toUpperCase()} inválido`;
+      const docLimpo = formData.documento.replace(/\D/g, '');
+      if (formData.tipoCliente === 'cpf' && docLimpo.length !== 11) {
+        newErrors.documento = 'CPF deve ter 11 dígitos';
+      } else if (formData.tipoCliente === 'cnpj' && docLimpo.length !== 14) {
+        newErrors.documento = 'CNPJ deve ter 14 dígitos';
       }
     }
 
@@ -277,10 +287,14 @@ const Cadastro: React.FC = () => {
     }
 
     // Validações de endereço
+    // Validação simples de CEP
     if (!formData.endereco.cep.trim()) {
       newErrors['endereco.cep'] = 'CEP é obrigatório';
-    } else if (!validarCEP(formData.endereco.cep)) {
-      newErrors['endereco.cep'] = 'CEP inválido';
+    } else {
+      const cepLimpo = formData.endereco.cep.replace(/\D/g, '');
+      if (cepLimpo.length !== 8) {
+        newErrors['endereco.cep'] = 'CEP deve ter 8 dígitos';
+      }
     }
     
     if (!formData.endereco.logradouro.trim()) newErrors['endereco.logradouro'] = 'Logradouro é obrigatório';
@@ -290,16 +304,25 @@ const Cadastro: React.FC = () => {
     if (!formData.endereco.uf.trim()) newErrors['endereco.uf'] = 'UF é obrigatória';
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log('Resultado da validação:', isValid, 'Erros:', newErrors);
+    return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    alert('🖱️ Botão cadastrar clicado!');
+    console.log('🖱️ Botão cadastrar clicado!');
+    console.log('📋 Dados do formulário:', formData);
+    console.log('Iniciando cadastro...', formData);
+    
     if (!validarFormulario()) {
+      console.log('Validação falhou:', errors);
       return;
     }
 
+    console.log('Validação passou, enviando dados...');
     setIsLoading(true);
     setError('');
     setSuccess('');
@@ -329,15 +352,43 @@ const Cadastro: React.FC = () => {
         })
       };
 
-      const response = await fetch('/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dadosEnvio)
-      });
+      console.log('🔍 Enviando para:', buildApiUrl('/auth/register'));
+      console.log('📦 Dados enviados:', JSON.stringify(dadosEnvio, null, 2));
+      
+      let response;
+      let data;
+      
+      try {
+        response = await fetch(buildApiUrl('/auth/register'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dadosEnvio)
+        });
 
-      const data = await response.json();
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response headers:', response.headers);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.log('❌ Response error text:', errorText);
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        data = await response.json();
+        console.log('✅ Response data:', data);
+      } catch (fetchError) {
+        const err = fetchError as Error;
+        console.error('🔥 Erro na requisição:', err);
+        console.error('🔥 Tipo do erro:', err.constructor.name);
+        console.error('🔥 Mensagem do erro:', err.message);
+        console.error('🔥 Stack do erro:', err.stack);
+        if (err instanceof TypeError) {
+          console.error('🔥 TypeError detectado - possível problema de CORS ou conexão');
+        }
+        throw err;
+      }
 
       if (!response.ok) {
         throw new Error(data.erro || 'Erro ao realizar cadastro');
@@ -346,9 +397,16 @@ const Cadastro: React.FC = () => {
       // Cadastro bem-sucedido
       setSuccess('Cadastro realizado com sucesso!');
       
-      // Se o backend retornou um token, fazer login automático
-      if (data.token) {
-        localStorage.setItem('token', data.token);
+      // Se o backend retornou um token e usuário, fazer login automático
+      if (data.token && data.usuario) {
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('auth_user', JSON.stringify({
+          id: data.usuario.id?.toString?.() || String(data.usuario.id),
+          nome: data.usuario.nome,
+          email: data.usuario.email,
+          perfil: (data.usuario.permissoes || []).includes('admin') ? 'admin' : 'usuario',
+          permissoes: data.usuario.permissoes || []
+        }));
         navigate('/dashboard');
       } else {
         // Redirecionar para login
@@ -371,7 +429,7 @@ const Cadastro: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full space-y-8">
+      <div className="max-w-4xl w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
@@ -383,11 +441,36 @@ const Cadastro: React.FC = () => {
           <p className="text-gray-600">
             Sistema NFe - Brandão Contador
           </p>
+          
+          {/* Status da Conexão */}
+          <div className="mt-4 p-3 rounded-lg border max-w-md mx-auto">
+            <div className="flex items-center justify-center space-x-2">
+              {apiStatus === 'checking' && (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span className="text-sm text-blue-600">{apiMessage}</span>
+                </>
+              )}
+              {apiStatus === 'connected' && (
+                <>
+                  <div className="h-4 w-4 bg-green-500 rounded-full"></div>
+                  <span className="text-sm text-green-600">{apiMessage}</span>
+                </>
+              )}
+              {apiStatus === 'error' && (
+                <>
+                  <div className="h-4 w-4 bg-red-500 rounded-full"></div>
+                  <span className="text-sm text-red-600">{apiMessage}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Form */}
         <div className="bg-white rounded-lg shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {console.log('📝 Formulário renderizado com onSubmit:', handleSubmit)}
             {/* Tipo de Cliente */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -822,10 +905,106 @@ const Cadastro: React.FC = () => {
                   Cadastrando...
                 </ButtonLoading>
               ) : (
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" onClick={() => console.log('🎯 Botão Cadastrar clicado!')}>
                   Cadastrar
                 </Button>
               )}
+            </div>
+
+            {/* Botão de Teste */}
+            <div>
+              <Button 
+                type="button" 
+                className="w-full bg-yellow-500 hover:bg-yellow-600"
+                onClick={() => {
+                  alert('🧪 Botão de teste clicado!');
+                  console.log('🧪 Teste de conexão com API...');
+                  fetch(buildApiUrl('/nfe/teste'))
+                    .then(response => response.json())
+                    .then(data => {
+                      alert('✅ Conexão OK: ' + JSON.stringify(data));
+                      console.log('✅ Conexão OK:', data);
+                    })
+                    .catch(error => {
+                      alert('❌ Erro de conexão: ' + error.message);
+                      console.error('❌ Erro de conexão:', error);
+                    });
+                }}
+              >
+                🧪 Testar Conexão com API
+              </Button>
+            </div>
+
+            {/* Botão de Teste de Cadastro */}
+            <div>
+              <Button 
+                type="button" 
+                className="w-full bg-orange-500 hover:bg-orange-600"
+                onClick={async () => {
+                  alert('🧪 Testando cadastro com dados mock...');
+                  console.log('🧪 Testando cadastro com dados mock...');
+                  
+                  const dadosTeste = {
+                    tipoCliente: 'cpf',
+                    nome: 'Teste Usuário',
+                    email: 'teste@teste.com',
+                    senha: '123456',
+                    documento: '12345678901',
+                    telefone: '11999999999',
+                    endereco: {
+                      cep: '12345678',
+                      logradouro: 'Rua Teste',
+                      numero: '123',
+                      complemento: '',
+                      bairro: 'Bairro Teste',
+                      cidade: 'Cidade Teste',
+                      uf: 'SP'
+                    }
+                  };
+                  
+                  console.log('📦 Dados de teste:', dadosTeste);
+                  
+                  try {
+                    const response = await fetch(buildApiUrl('/auth/register'), {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(dadosTeste)
+                    });
+                    
+                    console.log('📡 Response status:', response.status);
+                    
+                    if (!response.ok) {
+                      const errorText = await response.text();
+                      alert('❌ Erro no cadastro: ' + errorText);
+                      console.error('❌ Erro no cadastro:', errorText);
+                      return;
+                    }
+                    
+                    const data = await response.json();
+                    alert('✅ Cadastro teste OK: ' + JSON.stringify(data));
+                    console.log('✅ Cadastro teste OK:', data);
+                    
+                  } catch (error) {
+                    alert('🔥 Erro na requisição: ' + (error as Error).message);
+                    console.error('🔥 Erro na requisição:', error);
+                  }
+                }}
+              >
+                🧪 Testar Cadastro (Dados Mock)
+              </Button>
+            </div>
+
+            {/* Botão de Debug Detalhado */}
+            <div>
+              <Button 
+                type="button" 
+                className="w-full bg-red-500 hover:bg-red-600"
+                onClick={debugConexao}
+              >
+                🔍 Debug Detalhado da Conexão
+              </Button>
             </div>
           </form>
 

@@ -1,6 +1,5 @@
 import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+import { API_BASE_URL } from '../config/api'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +12,7 @@ export const api = axios.create({
 // Interceptor para adicionar token automaticamente
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -32,8 +31,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expirado ou inválido
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_user')
       window.location.href = '/login'
     }
     return Promise.reject(error)
@@ -43,7 +42,7 @@ api.interceptors.response.use(
 // Serviços específicos
 export const authService = {
   login: (email: string, password: string) => {
-    return api.post('/auth/login', { email, password })
+    return api.post('/auth/login', { email, senha: password })
   },
   
   validateToken: () => {
@@ -52,8 +51,8 @@ export const authService = {
 
   logout: () => {
     // Limpar dados locais
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
     delete api.defaults.headers.common['Authorization']
   }
 }

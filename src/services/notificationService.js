@@ -160,7 +160,8 @@ class NotificationService {
       action: {
         label: 'Fazer Login',
         onClick: () => {
-          localStorage.removeItem('token');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
           window.location.href = '/login';
         }
       }

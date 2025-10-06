@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Building2, User, Building, Mail, Lock, Eye, EyeOff, Phone, MapPin } from 'lucide-react';
+import { Building2, User, Building, Mail, Lock, Eye, EyeOff, Phone, MapPin, Search, Loader2 } from 'lucide-react';
 import { Button, ButtonLoading } from '../components/ui/button';
 import { Input } from '../components/ui/Input';
 import { 
@@ -17,6 +17,8 @@ import {
   removerFormatacao,
   obterNivelSenha
 } from '../utils/validations';
+import { useAutoFormat } from '../hooks/useAutoFormat';
+import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
 import { buildApiUrl } from '../config/api';
 
 interface FormData {
@@ -78,6 +80,64 @@ const Cadastro: React.FC = () => {
     razaoSocial: '',
     nomeFantasia: '',
     inscricaoEstadual: ''
+  });
+
+  // Hooks para formatação automática
+  const cpfFormat = useAutoFormat('cpf');
+  const cnpjFormat = useAutoFormat('cnpj');
+  const telefoneFormat = useAutoFormat('telefone');
+  const inscricaoEstadualFormat = useAutoFormat('inscricaoEstadual');
+  const cepFormat = useAutoFormat('cep');
+
+  // Hooks para busca automática
+  const cnpjLookup = useCNPJLookup({
+    onDataFound: (data) => {
+      setFormData(prev => ({
+        ...prev,
+        razaoSocial: data.razaoSocial || prev.razaoSocial,
+        nomeFantasia: data.nomeFantasia || prev.nomeFantasia,
+        nome: data.razaoSocial || prev.nome, // Para pessoa jurídica, nome = razão social
+        email: data.email || prev.email,
+        telefone: data.telefone || prev.telefone,
+        endereco: {
+          ...prev.endereco,
+          cep: data.endereco.cep || prev.endereco.cep,
+          logradouro: data.endereco.logradouro || prev.endereco.logradouro,
+          numero: data.endereco.numero || prev.endereco.numero,
+          complemento: data.endereco.complemento || prev.endereco.complemento,
+          bairro: data.endereco.bairro || prev.endereco.bairro,
+          cidade: data.endereco.municipio || prev.endereco.cidade,
+          uf: data.endereco.uf || prev.endereco.uf
+        }
+      }));
+      setSuccess('Dados da empresa preenchidos automaticamente!');
+      setTimeout(() => setSuccess(''), 3000);
+    },
+    onError: (error) => {
+      setError(error);
+      setTimeout(() => setError(''), 3000);
+    }
+  });
+
+  const cepLookup = useCEPLookup({
+    onDataFound: (data) => {
+      setFormData(prev => ({
+        ...prev,
+        endereco: {
+          ...prev.endereco,
+          logradouro: data.logradouro,
+          bairro: data.bairro,
+          cidade: data.localidade,
+          uf: data.uf
+        }
+      }));
+      setSuccess('Endereço preenchido automaticamente!');
+      setTimeout(() => setSuccess(''), 3000);
+    },
+    onError: (error) => {
+      setError(error);
+      setTimeout(() => setError(''), 3000);
+    }
   });
 
   // Testar conectividade com a API ao carregar o componente
@@ -186,7 +246,11 @@ const Cadastro: React.FC = () => {
       let formattedValue = value;
       
       if (enderecoField === 'cep') {
-        formattedValue = formatarCEP(value);
+        formattedValue = cepFormat.format(value);
+        // Buscar endereço automaticamente quando CEP estiver completo
+        if (formattedValue.replace(/\D/g, '').length === 8) {
+          cepLookup.searchCEP(formattedValue);
+        }
       }
       
       setFormData(prev => ({
@@ -201,12 +265,18 @@ const Cadastro: React.FC = () => {
       
       if (name === 'documento') {
         if (formData.tipoCliente === 'cpf') {
-          formattedValue = formatarCPF(value);
+          formattedValue = cpfFormat.format(value);
         } else {
-          formattedValue = formatarCNPJ(value);
+          formattedValue = cnpjFormat.format(value);
+          // Buscar dados da empresa automaticamente quando CNPJ estiver completo
+          if (formattedValue.replace(/\D/g, '').length === 14) {
+            cnpjLookup.searchCNPJ(formattedValue);
+          }
         }
       } else if (name === 'telefone') {
-        formattedValue = formatarTelefone(value);
+        formattedValue = telefoneFormat.format(value);
+      } else if (name === 'inscricaoEstadual') {
+        formattedValue = inscricaoEstadualFormat.format(value);
       }
       
       // Validação em tempo real para senha
@@ -566,17 +636,34 @@ const Cadastro: React.FC = () => {
                 <label htmlFor="documento" className="block text-sm font-medium text-gray-700 mb-2">
                   {formData.tipoCliente === 'cpf' ? 'CPF' : 'CNPJ'}
                 </label>
-                <Input
-                  id="documento"
-                  name="documento"
-                  type="text"
-                  value={formData.documento}
-                  onChange={handleInputChange}
-                  className={errors.documento ? 'border-red-500' : ''}
-                  placeholder={formData.tipoCliente === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
-                  maxLength={formData.tipoCliente === 'cpf' ? 14 : 18}
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="documento"
+                    name="documento"
+                    type="text"
+                    value={formData.documento}
+                    onChange={handleInputChange}
+                    className={`${errors.documento ? 'border-red-500' : ''} ${formData.tipoCliente === 'cnpj' ? 'pr-12' : ''}`}
+                    placeholder={formData.tipoCliente === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
+                    maxLength={formData.tipoCliente === 'cpf' ? 14 : 18}
+                    disabled={isLoading}
+                  />
+                  {formData.tipoCliente === 'cnpj' && (
+                    <button
+                      type="button"
+                      onClick={() => cnpjLookup.searchCNPJ(formData.documento)}
+                      disabled={isLoading || cnpjLookup.isLoading || formData.documento.replace(/\D/g, '').length !== 14}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Buscar dados da empresa"
+                    >
+                      {cnpjLookup.isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
+                </div>
                 {errors.documento && <p className="mt-1 text-sm text-red-600">{errors.documento}</p>}
               </div>
 
@@ -742,17 +829,32 @@ const Cadastro: React.FC = () => {
                   <label htmlFor="endereco.cep" className="block text-sm font-medium text-gray-700 mb-2">
                     CEP
                   </label>
-                  <Input
-                    id="endereco.cep"
-                    name="endereco.cep"
-                    type="text"
-                    value={formData.endereco.cep}
-                    onChange={handleInputChange}
-                    className={errors['endereco.cep'] ? 'border-red-500' : ''}
-                    placeholder="00000-000"
-                    maxLength={9}
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="endereco.cep"
+                      name="endereco.cep"
+                      type="text"
+                      value={formData.endereco.cep}
+                      onChange={handleInputChange}
+                      className={`pr-12 ${errors['endereco.cep'] ? 'border-red-500' : ''}`}
+                      placeholder="00000-000"
+                      maxLength={9}
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => cepLookup.searchCEP(formData.endereco.cep)}
+                      disabled={isLoading || cepLookup.isLoading || formData.endereco.cep.replace(/\D/g, '').length !== 8}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Buscar endereço"
+                    >
+                      {cepLookup.isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                   {errors['endereco.cep'] && <p className="mt-1 text-sm text-red-600">{errors['endereco.cep']}</p>}
                 </div>
 

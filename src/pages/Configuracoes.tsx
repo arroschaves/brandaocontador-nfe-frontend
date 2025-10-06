@@ -14,13 +14,18 @@ import {
   CheckCircle,
   FileText,
   Database,
-  Wifi
+  Wifi,
+  Search,
+  Loader2
 } from 'lucide-react';
 import { PageLayout } from '../components/layout/PageLayout';
 import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card';
 import { FormGroup, Input, Select, TextArea, Checkbox } from '../components/ui/Form';
 import { Button, ButtonLoading } from '../components/ui/button';
 import { useToast } from '../contexts/ToastContext';
+import { useAutoFormat } from '../hooks/useAutoFormat';
+import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
+import { validarCNPJ, validarCEP } from '../utils/validations';
 
 interface ConfiguracaoEmpresa {
   razaoSocial: string;
@@ -30,6 +35,7 @@ interface ConfiguracaoEmpresa {
   inscricaoMunicipal: string;
   email: string;
   telefone: string;
+  formaTributacao: 'simples_nacional' | 'lucro_presumido' | 'lucro_real' | 'mei';
   endereco: {
     cep: string;
     logradouro: string;
@@ -83,6 +89,7 @@ const Configuracoes: React.FC = () => {
     inscricaoMunicipal: '12345678',
     email: 'contato@brandaocontador.com.br',
     telefone: '(11) 99999-9999',
+    formaTributacao: 'simples_nacional',
     endereco: {
       cep: '01234567',
       logradouro: 'Rua das Empresas',
@@ -120,6 +127,58 @@ const Configuracoes: React.FC = () => {
     emailVencimentoCertificado: true,
     whatsappNotificacoes: false,
     numeroWhatsapp: ''
+  });
+
+  // Hooks para formatação automática
+  const cnpjFormat = useAutoFormat('cnpj');
+  const telefoneFormat = useAutoFormat('telefone');
+  const inscricaoEstadualFormat = useAutoFormat('inscricaoEstadual');
+  const cepFormat = useAutoFormat('cep');
+
+  // Hooks para busca automática
+  const cnpjLookup = useCNPJLookup({
+    onDataFound: (data) => {
+      setConfigEmpresa(prev => ({
+        ...prev,
+        razaoSocial: data.razaoSocial || prev.razaoSocial,
+        nomeFantasia: data.nomeFantasia || prev.nomeFantasia,
+        email: data.email || prev.email,
+        telefone: data.telefone || prev.telefone,
+        endereco: {
+          ...prev.endereco,
+          cep: data.endereco.cep || prev.endereco.cep,
+          logradouro: data.endereco.logradouro || prev.endereco.logradouro,
+          numero: data.endereco.numero || prev.endereco.numero,
+          complemento: data.endereco.complemento || prev.endereco.complemento,
+          bairro: data.endereco.bairro || prev.endereco.bairro,
+          municipio: data.endereco.municipio || prev.endereco.municipio,
+          uf: data.endereco.uf || prev.endereco.uf
+        }
+      }));
+      showToast('Dados da empresa preenchidos automaticamente!', 'success');
+    },
+    onError: (error) => {
+      showToast(error, 'error');
+    }
+  });
+
+  const cepLookup = useCEPLookup({
+    onDataFound: (data) => {
+      setConfigEmpresa(prev => ({
+        ...prev,
+        endereco: {
+          ...prev.endereco,
+          logradouro: data.logradouro,
+          bairro: data.bairro,
+          municipio: data.localidade,
+          uf: data.uf
+        }
+      }));
+      showToast('Endereço preenchido automaticamente!', 'success');
+    },
+    onError: (error) => {
+      showToast(error, 'error');
+    }
   });
   
   useEffect(() => {
@@ -302,11 +361,35 @@ const Configuracoes: React.FC = () => {
                     required
                     description="Cadastro Nacional da Pessoa Jurídica (obrigatório para emissão de NFe)"
                   >
-                    <Input
-                      value={configEmpresa.cnpj}
-                      onChange={(e) => handleEmpresaChange('cnpj', e.target.value)}
-                      placeholder="00.000.000/0000-00"
-                    />
+                    <div className="relative">
+                      <Input
+                        value={configEmpresa.cnpj}
+                        onChange={(e) => {
+                          const formatted = cnpjFormat.format(e.target.value);
+                          handleEmpresaChange('cnpj', formatted);
+                          cnpjLookup.searchCNPJ(formatted);
+                        }}
+                        placeholder="00.000.000/0000-00"
+                        className={`pr-10 ${
+                          configEmpresa.cnpj && !validarCNPJ(configEmpresa.cnpj) 
+                            ? 'border-red-300 focus:border-red-500' 
+                            : ''
+                        }`}
+                      />
+                      {cnpjLookup.loading && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                        </div>
+                      )}
+                      {configEmpresa.cnpj && validarCNPJ(configEmpresa.cnpj) && !cnpjLookup.loading && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          <Search className="h-4 w-4 text-green-500" />
+                        </div>
+                      )}
+                    </div>
+                    {configEmpresa.cnpj && !validarCNPJ(configEmpresa.cnpj) && (
+                      <p className="mt-1 text-sm text-red-600">CNPJ inválido</p>
+                    )}
                   </FormGroup>
                   
                   <FormGroup 
@@ -315,7 +398,10 @@ const Configuracoes: React.FC = () => {
                   >
                     <Input
                       value={configEmpresa.inscricaoEstadual}
-                      onChange={(e) => handleEmpresaChange('inscricaoEstadual', e.target.value)}
+                      onChange={(e) => {
+                        const formatted = inscricaoEstadualFormat.format(e.target.value);
+                        handleEmpresaChange('inscricaoEstadual', formatted);
+                      }}
                       placeholder="Ex: 123.456.789.012"
                     />
                   </FormGroup>
@@ -346,14 +432,32 @@ const Configuracoes: React.FC = () => {
                   
                   <FormGroup 
                     label="Telefone Comercial" 
-                    className="md:col-span-2"
                     description="Telefone principal da empresa para contato"
                   >
                     <Input
                       value={configEmpresa.telefone}
-                      onChange={(e) => handleEmpresaChange('telefone', e.target.value)}
+                      onChange={(e) => {
+                        const formatted = telefoneFormat.format(e.target.value);
+                        handleEmpresaChange('telefone', formatted);
+                      }}
                       placeholder="(11) 99999-9999"
                     />
+                  </FormGroup>
+
+                  <FormGroup 
+                    label="Forma de Tributação" 
+                    required
+                    description="Regime tributário da empresa (obrigatório para emissão de NFe)"
+                  >
+                    <Select
+                      value={configEmpresa.formaTributacao}
+                      onChange={(e) => handleEmpresaChange('formaTributacao', e.target.value)}
+                    >
+                      <option value="simples_nacional">Simples Nacional</option>
+                      <option value="lucro_presumido">Lucro Presumido</option>
+                      <option value="lucro_real">Lucro Real</option>
+                      <option value="mei">MEI - Microempreendedor Individual</option>
+                    </Select>
                   </FormGroup>
                 </div>
               </CardBody>
@@ -373,11 +477,35 @@ const Configuracoes: React.FC = () => {
                     required
                     description="Código de Endereçamento Postal"
                   >
-                    <Input
-                      value={configEmpresa.endereco.cep}
-                      onChange={(e) => handleEmpresaChange('endereco.cep', e.target.value)}
-                      placeholder="00000-000"
-                    />
+                    <div className="relative">
+                      <Input
+                        value={configEmpresa.endereco.cep}
+                        onChange={(e) => {
+                          const formatted = cepFormat.format(e.target.value);
+                          handleEmpresaChange('endereco.cep', formatted);
+                          cepLookup.searchCEP(formatted);
+                        }}
+                        placeholder="00000-000"
+                        className={`pr-10 ${
+                          configEmpresa.endereco.cep && !validarCEP(configEmpresa.endereco.cep) 
+                            ? 'border-red-300 focus:border-red-500' 
+                            : ''
+                        }`}
+                      />
+                      {cepLookup.loading && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                        </div>
+                      )}
+                      {configEmpresa.endereco.cep && validarCEP(configEmpresa.endereco.cep) && !cepLookup.loading && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          <Search className="h-4 w-4 text-green-500" />
+                        </div>
+                      )}
+                    </div>
+                    {configEmpresa.endereco.cep && !validarCEP(configEmpresa.endereco.cep) && (
+                      <p className="mt-1 text-sm text-red-600">CEP inválido</p>
+                    )}
                   </FormGroup>
                   
                   <FormGroup 

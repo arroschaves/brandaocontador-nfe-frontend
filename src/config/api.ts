@@ -20,7 +20,7 @@ export const API_ENDPOINTS = {
     CONSULTAR: '/nfe/consultar',
     CANCELAR: '/nfe/cancelar',
     HISTORICO: '/nfe/historico',
-    TESTE: '/nfe/teste'
+  
   },
   STATUS: '/status',
   CONFIGURACOES: '/configuracoes'

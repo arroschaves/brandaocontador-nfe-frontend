@@ -69,31 +69,32 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError('');
       
-      // Dados zerados para ambiente de teste
-      const mockStats = {
-        total: 0,
-        emitidas: 0,
-        canceladas: 0,
-        pendentes: 0,
-        valorTotal: 0.00
+      // Carregar dados reais da API
+      const [statsResponse, nfesResponse, statusResponse] = await Promise.all([
+        fetch('/api/dashboard/stats', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        }),
+        fetch('/api/dashboard/recent-nfes', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        }),
+        fetch('/api/dashboard/system-status', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        })
+      ]);
+
+      const stats = statsResponse.ok ? await statsResponse.json() : {
+        total: 0, emitidas: 0, canceladas: 0, pendentes: 0, valorTotal: 0.00
       };
       
-      const mockRecentNfes = [
-        // Array vazio - sem NFes para demonstrar sistema limpo
-      ];
+      const recentNfes = nfesResponse.ok ? await nfesResponse.json() : [];
       
-      const mockSystemStatus = {
-        sefaz: Math.random() > 0.1 ? 'online' as const : 'offline' as const,
-        database: 'online' as const,
-        api: 'online' as const
+      const systemStatus = statusResponse.ok ? await statusResponse.json() : {
+        sefaz: 'offline' as const, database: 'online' as const, api: 'online' as const
       };
       
-      // Simular delay de rede
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setStats(mockStats);
-      setRecentNfes(mockRecentNfes);
-      setSystemStatus(mockSystemStatus);
+      setStats(stats);
+      setRecentNfes(recentNfes);
+      setSystemStatus(systemStatus);
       
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);

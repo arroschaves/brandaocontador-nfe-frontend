@@ -76,8 +76,7 @@ export const nfeService = {
   status: () => 
     api.get('/nfe/status'),
   
-  teste: () => 
-    api.get('/nfe/teste'),
+
 }
 
 export const configService = {

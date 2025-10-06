@@ -25,7 +25,7 @@ import { Button, ButtonLoading } from '../components/ui/button';
 import { useToast } from '../contexts/ToastContext';
 import { useAutoFormat } from '../hooks/useAutoFormat';
 import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
-import { validarCNPJ, validarCEP } from '../utils/validations';
+import { validarCNPJ, validarCEP, validarEmail, validarTelefone } from '../utils/validations';
 
 interface ConfiguracaoEmpresa {
   razaoSocial: string;
@@ -198,7 +198,48 @@ const Configuracoes: React.FC = () => {
     }
   };
   
+  const validarCamposObrigatorios = () => {
+    const erros = [];
+    
+    // Validar dados da empresa
+    if (!configEmpresa.razaoSocial.trim()) erros.push('Razão Social é obrigatória');
+    if (!configEmpresa.cnpj.trim()) erros.push('CNPJ é obrigatório');
+    if (!validarCNPJ(configEmpresa.cnpj)) erros.push('CNPJ inválido');
+    if (!configEmpresa.email.trim()) erros.push('E-mail Corporativo é obrigatório');
+    if (!validarEmail(configEmpresa.email)) erros.push('E-mail inválido');
+    if (!configEmpresa.telefone.trim()) erros.push('Telefone Comercial é obrigatório');
+    if (!validarTelefone(configEmpresa.telefone)) erros.push('Telefone inválido');
+    if (!configEmpresa.formaTributacao) erros.push('Forma de Tributação é obrigatória');
+    
+    // Validar endereço
+    if (!configEmpresa.endereco.cep.trim()) erros.push('CEP é obrigatório');
+    if (!validarCEP(configEmpresa.endereco.cep)) erros.push('CEP inválido');
+    if (!configEmpresa.endereco.logradouro.trim()) erros.push('Logradouro é obrigatório');
+    if (!configEmpresa.endereco.numero.trim()) erros.push('Número é obrigatório');
+    if (!configEmpresa.endereco.bairro.trim()) erros.push('Bairro é obrigatório');
+    if (!configEmpresa.endereco.municipio.trim()) erros.push('Município é obrigatório');
+    if (!configEmpresa.endereco.uf.trim()) erros.push('Estado (UF) é obrigatório');
+    
+    // Validar configurações NFe se a aba NFe estiver ativa
+    if (abaAtiva === 'nfe') {
+      if (!configNFe.certificadoDigital.senha.trim()) erros.push('Senha do Certificado é obrigatória');
+      if (!configNFe.emailEnvio.servidor.trim()) erros.push('Servidor SMTP é obrigatório');
+      if (!configNFe.emailEnvio.porta) erros.push('Porta é obrigatória');
+      if (!configNFe.emailEnvio.usuario.trim()) erros.push('Usuário é obrigatório');
+      if (!configNFe.emailEnvio.senha.trim()) erros.push('Senha do e-mail é obrigatória');
+    }
+    
+    return erros;
+  };
+
   const salvarConfiguracoes = async () => {
+    const erros = validarCamposObrigatorios();
+    
+    if (erros.length > 0) {
+      showToast(`Erro de validação: ${erros[0]}`, 'error');
+      return;
+    }
+    
     setSalvando(true);
     try {
       // Simular salvamento
@@ -427,11 +468,20 @@ const Configuracoes: React.FC = () => {
                       value={configEmpresa.email}
                       onChange={(e) => handleEmpresaChange('email', e.target.value)}
                       placeholder="contato@suaempresa.com.br"
+                      className={
+                        configEmpresa.email && !validarEmail(configEmpresa.email) 
+                          ? 'border-red-300 focus:border-red-500' 
+                          : ''
+                      }
                     />
+                    {configEmpresa.email && !validarEmail(configEmpresa.email) && (
+                      <p className="mt-1 text-sm text-red-600">E-mail inválido</p>
+                    )}
                   </FormGroup>
                   
                   <FormGroup 
                     label="Telefone Comercial" 
+                    required
                     description="Telefone principal da empresa para contato"
                   >
                     <Input
@@ -441,7 +491,15 @@ const Configuracoes: React.FC = () => {
                         handleEmpresaChange('telefone', formatted);
                       }}
                       placeholder="(11) 99999-9999"
+                      className={
+                        configEmpresa.telefone && !validarTelefone(configEmpresa.telefone) 
+                          ? 'border-red-300 focus:border-red-500' 
+                          : ''
+                      }
                     />
+                    {configEmpresa.telefone && !validarTelefone(configEmpresa.telefone) && (
+                      <p className="mt-1 text-sm text-red-600">Telefone inválido</p>
+                    )}
                   </FormGroup>
 
                   <FormGroup 
@@ -625,7 +683,11 @@ const Configuracoes: React.FC = () => {
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormGroup label="Ambiente" required>
+                  <FormGroup 
+                    label="Ambiente" 
+                    required
+                    description="Ambiente para emissão de NFe (Homologação para testes, Produção para uso real)"
+                  >
                     <Select
                       value={configNFe.ambiente}
                       onChange={(e) => handleNFeChange('ambiente', e.target.value)}
@@ -635,18 +697,28 @@ const Configuracoes: React.FC = () => {
                     </Select>
                   </FormGroup>
                   
-                  <FormGroup label="Série" required>
+                  <FormGroup 
+                    label="Série" 
+                    required
+                    description="Série da NFe (geralmente 1 para empresas iniciantes)"
+                  >
                     <Input
                       value={configNFe.serie}
                       onChange={(e) => handleNFeChange('serie', e.target.value)}
+                      placeholder="1"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Numeração Inicial" required>
+                  <FormGroup 
+                    label="Numeração Inicial" 
+                    required
+                    description="Número inicial para sequência de NFes (ex: 1 para começar do número 1)"
+                  >
                     <Input
                       type="number"
                       value={configNFe.numeracaoInicial}
                       onChange={(e) => handleNFeChange('numeracaoInicial', parseInt(e.target.value))}
+                      placeholder="1"
                     />
                   </FormGroup>
                 </div>
@@ -706,7 +778,11 @@ const Configuracoes: React.FC = () => {
                     </div>
                   </div>
                   
-                  <FormGroup label="Senha do Certificado" required>
+                  <FormGroup 
+                    label="Senha do Certificado" 
+                    required
+                    description="Senha do arquivo de certificado digital (.p12 ou .pfx) fornecida pela Autoridade Certificadora"
+                  >
                     <Input
                       type="password"
                       value={configNFe.certificadoDigital.senha}
@@ -727,7 +803,11 @@ const Configuracoes: React.FC = () => {
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormGroup label="Servidor SMTP" required>
+                  <FormGroup 
+                    label="Servidor SMTP" 
+                    required
+                    description="Endereço do servidor de e-mail (ex: smtp.gmail.com, smtp.outlook.com)"
+                  >
                     <Input
                       value={configNFe.emailEnvio.servidor}
                       onChange={(e) => handleNFeChange('emailEnvio.servidor', e.target.value)}
@@ -735,7 +815,11 @@ const Configuracoes: React.FC = () => {
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Porta" required>
+                  <FormGroup 
+                    label="Porta" 
+                    required
+                    description="Porta do servidor SMTP (587 para TLS, 465 para SSL, 25 para não criptografado)"
+                  >
                     <Input
                       type="number"
                       value={configNFe.emailEnvio.porta}
@@ -744,7 +828,11 @@ const Configuracoes: React.FC = () => {
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Usuário" required>
+                  <FormGroup 
+                    label="Usuário" 
+                    required
+                    description="E-mail ou nome de usuário para autenticação no servidor SMTP"
+                  >
                     <Input
                       value={configNFe.emailEnvio.usuario}
                       onChange={(e) => handleNFeChange('emailEnvio.usuario', e.target.value)}
@@ -752,7 +840,11 @@ const Configuracoes: React.FC = () => {
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Senha" required>
+                  <FormGroup 
+                    label="Senha" 
+                    required
+                    description="Senha do e-mail ou senha de aplicativo (recomendado usar senha de aplicativo para Gmail)"
+                  >
                     <Input
                       type="password"
                       value={configNFe.emailEnvio.senha}
@@ -767,6 +859,7 @@ const Configuracoes: React.FC = () => {
                       checked={configNFe.emailEnvio.ssl}
                       onChange={(checked) => handleNFeChange('emailEnvio.ssl', checked)}
                       label="Usar SSL/TLS"
+                      helperText="Ativar criptografia SSL/TLS para conexão segura (recomendado)"
                     />
                   </div>
                 </div>
@@ -805,6 +898,7 @@ const Configuracoes: React.FC = () => {
                       checked={configNotificacoes.emailNFeEmitida}
                       onChange={(checked) => setConfigNotificacoes(prev => ({ ...prev, emailNFeEmitida: checked }))}
                       label="NFe emitida com sucesso"
+                      helperText="Receber e-mail quando uma NFe for emitida com sucesso"
                     />
                     
                     <Checkbox
@@ -812,6 +906,7 @@ const Configuracoes: React.FC = () => {
                       checked={configNotificacoes.emailNFeCancelada}
                       onChange={(checked) => setConfigNotificacoes(prev => ({ ...prev, emailNFeCancelada: checked }))}
                       label="NFe cancelada"
+                      helperText="Receber e-mail quando uma NFe for cancelada"
                     />
                     
                     <Checkbox
@@ -819,6 +914,7 @@ const Configuracoes: React.FC = () => {
                       checked={configNotificacoes.emailErroEmissao}
                       onChange={(checked) => setConfigNotificacoes(prev => ({ ...prev, emailErroEmissao: checked }))}
                       label="Erro na emissão de NFe"
+                      helperText="Receber e-mail quando houver erro na emissão de NFe"
                     />
                     
                     <Checkbox
@@ -826,6 +922,7 @@ const Configuracoes: React.FC = () => {
                       checked={configNotificacoes.emailVencimentoCertificado}
                       onChange={(checked) => setConfigNotificacoes(prev => ({ ...prev, emailVencimentoCertificado: checked }))}
                       label="Vencimento do certificado digital"
+                      helperText="Receber e-mail quando o certificado digital estiver próximo do vencimento"
                     />
                   </div>
                 </div>
@@ -838,10 +935,14 @@ const Configuracoes: React.FC = () => {
                       checked={configNotificacoes.whatsappNotificacoes}
                       onChange={(checked) => setConfigNotificacoes(prev => ({ ...prev, whatsappNotificacoes: checked }))}
                       label="Receber notificações via WhatsApp"
+                      helperText="Ativar notificações via WhatsApp para eventos importantes"
                     />
                     
                     {configNotificacoes.whatsappNotificacoes && (
-                      <FormGroup label="Número do WhatsApp">
+                      <FormGroup 
+                        label="Número do WhatsApp"
+                        description="Número do WhatsApp com DDD para receber notificações"
+                      >
                         <Input
                           value={configNotificacoes.numeroWhatsapp}
                           onChange={(e) => setConfigNotificacoes(prev => ({ ...prev, numeroWhatsapp: e.target.value }))}

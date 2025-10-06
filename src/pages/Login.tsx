@@ -107,21 +107,7 @@ const Login: React.FC = () => {
     }
   };
 
-  const fillTestCredentials = (type: 'admin' | 'user') => {
-    if (type === 'admin') {
-      setFormData({
-        email: 'admin@brandaocontador.com.br',
-        password: 'admin123'
-      });
-      showToast('Credenciais de administrador preenchidas', 'info');
-    } else {
-      setFormData({
-        email: 'usuario@brandaocontador.com.br',
-        password: 'usuario123'
-      });
-      showToast('Credenciais de usuário preenchidas', 'info');
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -225,32 +211,7 @@ const Login: React.FC = () => {
             </div>
           </form>
 
-          {/* Test Credentials */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center mb-3">
-              Credenciais para teste:
-            </p>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fillTestCredentials('admin')}
-                className="flex-1"
-                disabled={isLoading}
-              >
-                Admin
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fillTestCredentials('user')}
-                className="flex-1"
-                disabled={isLoading}
-              >
-                Usuário
-              </Button>
-            </div>
-          </div>
+
 
           {/* Footer Links */}
           <div className="mt-6 text-center space-y-2">

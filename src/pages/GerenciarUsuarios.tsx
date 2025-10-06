@@ -91,53 +91,19 @@ const GerenciarUsuarios: React.FC = () => {
   const carregarUsuarios = async () => {
     setLoading(true);
     try {
-      // Simulação de dados - em produção, fazer requisição para API
-      const usuariosDemo: Usuario[] = [
-        {
-          id: '1',
-          nome: 'Administrador',
-          email: 'admin@brandaocontador.com.br',
-          documento: '00000000000',
-          tipoCliente: 'cpf',
-          telefone: '(11) 99999-9999',
-          empresa: 'Brandão Contador',
-          perfil: 'admin',
-          permissoes: ['admin', 'nfe_emitir', 'nfe_consultar', 'nfe_cancelar'],
-          status: 'ativo',
-          dataCriacao: '2024-01-01',
-          ultimoAcesso: '2024-01-15'
-        },
-        {
-          id: '2',
-          nome: 'Operador NFe',
-          email: 'operador@brandaocontador.com.br',
-          documento: '11111111111',
-          tipoCliente: 'cpf',
-          telefone: '(11) 88888-8888',
-          empresa: 'Brandão Contador',
-          perfil: 'usuario',
-          permissoes: ['nfe_emitir', 'nfe_consultar'],
-          status: 'ativo',
-          dataCriacao: '2024-01-02',
-          ultimoAcesso: '2024-01-14'
-        },
-        {
-          id: '3',
-          nome: 'Contador',
-          email: 'contador@brandaocontador.com.br',
-          documento: '22222222222',
-          tipoCliente: 'cpf',
-          telefone: '(11) 77777-7777',
-          empresa: 'Brandão Contador',
-          perfil: 'usuario',
-          permissoes: ['nfe_emitir', 'nfe_consultar', 'nfe_cancelar'],
-          status: 'ativo',
-          dataCriacao: '2024-01-03',
-          ultimoAcesso: '2024-01-13'
+      // Carregar usuários da API
+      const response = await fetch(buildApiUrl('/admin/usuarios'), {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      ];
+      });
 
-      setUsuarios(usuariosDemo);
+      if (!response.ok) {
+        throw new Error('Erro ao carregar usuários');
+      }
+
+      const data = await response.json();
+      setUsuarios(data.usuarios || []);
     } catch (error) {
       showToast('Erro ao carregar usuários', 'error');
       console.error('Erro ao carregar usuários:', error);

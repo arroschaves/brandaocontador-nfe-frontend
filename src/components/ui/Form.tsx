@@ -226,7 +226,7 @@ const Select: React.FC<SelectProps> = ({
             {placeholder}
           </option>
         )}
-        {options.map((option) => (
+        {options && options.map((option) => (
           <option
             key={option.value}
             value={option.value}
@@ -313,7 +313,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
         </div>
       )}
       <div className={`${direction === 'horizontal' ? 'flex space-x-4' : 'space-y-2'}`}>
-        {options.map((option) => {
+        {options && options.map((option) => {
           const radioId = `${name}-${option.value}`;
           return (
             <div key={option.value} className="flex items-center">

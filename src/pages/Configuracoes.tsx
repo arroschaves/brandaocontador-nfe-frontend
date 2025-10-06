@@ -274,21 +274,34 @@ const Configuracoes: React.FC = () => {
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormGroup label="Razão Social" required>
+                  <FormGroup 
+                    label="Razão Social" 
+                    required
+                    description="Nome empresarial registrado na Junta Comercial (obrigatório para emissão de NFe)"
+                  >
                     <Input
                       value={configEmpresa.razaoSocial}
                       onChange={(e) => handleEmpresaChange('razaoSocial', e.target.value)}
+                      placeholder="Ex: Brandão Contador Ltda"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Nome Fantasia">
+                  <FormGroup 
+                    label="Nome Fantasia"
+                    description="Nome comercial da empresa (como é conhecida no mercado)"
+                  >
                     <Input
                       value={configEmpresa.nomeFantasia}
                       onChange={(e) => handleEmpresaChange('nomeFantasia', e.target.value)}
+                      placeholder="Ex: Brandão Contador"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="CNPJ" required>
+                  <FormGroup 
+                    label="CNPJ" 
+                    required
+                    description="Cadastro Nacional da Pessoa Jurídica (obrigatório para emissão de NFe)"
+                  >
                     <Input
                       value={configEmpresa.cnpj}
                       onChange={(e) => handleEmpresaChange('cnpj', e.target.value)}
@@ -296,29 +309,46 @@ const Configuracoes: React.FC = () => {
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Inscrição Estadual">
+                  <FormGroup 
+                    label="Inscrição Estadual"
+                    description="Registro da empresa na Secretaria da Fazenda Estadual (obrigatório para contribuintes do ICMS)"
+                  >
                     <Input
                       value={configEmpresa.inscricaoEstadual}
                       onChange={(e) => handleEmpresaChange('inscricaoEstadual', e.target.value)}
+                      placeholder="Ex: 123.456.789.012"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Inscrição Municipal">
+                  <FormGroup 
+                    label="Inscrição Municipal"
+                    description="Registro da empresa na Prefeitura (obrigatório para prestadores de serviços)"
+                  >
                     <Input
                       value={configEmpresa.inscricaoMunicipal}
                       onChange={(e) => handleEmpresaChange('inscricaoMunicipal', e.target.value)}
+                      placeholder="Ex: 12345678"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="E-mail" required>
+                  <FormGroup 
+                    label="E-mail Corporativo" 
+                    required
+                    description="E-mail principal da empresa (usado para envio de NFes e notificações)"
+                  >
                     <Input
                       type="email"
                       value={configEmpresa.email}
                       onChange={(e) => handleEmpresaChange('email', e.target.value)}
+                      placeholder="contato@suaempresa.com.br"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Telefone" className="md:col-span-2">
+                  <FormGroup 
+                    label="Telefone Comercial" 
+                    className="md:col-span-2"
+                    description="Telefone principal da empresa para contato"
+                  >
                     <Input
                       value={configEmpresa.telefone}
                       onChange={(e) => handleEmpresaChange('telefone', e.target.value)}
@@ -331,11 +361,18 @@ const Configuracoes: React.FC = () => {
             
             <Card>
               <CardHeader>
-                <CardTitle>Endereço</CardTitle>
+                <CardTitle>Endereço da Empresa</CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Endereço completo da sede da empresa (obrigatório para emissão de NFe)
+                </p>
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <FormGroup label="CEP" required>
+                  <FormGroup 
+                    label="CEP" 
+                    required
+                    description="Código de Endereçamento Postal"
+                  >
                     <Input
                       value={configEmpresa.endereco.cep}
                       onChange={(e) => handleEmpresaChange('endereco.cep', e.target.value)}
@@ -343,50 +380,103 @@ const Configuracoes: React.FC = () => {
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Logradouro" required className="md:col-span-2">
+                  <FormGroup 
+                    label="Logradouro" 
+                    required 
+                    className="md:col-span-2"
+                    description="Rua, Avenida, Travessa, etc."
+                  >
                     <Input
                       value={configEmpresa.endereco.logradouro}
                       onChange={(e) => handleEmpresaChange('endereco.logradouro', e.target.value)}
+                      placeholder="Ex: Rua das Empresas"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Número" required>
+                  <FormGroup 
+                    label="Número" 
+                    required
+                    description="Número do imóvel"
+                  >
                     <Input
                       value={configEmpresa.endereco.numero}
                       onChange={(e) => handleEmpresaChange('endereco.numero', e.target.value)}
+                      placeholder="123"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Complemento">
+                  <FormGroup 
+                    label="Complemento"
+                    description="Sala, Andar, Bloco (opcional)"
+                  >
                     <Input
                       value={configEmpresa.endereco.complemento}
                       onChange={(e) => handleEmpresaChange('endereco.complemento', e.target.value)}
+                      placeholder="Ex: Sala 456"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Bairro" required>
+                  <FormGroup 
+                    label="Bairro" 
+                    required
+                    description="Bairro ou distrito"
+                  >
                     <Input
                       value={configEmpresa.endereco.bairro}
                       onChange={(e) => handleEmpresaChange('endereco.bairro', e.target.value)}
+                      placeholder="Ex: Centro"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="Município" required>
+                  <FormGroup 
+                    label="Município" 
+                    required
+                    description="Cidade onde a empresa está localizada"
+                  >
                     <Input
                       value={configEmpresa.endereco.municipio}
                       onChange={(e) => handleEmpresaChange('endereco.municipio', e.target.value)}
+                      placeholder="Ex: São Paulo"
                     />
                   </FormGroup>
                   
-                  <FormGroup label="UF" required>
+                  <FormGroup 
+                    label="Estado (UF)" 
+                    required
+                    description="Unidade Federativa"
+                  >
                     <Select
                       value={configEmpresa.endereco.uf}
                       onChange={(e) => handleEmpresaChange('endereco.uf', e.target.value)}
                     >
-                      <option value="SP">SP</option>
-                      <option value="RJ">RJ</option>
-                      <option value="MG">MG</option>
-                      {/* Adicionar outros estados */}
+                      <option value="">Selecione...</option>
+                      <option value="AC">AC - Acre</option>
+                      <option value="AL">AL - Alagoas</option>
+                      <option value="AP">AP - Amapá</option>
+                      <option value="AM">AM - Amazonas</option>
+                      <option value="BA">BA - Bahia</option>
+                      <option value="CE">CE - Ceará</option>
+                      <option value="DF">DF - Distrito Federal</option>
+                      <option value="ES">ES - Espírito Santo</option>
+                      <option value="GO">GO - Goiás</option>
+                      <option value="MA">MA - Maranhão</option>
+                      <option value="MT">MT - Mato Grosso</option>
+                      <option value="MS">MS - Mato Grosso do Sul</option>
+                      <option value="MG">MG - Minas Gerais</option>
+                      <option value="PA">PA - Pará</option>
+                      <option value="PB">PB - Paraíba</option>
+                      <option value="PR">PR - Paraná</option>
+                      <option value="PE">PE - Pernambuco</option>
+                      <option value="PI">PI - Piauí</option>
+                      <option value="RJ">RJ - Rio de Janeiro</option>
+                      <option value="RN">RN - Rio Grande do Norte</option>
+                      <option value="RS">RS - Rio Grande do Sul</option>
+                      <option value="RO">RO - Rondônia</option>
+                      <option value="RR">RR - Roraima</option>
+                      <option value="SC">SC - Santa Catarina</option>
+                      <option value="SP">SP - São Paulo</option>
+                      <option value="SE">SE - Sergipe</option>
+                      <option value="TO">TO - Tocantins</option>
                     </Select>
                   </FormGroup>
                 </div>

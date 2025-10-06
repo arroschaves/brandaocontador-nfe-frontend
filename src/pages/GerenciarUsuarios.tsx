@@ -281,22 +281,22 @@ const GerenciarUsuarios: React.FC = () => {
   }
 
   return (
-    <PageLayout title="Gerenciar Usuários">
+    <PageLayout title="Gerenciar Clientes">
       <div className="space-y-6">
         {/* Header com ações */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Users className="h-6 w-6" />
-              Gerenciar Usuários
+              Gerenciar Clientes
             </h1>
             <p className="text-gray-600 mt-1">
-              Gerencie usuários, permissões e acessos do sistema
+              Gerencie clientes, permissões e acessos ao sistema NFe
             </p>
           </div>
-          <Button onClick={handleNovoUsuario} className="flex items-center gap-2">
+          <Button onClick={handleNovoUsuario} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
             <UserPlus className="h-4 w-4" />
-            Novo Usuário
+            Cadastrar Cliente
           </Button>
         </div>
 
@@ -513,9 +513,14 @@ const GerenciarUsuarios: React.FC = () => {
         {/* Modal Novo Usuário */}
         {modalNovoUsuario && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Novo Usuário</h3>
+            <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Cadastrar Novo Cliente</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Preencha os dados do cliente que terá acesso ao sistema NFe
+                  </p>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -525,131 +530,221 @@ const GerenciarUsuarios: React.FC = () => {
                 </Button>
               </div>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormGroup label="Nome Completo" required>
-                    <Input
-                      type="text"
-                      value={novoUsuario.nome}
-                      onChange={(e) => setNovoUsuario({...novoUsuario, nome: e.target.value})}
-                      placeholder="Nome completo do usuário"
-                    />
-                  </FormGroup>
-
-                  <FormGroup label="Email" required>
-                    <Input
-                      type="email"
-                      value={novoUsuario.email}
-                      onChange={(e) => setNovoUsuario({...novoUsuario, email: e.target.value})}
-                      placeholder="email@exemplo.com"
-                    />
-                  </FormGroup>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormGroup label="Senha" required>
-                    <div className="relative">
-                      <Input
-                        type={mostrarSenha ? "text" : "password"}
-                        value={novoUsuario.senha}
-                        onChange={(e) => setNovoUsuario({...novoUsuario, senha: e.target.value})}
-                        placeholder="Senha do usuário"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setMostrarSenha(!mostrarSenha)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                      >
-                        {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </FormGroup>
-
-                  <FormGroup label="Telefone">
-                    <Input
-                      type="tel"
-                      value={novoUsuario.telefone}
-                      onChange={(e) => setNovoUsuario({...novoUsuario, telefone: e.target.value})}
-                      placeholder="(11) 99999-9999"
-                    />
-                  </FormGroup>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormGroup label="Tipo de Cliente">
-                    <Select
-                      value={novoUsuario.tipoCliente}
-                      onChange={(e) => setNovoUsuario({...novoUsuario, tipoCliente: e.target.value as any})}
+              <div className="space-y-6">
+                {/* Dados Pessoais */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Dados Pessoais
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormGroup 
+                      label="Nome Completo" 
+                      required
+                      description="Nome completo da pessoa responsável pelo acesso"
                     >
-                      <option value="cpf">CPF</option>
-                      <option value="cnpj">CNPJ</option>
-                    </Select>
-                  </FormGroup>
+                      <Input
+                        type="text"
+                        value={novoUsuario.nome}
+                        onChange={(e) => setNovoUsuario({...novoUsuario, nome: e.target.value})}
+                        placeholder="Ex: João Silva Santos"
+                      />
+                    </FormGroup>
 
-                  <FormGroup label={novoUsuario.tipoCliente === 'cpf' ? 'CPF' : 'CNPJ'}>
-                    <Input
-                      type="text"
-                      value={novoUsuario.documento}
-                      onChange={(e) => setNovoUsuario({...novoUsuario, documento: e.target.value})}
-                      placeholder={novoUsuario.tipoCliente === 'cpf' ? '000.000.000-00' : '00.000.000/0001-00'}
-                    />
-                  </FormGroup>
+                    <FormGroup 
+                      label="E-mail de Acesso" 
+                      required
+                      description="E-mail que será usado para login no sistema"
+                    >
+                      <Input
+                        type="email"
+                        value={novoUsuario.email}
+                        onChange={(e) => setNovoUsuario({...novoUsuario, email: e.target.value})}
+                        placeholder="joao@empresa.com.br"
+                      />
+                    </FormGroup>
+
+                    <FormGroup 
+                      label="Senha de Acesso" 
+                      required
+                      description="Senha inicial para acesso ao sistema (mínimo 6 caracteres)"
+                    >
+                      <div className="relative">
+                        <Input
+                          type={mostrarSenha ? "text" : "password"}
+                          value={novoUsuario.senha}
+                          onChange={(e) => setNovoUsuario({...novoUsuario, senha: e.target.value})}
+                          placeholder="Digite uma senha segura"
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setMostrarSenha(!mostrarSenha)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormGroup>
+
+                    <FormGroup 
+                      label="Telefone de Contato"
+                      description="Telefone para contato (opcional)"
+                    >
+                      <Input
+                        type="tel"
+                        value={novoUsuario.telefone}
+                        onChange={(e) => setNovoUsuario({...novoUsuario, telefone: e.target.value})}
+                        placeholder="(11) 99999-9999"
+                      />
+                    </FormGroup>
+                  </div>
                 </div>
 
-                <FormGroup label="Empresa">
-                  <Input
-                    type="text"
-                    value={novoUsuario.empresa}
-                    onChange={(e) => setNovoUsuario({...novoUsuario, empresa: e.target.value})}
-                    placeholder="Nome da empresa"
-                  />
-                </FormGroup>
+                {/* Dados do Documento */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                    <Building className="h-5 w-5" />
+                    Identificação
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormGroup 
+                      label="Tipo de Cliente"
+                      description="Selecione se é pessoa física (CPF) ou jurídica (CNPJ)"
+                    >
+                      <Select
+                        value={novoUsuario.tipoCliente}
+                        onChange={(e) => setNovoUsuario({...novoUsuario, tipoCliente: e.target.value as any, documento: ''})}
+                      >
+                        <option value="cpf">Pessoa Física (CPF)</option>
+                        <option value="cnpj">Pessoa Jurídica (CNPJ)</option>
+                      </Select>
+                    </FormGroup>
 
-                <FormGroup label="Perfil">
-                  <Select
-                    value={novoUsuario.perfil}
-                    onChange={(e) => setNovoUsuario({...novoUsuario, perfil: e.target.value as any})}
-                  >
-                    <option value="usuario">Usuário</option>
-                    <option value="admin">Administrador</option>
-                  </Select>
-                </FormGroup>
+                    <FormGroup 
+                      label={novoUsuario.tipoCliente === 'cpf' ? 'CPF' : 'CNPJ'}
+                      required
+                      description={novoUsuario.tipoCliente === 'cpf' ? 'Cadastro de Pessoa Física' : 'Cadastro Nacional da Pessoa Jurídica'}
+                    >
+                      <Input
+                        type="text"
+                        value={novoUsuario.documento}
+                        onChange={(e) => setNovoUsuario({...novoUsuario, documento: e.target.value})}
+                        placeholder={novoUsuario.tipoCliente === 'cpf' ? '000.000.000-00' : '00.000.000/0001-00'}
+                      />
+                    </FormGroup>
 
-                <FormGroup label="Permissões">
-                  <div className="space-y-2">
-                    {[
-                      { id: 'nfe_consultar', label: 'Consultar NFe' },
-                      { id: 'nfe_emitir', label: 'Emitir NFe' },
-                      { id: 'nfe_cancelar', label: 'Cancelar NFe' },
-                      { id: 'admin', label: 'Administrador' }
-                    ].map((permissao) => (
-                      <label key={permissao.id} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={novoUsuario.permissoes.includes(permissao.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNovoUsuario({
-                                ...novoUsuario,
-                                permissoes: [...novoUsuario.permissoes, permissao.id]
-                              });
-                            } else {
-                              setNovoUsuario({
-                                ...novoUsuario,
-                                permissoes: novoUsuario.permissoes.filter(p => p !== permissao.id)
-                              });
-                            }
-                          }}
-                          className="rounded"
+                    {novoUsuario.tipoCliente === 'cnpj' && (
+                      <FormGroup 
+                        label="Nome da Empresa"
+                        description="Razão social ou nome fantasia da empresa"
+                        className="md:col-span-2"
+                      >
+                        <Input
+                          type="text"
+                          value={novoUsuario.empresa}
+                          onChange={(e) => setNovoUsuario({...novoUsuario, empresa: e.target.value})}
+                          placeholder="Ex: Empresa Exemplo Ltda"
                         />
-                        <span className="text-sm">{permissao.label}</span>
-                      </label>
-                    ))}
+                      </FormGroup>
+                    )}
                   </div>
-                </FormGroup>
+                </div>
+
+                {/* Permissões e Acesso */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Permissões de Acesso
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormGroup 
+                      label="Nível de Acesso"
+                      description="Define o tipo de acesso que o usuário terá no sistema"
+                    >
+                      <Select
+                        value={novoUsuario.perfil}
+                        onChange={(e) => {
+                          const perfil = e.target.value as 'admin' | 'usuario';
+                          setNovoUsuario({
+                            ...novoUsuario, 
+                            perfil,
+                            permissoes: perfil === 'admin' ? ['admin', 'nfe_emitir', 'nfe_consultar', 'nfe_cancelar'] : ['nfe_consultar']
+                          });
+                        }}
+                      >
+                        <option value="usuario">Usuário Padrão</option>
+                        <option value="admin">Administrador</option>
+                      </Select>
+                      <div className="mt-2 text-xs text-gray-500">
+                        {novoUsuario.perfil === 'admin' ? 
+                          '• Acesso total ao sistema e gerenciamento de usuários' : 
+                          '• Acesso limitado conforme permissões selecionadas'
+                        }
+                      </div>
+                    </FormGroup>
+
+                    <FormGroup 
+                      label="Permissões Específicas"
+                      description="Selecione as funcionalidades que o usuário poderá acessar"
+                    >
+                      <div className="space-y-3">
+                        {[
+                          { 
+                            id: 'nfe_consultar', 
+                            label: 'Consultar NFe', 
+                            desc: 'Visualizar e consultar notas fiscais emitidas' 
+                          },
+                          { 
+                            id: 'nfe_emitir', 
+                            label: 'Emitir NFe', 
+                            desc: 'Criar e emitir novas notas fiscais' 
+                          },
+                          { 
+                            id: 'nfe_cancelar', 
+                            label: 'Cancelar NFe', 
+                            desc: 'Cancelar notas fiscais já emitidas' 
+                          },
+                          { 
+                            id: 'admin', 
+                            label: 'Administrador', 
+                            desc: 'Acesso total e gerenciamento de usuários' 
+                          }
+                        ].map((permissao) => (
+                          <label key={permissao.id} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              checked={novoUsuario.permissoes.includes(permissao.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setNovoUsuario({
+                                    ...novoUsuario,
+                                    permissoes: [...novoUsuario.permissoes, permissao.id]
+                                  });
+                                } else {
+                                  setNovoUsuario({
+                                    ...novoUsuario,
+                                    permissoes: novoUsuario.permissoes.filter(p => p !== permissao.id)
+                                  });
+                                }
+                              }}
+                              className="mt-1 rounded"
+                              disabled={novoUsuario.perfil === 'admin' && permissao.id === 'admin'}
+                            />
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-900">{permissao.label}</div>
+                              <div className="text-xs text-gray-500">{permissao.desc}</div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </FormGroup>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
                 <Button
                   variant="outline"
                   onClick={() => setModalNovoUsuario(false)}
@@ -660,8 +755,9 @@ const GerenciarUsuarios: React.FC = () => {
                 <ButtonLoading
                   onClick={handleSalvarNovoUsuario}
                   loading={salvando}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
-                  Criar Usuário
+                  {salvando ? 'Criando Cliente...' : 'Criar Cliente'}
                 </ButtonLoading>
               </div>
             </div>

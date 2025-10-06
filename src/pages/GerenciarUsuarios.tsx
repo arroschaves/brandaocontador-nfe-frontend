@@ -188,35 +188,88 @@ const GerenciarUsuarios: React.FC = () => {
         return;
       }
 
-      // Verificar se email já existe
-      if (usuarios.some(u => u.email === novoUsuario.email)) {
-        showToast('Este email já está em uso', 'error');
+      if (!novoUsuario.documento || !novoUsuario.tipoCliente) {
+        showToast('Preencha os dados de identificação', 'error');
         return;
       }
 
-      // Simular criação do usuário
-      const novoId = (usuarios.length + 1).toString();
-      const usuarioCriado: Usuario = {
-        id: novoId,
+      if (!novoUsuario.telefone) {
+        showToast('Telefone é obrigatório', 'error');
+        return;
+      }
+
+      // Preparar dados para envio
+      const dadosUsuario = {
         nome: novoUsuario.nome,
         email: novoUsuario.email,
+        senha: novoUsuario.senha,
         documento: novoUsuario.documento,
         tipoCliente: novoUsuario.tipoCliente,
         telefone: novoUsuario.telefone,
-        empresa: novoUsuario.empresa,
-        perfil: novoUsuario.perfil,
-        permissoes: novoUsuario.permissoes,
-        status: 'ativo',
-        dataCriacao: new Date().toISOString().split('T')[0],
-        ultimoAcesso: undefined
+        razaoSocial: novoUsuario.tipoCliente === 'cnpj' ? novoUsuario.empresa : undefined,
+        nomeFantasia: novoUsuario.tipoCliente === 'cnpj' ? novoUsuario.empresa : undefined,
+        endereco: {
+          cep: '00000-000',
+          logradouro: 'Rua Exemplo',
+          numero: '123',
+          bairro: 'Centro',
+          cidade: 'São Paulo',
+          uf: 'SP'
+        },
+        permissoes: novoUsuario.permissoes
       };
 
-      setUsuarios([...usuarios, usuarioCriado]);
-      setModalNovoUsuario(false);
-      showToast('Usuário criado com sucesso!', 'success');
+      // Fazer chamada para o backend
+      const response = await fetch('/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dadosUsuario)
+      });
+
+      const resultado = await response.json();
+
+      if (resultado.sucesso) {
+        // Criar usuário para a lista local
+        const usuarioCriado: Usuario = {
+          id: resultado.usuario.id.toString(),
+          nome: resultado.usuario.nome,
+          email: resultado.usuario.email,
+          documento: resultado.usuario.documento,
+          tipoCliente: resultado.usuario.tipoCliente,
+          telefone: dadosUsuario.telefone,
+          empresa: dadosUsuario.razaoSocial || '',
+          perfil: 'cliente',
+          permissoes: resultado.usuario.permissoes,
+          status: 'ativo',
+          dataCriacao: new Date().toISOString().split('T')[0],
+          ultimoAcesso: undefined
+        };
+
+        setUsuarios([...usuarios, usuarioCriado]);
+        setModalNovoUsuario(false);
+        
+        // Resetar formulário
+        setNovoUsuario({
+          nome: '',
+          email: '',
+          senha: '',
+          documento: '',
+          tipoCliente: 'cpf',
+          telefone: '',
+          empresa: '',
+          perfil: 'cliente',
+          permissoes: []
+        });
+
+        showToast('Usuário criado com sucesso!', 'success');
+      } else {
+        showToast(resultado.erro || 'Erro ao criar usuário', 'error');
+      }
 
     } catch (error) {
-      showToast('Erro ao criar usuário', 'error');
+      showToast('Erro ao conectar com o servidor', 'error');
       console.error('Erro ao criar usuário:', error);
     } finally {
       setSalvando(false);
@@ -231,6 +284,39 @@ const GerenciarUsuarios: React.FC = () => {
       showToast(`Status do usuário alterado para ${novoStatus}`, 'success');
     } catch (error) {
       showToast('Erro ao alterar status do usuário', 'error');
+    }
+  };
+
+  const handleSalvarEdicaoUsuario = async () => {
+    setSalvando(true);
+    try {
+      if (!usuarioSelecionado) return;
+
+      // Validações básicas
+      if (!usuarioSelecionado.nome || !usuarioSelecionado.email) {
+        showToast('Preencha todos os campos obrigatórios', 'error');
+        return;
+      }
+
+      // Verificar se email já existe (exceto o próprio usuário)
+      if (usuarios.some(u => u.email === usuarioSelecionado.email && u.id !== usuarioSelecionado.id)) {
+        showToast('Este email já está em uso', 'error');
+        return;
+      }
+
+      // Atualizar usuário na lista
+      setUsuarios(usuarios.map(u => 
+        u.id === usuarioSelecionado.id ? usuarioSelecionado : u
+      ));
+      
+      setModalEditarUsuario(false);
+      showToast('Usuário atualizado com sucesso!', 'success');
+
+    } catch (error) {
+      showToast('Erro ao atualizar usuário', 'error');
+      console.error('Erro ao atualizar usuário:', error);
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -758,6 +844,237 @@ const GerenciarUsuarios: React.FC = () => {
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   {salvando ? 'Criando Cliente...' : 'Criar Cliente'}
+                </ButtonLoading>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Editar Usuário */}
+        {modalEditarUsuario && usuarioSelecionado && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Editar Cliente</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Edite os dados do cliente {usuarioSelecionado.nome}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setModalEditarUsuario(false)}
+                >
+                  ×
+                </Button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Dados Pessoais */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Dados Pessoais
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormGroup 
+                      label="Nome Completo" 
+                      required
+                      description="Nome completo da pessoa responsável pelo acesso"
+                    >
+                      <Input
+                        type="text"
+                        value={usuarioSelecionado.nome}
+                        onChange={(e) => setUsuarioSelecionado({...usuarioSelecionado, nome: e.target.value})}
+                        placeholder="Ex: João Silva Santos"
+                      />
+                    </FormGroup>
+
+                    <FormGroup 
+                      label="E-mail" 
+                      required
+                      description="E-mail para acesso ao sistema (deve ser único)"
+                    >
+                      <Input
+                        type="email"
+                        value={usuarioSelecionado.email}
+                        onChange={(e) => setUsuarioSelecionado({...usuarioSelecionado, email: e.target.value})}
+                        placeholder="joao@empresa.com.br"
+                      />
+                    </FormGroup>
+
+                    <FormGroup 
+                      label="Telefone"
+                      description="Número de contato (opcional)"
+                    >
+                      <Input
+                        type="tel"
+                        value={usuarioSelecionado.telefone || ''}
+                        onChange={(e) => setUsuarioSelecionado({...usuarioSelecionado, telefone: e.target.value})}
+                        placeholder="(11) 99999-9999"
+                      />
+                    </FormGroup>
+                  </div>
+                </div>
+
+                {/* Dados do Documento */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                    <Building className="h-5 w-5" />
+                    Identificação
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormGroup 
+                      label="Tipo de Cliente"
+                      description="Selecione se é pessoa física (CPF) ou jurídica (CNPJ)"
+                    >
+                      <Select
+                        value={usuarioSelecionado.tipoCliente}
+                        onChange={(e) => setUsuarioSelecionado({...usuarioSelecionado, tipoCliente: e.target.value as any, documento: ''})}
+                      >
+                        <option value="cpf">Pessoa Física (CPF)</option>
+                        <option value="cnpj">Pessoa Jurídica (CNPJ)</option>
+                      </Select>
+                    </FormGroup>
+
+                    <FormGroup 
+                      label={usuarioSelecionado.tipoCliente === 'cpf' ? 'CPF' : 'CNPJ'}
+                      required
+                      description={usuarioSelecionado.tipoCliente === 'cpf' ? 'Cadastro de Pessoa Física' : 'Cadastro Nacional da Pessoa Jurídica'}
+                    >
+                      <Input
+                        type="text"
+                        value={usuarioSelecionado.documento}
+                        onChange={(e) => setUsuarioSelecionado({...usuarioSelecionado, documento: e.target.value})}
+                        placeholder={usuarioSelecionado.tipoCliente === 'cpf' ? '000.000.000-00' : '00.000.000/0001-00'}
+                      />
+                    </FormGroup>
+
+                    {usuarioSelecionado.tipoCliente === 'cnpj' && (
+                      <FormGroup 
+                        label="Nome da Empresa"
+                        description="Razão social ou nome fantasia da empresa"
+                        className="md:col-span-2"
+                      >
+                        <Input
+                          type="text"
+                          value={usuarioSelecionado.empresa || ''}
+                          onChange={(e) => setUsuarioSelecionado({...usuarioSelecionado, empresa: e.target.value})}
+                          placeholder="Ex: Empresa Exemplo Ltda"
+                        />
+                      </FormGroup>
+                    )}
+                  </div>
+                </div>
+
+                {/* Permissões e Acesso */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Permissões de Acesso
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormGroup 
+                      label="Nível de Acesso"
+                      description="Define o tipo de acesso que o usuário terá no sistema"
+                    >
+                      <Select
+                        value={usuarioSelecionado.perfil}
+                        onChange={(e) => {
+                          const perfil = e.target.value as 'admin' | 'usuario';
+                          setUsuarioSelecionado({
+                            ...usuarioSelecionado, 
+                            perfil,
+                            permissoes: perfil === 'admin' ? ['admin', 'nfe_emitir', 'nfe_consultar', 'nfe_cancelar'] : ['nfe_consultar']
+                          });
+                        }}
+                      >
+                        <option value="usuario">Usuário Padrão</option>
+                        <option value="admin">Administrador</option>
+                      </Select>
+                      <div className="mt-2 text-xs text-gray-500">
+                        {usuarioSelecionado.perfil === 'admin' ? 
+                          '• Acesso total ao sistema e gerenciamento de usuários' : 
+                          '• Acesso limitado conforme permissões selecionadas'
+                        }
+                      </div>
+                    </FormGroup>
+
+                    <FormGroup 
+                      label="Permissões Específicas"
+                      description="Selecione as funcionalidades que o usuário poderá acessar"
+                    >
+                      <div className="space-y-3">
+                        {[
+                          { 
+                            id: 'nfe_consultar', 
+                            label: 'Consultar NFe', 
+                            desc: 'Visualizar e consultar notas fiscais emitidas' 
+                          },
+                          { 
+                            id: 'nfe_emitir', 
+                            label: 'Emitir NFe', 
+                            desc: 'Criar e emitir novas notas fiscais' 
+                          },
+                          { 
+                            id: 'nfe_cancelar', 
+                            label: 'Cancelar NFe', 
+                            desc: 'Cancelar notas fiscais já emitidas' 
+                          },
+                          { 
+                            id: 'admin', 
+                            label: 'Administrador', 
+                            desc: 'Acesso total e gerenciamento de usuários' 
+                          }
+                        ].map((permissao) => (
+                          <label key={permissao.id} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              checked={usuarioSelecionado.permissoes.includes(permissao.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setUsuarioSelecionado({
+                                    ...usuarioSelecionado,
+                                    permissoes: [...usuarioSelecionado.permissoes, permissao.id]
+                                  });
+                                } else {
+                                  setUsuarioSelecionado({
+                                    ...usuarioSelecionado,
+                                    permissoes: usuarioSelecionado.permissoes.filter(p => p !== permissao.id)
+                                  });
+                                }
+                              }}
+                              className="mt-1 rounded"
+                              disabled={usuarioSelecionado.perfil === 'admin' && permissao.id === 'admin'}
+                            />
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-900">{permissao.label}</div>
+                              <div className="text-xs text-gray-500">{permissao.desc}</div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </FormGroup>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setModalEditarUsuario(false)}
+                  disabled={salvando}
+                >
+                  Cancelar
+                </Button>
+                <ButtonLoading
+                  onClick={handleSalvarEdicaoUsuario}
+                  loading={salvando}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {salvando ? 'Salvando...' : 'Salvar Alterações'}
                 </ButtonLoading>
               </div>
             </div>

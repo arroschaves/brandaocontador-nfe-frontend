@@ -23,6 +23,7 @@ import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card';
 import { FormGroup, Input, Select, TextArea, Checkbox } from '../components/ui/Form';
 import { Button, ButtonLoading } from '../components/ui/button';
 import { useToast } from '../contexts/ToastContext';
+import { configService } from '../services/api';
 import { useAutoFormat } from '../hooks/useAutoFormat';
 import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
 import { validarCNPJ, validarCEP, validarEmail, validarTelefone } from '../utils/validations';
@@ -188,11 +189,49 @@ const Configuracoes: React.FC = () => {
   const carregarConfiguracoes = async () => {
     setLoading(true);
     try {
-      // Simular carregamento das configurações
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // Dados já estão no estado inicial
-    } catch (error) {
-      showToast('Erro ao carregar configurações', 'error');
+      const response = await configService.getConfig();
+      const data = response?.data;
+
+      if (data?.sucesso) {
+        const cfg = data.configuracoes || {};
+
+        // Mapear dados recebidos para estados locais, mantendo defaults
+        if (cfg.empresa) {
+          setConfigEmpresa(prev => ({
+            ...prev,
+            ...cfg.empresa,
+            endereco: {
+              ...prev.endereco,
+              ...cfg.empresa.endereco
+            }
+          }));
+        }
+        if (cfg.nfe) {
+          setConfigNFe(prev => ({
+            ...prev,
+            ...cfg.nfe,
+            certificadoDigital: {
+              ...prev.certificadoDigital,
+              ...(cfg.nfe.certificadoDigital || {})
+            },
+            emailEnvio: {
+              ...prev.emailEnvio,
+              ...(cfg.nfe.emailEnvio || {})
+            }
+          }));
+        }
+        if (cfg.notificacoes) {
+          setConfigNotificacoes(prev => ({
+            ...prev,
+            ...cfg.notificacoes
+          }));
+        }
+      } else {
+        showToast(data?.erro || 'Erro ao carregar configurações', 'error');
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.erro || 'Erro ao carregar configurações';
+      showToast(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -217,8 +256,8 @@ const Configuracoes: React.FC = () => {
     if (!configEmpresa.endereco.logradouro.trim()) erros.push('Logradouro é obrigatório');
     if (!configEmpresa.endereco.numero.trim()) erros.push('Número é obrigatório');
     if (!configEmpresa.endereco.bairro.trim()) erros.push('Bairro é obrigatório');
-    if (!configEmpresa.endereco.municipio.trim()) erros.push('Município é obrigatório');
-    if (!configEmpresa.endereco.uf.trim()) erros.push('Estado (UF) é obrigatório');
+    if (!configEmpresa.endereco.municipio.trim()) erros.push('Cidade é obrigatória');
+    if (!configEmpresa.endereco.uf.trim()) erros.push('UF é obrigatória');
     
     // Validar configurações NFe se a aba NFe estiver ativa
     if (abaAtiva === 'nfe') {
@@ -242,11 +281,27 @@ const Configuracoes: React.FC = () => {
     
     setSalvando(true);
     try {
-      // Simular salvamento
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      showToast('Configurações salvas com sucesso!', 'success');
-    } catch (error) {
-      showToast('Erro ao salvar configurações', 'error');
+      const payload = {
+        empresa: configEmpresa,
+        nfe: configNFe,
+        notificacoes: configNotificacoes
+      };
+
+      const response = await configService.updateConfig(payload);
+      const data = response?.data;
+
+      if (data?.sucesso) {
+        const cfg = data.configuracoes || {};
+        if (cfg.empresa) setConfigEmpresa(prev => ({ ...prev, ...cfg.empresa }));
+        if (cfg.nfe) setConfigNFe(prev => ({ ...prev, ...cfg.nfe }));
+        if (cfg.notificacoes) setConfigNotificacoes(prev => ({ ...prev, ...cfg.notificacoes }));
+        showToast('Configurações salvas com sucesso!', 'success');
+      } else {
+        showToast(data?.erro || 'Erro ao salvar configurações', 'error');
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.erro || 'Erro ao salvar configurações';
+      showToast(msg, 'error');
     } finally {
       setSalvando(false);
     }
@@ -615,7 +670,7 @@ const Configuracoes: React.FC = () => {
                   </FormGroup>
                   
                   <FormGroup 
-                    label="Município" 
+                    label="Cidade" 
                     required
                     description="Cidade onde a empresa está localizada"
                   >
@@ -627,7 +682,7 @@ const Configuracoes: React.FC = () => {
                   </FormGroup>
                   
                   <FormGroup 
-                    label="Estado (UF)" 
+                    label="UF" 
                     required
                     description="Unidade Federativa"
                   >

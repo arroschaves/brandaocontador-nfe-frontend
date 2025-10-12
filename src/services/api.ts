@@ -81,10 +81,10 @@ export const nfeService = {
 
 export const configService = {
   getConfig: () => 
-    api.get('/config'),
+    api.get('/configuracoes'),
   
   updateConfig: (data: any) => 
-    api.put('/config', data),
+    api.post('/configuracoes', data),
 }
 
 export default api

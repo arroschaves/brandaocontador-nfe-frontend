@@ -13,6 +13,7 @@ import Historico from './pages/Historico';
 import ConsultarNFe from './pages/ConsultarNFe';
 import Relatorios from './pages/Relatorios';
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
+import StatusPage from './pages/Status';
 import './App.css';
 
 function App() {
@@ -110,6 +111,16 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <GerenciarUsuarios />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/nfe/status"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <StatusPage />
                     </MainLayout>
                   </ProtectedRoute>
                 }

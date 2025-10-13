@@ -641,7 +641,12 @@ const Configuracoes: React.FC = () => {
                   >
                     <Input
                       value={configEmpresa.endereco.numero}
-                      onChange={(e) => handleEmpresaChange('endereco.numero', e.target.value)}
+                      onChange={(e) => {
+                        const onlyDigits = e.target.value.replace(/[^\d]/g, '');
+                        handleEmpresaChange('endereco.numero', onlyDigits);
+                      }}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       placeholder="123"
                     />
                   </FormGroup>

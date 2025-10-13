@@ -245,11 +245,27 @@ const GerenciarUsuarios: React.FC = () => {
 
   const handleAlterarStatus = async (usuarioId: string, novoStatus: 'ativo' | 'inativo' | 'bloqueado') => {
     try {
+      const response = await fetch(buildApiUrl(`/admin/usuarios/${usuarioId}/status`), {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status: novoStatus })
+      });
+
+      const resultado = await response.json();
+
+      if (!response.ok || !resultado.sucesso) {
+        throw new Error(resultado.erro || 'Falha ao alterar status');
+      }
+
       setUsuarios(usuarios.map(u => 
         u.id === usuarioId ? { ...u, status: novoStatus } : u
       ));
       showToast(`Status do usuário alterado para ${novoStatus}`, 'success');
     } catch (error) {
+      console.error('Erro ao alterar status do usuário:', error);
       showToast('Erro ao alterar status do usuário', 'error');
     }
   };
@@ -271,11 +287,50 @@ const GerenciarUsuarios: React.FC = () => {
         return;
       }
 
-      // Atualizar usuário na lista
+      // Enviar atualização para o backend
+      const payload = {
+        nome: usuarioSelecionado.nome,
+        email: usuarioSelecionado.email,
+        documento: usuarioSelecionado.documento,
+        tipoCliente: usuarioSelecionado.tipoCliente,
+        telefone: usuarioSelecionado.telefone,
+        razaoSocial: usuarioSelecionado.empresa,
+        nomeFantasia: usuarioSelecionado.empresa,
+        permissoes: usuarioSelecionado.permissoes,
+        status: usuarioSelecionado.status
+      };
+
+      const response = await fetch(buildApiUrl(`/admin/usuarios/${usuarioSelecionado.id}`), {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const resultado = await response.json();
+
+      if (!response.ok || !resultado.sucesso) {
+        throw new Error(resultado.erro || 'Falha ao atualizar usuário');
+      }
+
+      // Atualizar usuário na lista local com resposta do backend, se disponível
+      const atualizado = resultado.usuario || usuarioSelecionado;
       setUsuarios(usuarios.map(u => 
-        u.id === usuarioSelecionado.id ? usuarioSelecionado : u
+        u.id === usuarioSelecionado.id ? {
+          ...u,
+          nome: atualizado.nome,
+          email: atualizado.email,
+          documento: atualizado.documento,
+          tipoCliente: atualizado.tipoCliente,
+          telefone: atualizado.telefone,
+          empresa: atualizado.razaoSocial || atualizado.nomeFantasia || u.empresa,
+          permissoes: atualizado.permissoes || u.permissoes,
+          status: atualizado.status || u.status
+        } : u
       ));
-      
+
       setModalEditarUsuario(false);
       showToast('Usuário atualizado com sucesso!', 'success');
 
@@ -293,9 +348,23 @@ const GerenciarUsuarios: React.FC = () => {
     }
 
     try {
+      const response = await fetch(buildApiUrl(`/admin/usuarios/${usuarioId}`), {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const resultado = await response.json();
+
+      if (!response.ok || !resultado.sucesso) {
+        throw new Error(resultado.erro || 'Falha ao excluir usuário');
+      }
+
       setUsuarios(usuarios.filter(u => u.id !== usuarioId));
       showToast('Usuário excluído com sucesso', 'success');
     } catch (error) {
+      console.error('Erro ao excluir usuário:', error);
       showToast('Erro ao excluir usuário', 'error');
     }
   };

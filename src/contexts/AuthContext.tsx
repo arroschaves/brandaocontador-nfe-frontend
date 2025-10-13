@@ -177,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: data.usuario.id.toString(),
         nome: data.usuario.nome,
         email: data.usuario.email,
-        perfil: data.usuario.permissoes.includes('admin') ? 'admin' : 'usuario',
+        perfil: (data.usuario.permissoes || []).some((p: string) => p === 'admin' || p === 'admin_total') ? 'admin' : 'usuario',
         permissoes: data.usuario.permissoes,
         empresa: {
           id: '1',
@@ -209,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: data.usuario.id.toString(),
         nome: data.usuario.nome,
         email: data.usuario.email,
-        perfil: data.usuario.permissoes.includes('admin') ? 'admin' : 'usuario',
+        perfil: (data.usuario.permissoes || []).some((p: string) => p === 'admin' || p === 'admin_total') ? 'admin' : 'usuario',
         permissoes: data.usuario.permissoes,
         empresa: {
           id: '1',

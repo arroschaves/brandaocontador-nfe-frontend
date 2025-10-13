@@ -162,6 +162,9 @@ const Cadastro: React.FC = () => {
         if (formattedValue.replace(/\D/g, '').length === 8) {
           cepLookup.searchCEP(formattedValue);
         }
+      } else if (enderecoField === 'numero') {
+        // Permitir apenas números no campo número
+        formattedValue = value.replace(/[^\d]/g, '');
       }
       
       setFormData(prev => ({

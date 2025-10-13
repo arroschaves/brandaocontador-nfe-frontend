@@ -17,8 +17,8 @@ export async function adminMiddleware(request: NextRequest) {
       )
     }
 
-    // Verificar se é admin
-    if (token.role !== 'admin') {
+    // Verificar se é admin ou admin_total
+    if (token.role !== 'admin' && token.role !== 'admin_total') {
       return NextResponse.json(
         { message: 'Acesso negado - Permissões de administrador necessárias' },
         { status: 403 }
@@ -42,12 +42,12 @@ export function useAdminCheck() {
   // Esta função pode ser usada em componentes React
   // para verificar permissões de admin
   return {
-    isAdmin: (session: any) => session?.user?.role === 'admin',
+    isAdmin: (session: any) => session?.user?.role === 'admin' || session?.user?.role === 'admin_total',
     requireAdmin: (session: any) => {
       if (!session) {
         throw new Error('Usuário não autenticado')
       }
-      if (session.user?.role !== 'admin') {
+      if (session.user?.role !== 'admin' && session.user?.role !== 'admin_total') {
         throw new Error('Permissões de administrador necessárias')
       }
       return true

@@ -15,6 +15,7 @@ import {
   WifiOff
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { nfeService, api } from '../services/api';
 
 interface DashboardStats {
   total: number;
@@ -69,32 +70,52 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError('');
       
-      // Carregar dados reais da API
-      const [statsResponse, nfesResponse, statusResponse] = await Promise.all([
-        fetch('/api/dashboard/stats', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        }),
-        fetch('/api/dashboard/recent-nfes', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        }),
-        fetch('/api/dashboard/system-status', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        })
+      // Buscar histórico de NFes, status do sistema e health público
+      const [histResp, statusResp, healthResp] = await Promise.all([
+        nfeService.historico({ pagina: 1, limite: 10 }),
+        nfeService.status(),
+        api.get('/health')
       ]);
 
-      const stats = statsResponse.ok ? await statsResponse.json() : {
-        total: 0, emitidas: 0, canceladas: 0, pendentes: 0, valorTotal: 0.00
-      };
-      
-      const recentNfes = nfesResponse.ok ? await nfesResponse.json() : [];
-      
-      const systemStatus = statusResponse.ok ? await statusResponse.json() : {
-        sefaz: 'offline' as const, database: 'online' as const, api: 'online' as const
-      };
-      
-      setStats(stats);
-      setRecentNfes(recentNfes);
-      setSystemStatus(systemStatus);
+      // Mapear NFes recentes
+      const nfes = histResp?.data?.nfes || [];
+      const recent = nfes.map((item: any) => ({
+        id: item.id?.toString?.() || String(item.id),
+        numero: item.numero,
+        destinatario: item.destinatario,
+        valor: Number(item.valor) || 0,
+        status: item.status === 'autorizada' ? 'emitida' : item.status,
+        dataEmissao: item.dataEmissao
+      }));
+
+      setRecentNfes(recent);
+
+      // Calcular estatísticas a partir do histórico
+      const total = (histResp?.data?.total ?? recent.length) || 0;
+      const emitidas = recent.filter((n) => n.status === 'emitida').length;
+      const canceladas = recent.filter((n) => n.status === 'cancelada').length;
+      const pendentes = recent.filter((n) => n.status === 'pendente').length;
+      const valorTotal = recent.reduce((sum, n) => sum + (n.valor || 0), 0);
+
+      setStats({
+        total,
+        emitidas,
+        canceladas,
+        pendentes,
+        valorTotal
+      });
+
+      // Mapear status do sistema
+      const status = statusResp?.data?.status;
+      const sefazOnline = !!status?.sefaz?.disponivel;
+      const dbConnected = (healthResp?.data?.bancoDados === 'conectado');
+      const apiOnline = (healthResp?.data?.status === 'ok');
+
+      setSystemStatus({
+        sefaz: sefazOnline ? 'online' : 'offline',
+        database: dbConnected ? 'online' : 'offline',
+        api: apiOnline ? 'online' : 'offline'
+      });
       
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);

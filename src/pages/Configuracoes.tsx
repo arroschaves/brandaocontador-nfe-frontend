@@ -20,9 +20,11 @@ import {
 } from 'lucide-react';
 import { PageLayout } from '../components/layout/PageLayout';
 import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card';
-import { FormGroup, Input, Select, TextArea, Checkbox } from '../components/ui/Form';
+import { Input, Select, TextArea, Checkbox } from '../components/ui/Form';
+import { FormGroup } from '../components/ui/FormGroup';
 import { Button, ButtonLoading } from '../components/ui/button';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 import { configService } from '../services/api';
 import { useAutoFormat } from '../hooks/useAutoFormat';
 import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
@@ -186,6 +188,9 @@ const Configuracoes: React.FC = () => {
     carregarConfiguracoes();
   }, []);
   
+  const { checkPermission } = useAuth();
+  const canEdit = checkPermission('admin');
+
   const carregarConfiguracoes = async () => {
     setLoading(true);
     try {
@@ -272,6 +277,10 @@ const Configuracoes: React.FC = () => {
   };
 
   const salvarConfiguracoes = async () => {
+    if (!canEdit) {
+      showToast('Acesso negado: apenas administradores podem alterar configurações.', 'error');
+      return;
+    }
     const erros = validarCamposObrigatorios();
     
     if (erros.length > 0) {
@@ -1066,10 +1075,11 @@ const Configuracoes: React.FC = () => {
           <ButtonLoading
             onClick={salvarConfiguracoes}
             loading={salvando}
+            disabled={!canEdit}
             className="min-w-[150px]"
           >
             <Save className="h-4 w-4 mr-2" />
-            Salvar Configurações
+            {canEdit ? 'Salvar Configurações' : 'Sem permissão para salvar'}
           </ButtonLoading>
         </div>
       </div>

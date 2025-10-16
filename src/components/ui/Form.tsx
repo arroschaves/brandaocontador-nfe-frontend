@@ -23,8 +23,9 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   error?: string;
   helperText?: string;
   required?: boolean;
-  options: Array<{ value: string | number; label: string; disabled?: boolean }>;
+  options?: Array<{ value: string | number; label: string; disabled?: boolean }>;
   placeholder?: string;
+  children?: React.ReactNode;
 }
 
 interface PasswordInputProps extends Omit<InputProps, 'type'> {
@@ -199,6 +200,7 @@ const Select: React.FC<SelectProps> = ({
   options,
   placeholder,
   className = '',
+  children,
   ...props
 }) => {
   const selectId = props.id || `select-${Math.random().toString(36).substr(2, 9)}`;
@@ -221,20 +223,27 @@ const Select: React.FC<SelectProps> = ({
           ${className}
         `}
       >
-        {placeholder && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
+        {children ? (
+          // Quando opções são passadas como children, renderizamos diretamente
+          children
+        ) : (
+          <>
+            {placeholder && (
+              <option value="" disabled>
+                {placeholder}
+              </option>
+            )}
+            {options && options.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+                disabled={option.disabled}
+              >
+                {option.label}
+              </option>
+            ))}
+          </>
         )}
-        {options && options.map((option) => (
-          <option
-            key={option.value}
-            value={option.value}
-            disabled={option.disabled}
-          >
-            {option.label}
-          </option>
-        ))}
       </select>
       {error && (
         <div className="flex items-center space-x-1 text-red-600">

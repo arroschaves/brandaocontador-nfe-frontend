@@ -87,7 +87,7 @@ const Configuracoes: React.FC = () => {
   const [configEmpresa, setConfigEmpresa] = useState<ConfiguracaoEmpresa>({
     razaoSocial: 'Brandão Contador Ltda',
     nomeFantasia: 'Brandão Contador',
-    cnpj: '12.345.678/0001-90',
+    cnpj: '45.669.746/0001-20',
     inscricaoEstadual: '123.456.789.012',
     inscricaoMunicipal: '12345678',
     email: 'contato@brandaocontador.com.br',
@@ -100,7 +100,7 @@ const Configuracoes: React.FC = () => {
       complemento: 'Sala 456',
       bairro: 'Centro',
       municipio: 'São Paulo',
-      uf: 'SP'
+      uf: 'MS'
     }
   });
   

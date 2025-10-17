@@ -85,6 +85,27 @@ export const configService = {
   
   updateConfig: (data: any) => 
     api.post('/configuracoes', data),
+
+  uploadCertificado: (formData: FormData) =>
+    api.post('/configuracoes/certificado', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+}
+
+export const clienteService = {
+  list: (params?: any) => api.get('/clientes', { params }),
+  getById: (id: string) => api.get(`/clientes/${id}`),
+  create: (data: any) => api.post('/clientes', data),
+  update: (id: string, data: any) => api.patch(`/clientes/${id}`, data),
+  remove: (id: string) => api.delete(`/clientes/${id}`),
+}
+
+export const produtoService = {
+  list: (params?: any) => api.get('/produtos', { params }),
+  getById: (id: string) => api.get(`/produtos/${id}`),
+  create: (data: any) => api.post('/produtos', data),
+  update: (id: string, data: any) => api.patch(`/produtos/${id}`, data),
+  remove: (id: string) => api.delete(`/produtos/${id}`),
 }
 
 export default api

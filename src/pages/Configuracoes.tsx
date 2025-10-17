@@ -345,24 +345,66 @@ const Configuracoes: React.FC = () => {
   
   const uploadCertificado = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      try {
-        showToast('Fazendo upload do certificado...', 'info');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        setConfigNFe(prev => ({
-          ...prev,
-          certificadoDigital: {
-            ...prev.certificadoDigital,
-            arquivo: file.name,
-            status: 'ativo'
-          }
-        }));
-        
-        showToast('Certificado digital carregado com sucesso!', 'success');
-      } catch (error) {
-        showToast('Erro ao carregar certificado digital', 'error');
+    if (!file) return;
+
+    // Validar senha antes de enviar
+    const senha = (configNFe.certificadoDigital.senha || '').trim();
+    if (!senha) {
+      showToast('Informe a senha do certificado antes de enviar.', 'error');
+      return;
+    }
+
+    try {
+      showToast('Fazendo upload do certificado...', 'info');
+
+      const formData = new FormData();
+      formData.append('certificado', file);
+      formData.append('senha', senha);
+
+      const response = await configService.uploadCertificado(formData);
+      const data = response?.data;
+
+      if (data?.sucesso) {
+        const cfg = data.configuracoes || {};
+
+        // Atualizar estado local com retorno do backend
+        if (cfg.nfe && cfg.nfe.certificadoDigital) {
+          setConfigNFe(prev => ({
+            ...prev,
+            certificadoDigital: {
+              ...prev.certificadoDigital,
+              arquivo: cfg.nfe.certificadoDigital.arquivo || file.name,
+              senha: senha,
+              validade: cfg.nfe.certificadoDigital.validade || prev.certificadoDigital.validade,
+              status: cfg.nfe.certificadoDigital.status || 'ativo'
+            }
+          }));
+        } else {
+          // Fallback caso não venha estruturado
+          setConfigNFe(prev => ({
+            ...prev,
+            certificadoDigital: {
+              ...prev.certificadoDigital,
+              arquivo: file.name,
+              senha: senha,
+              status: 'ativo'
+            }
+          }));
+        }
+
+        showToast('Certificado digital carregado e validado com sucesso!', 'success');
+      } else {
+        const erroMsg = data?.erro || 'Erro ao validar certificado';
+        showToast(erroMsg, 'error');
       }
+    } catch (error: any) {
+      const msg = error?.response?.data?.erro || 'Erro ao carregar certificado digital';
+      showToast(msg, 'error');
+    } finally {
+      // Opcional: recarregar configurações para refletir demais campos
+      try {
+        await carregarConfiguracoes();
+      } catch {}
     }
   };
   

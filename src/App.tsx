@@ -16,6 +16,8 @@ import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import StatusPage from './pages/Status';
 import './App.css';
 import { API_BASE_URL } from './config/api';
+import Clientes from './pages/Clientes';
+import Produtos from './pages/Produtos';
 
 function App() {
   return (
@@ -123,6 +125,26 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <StatusPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/clientes"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Clientes />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/produtos"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Produtos />
                     </MainLayout>
                   </ProtectedRoute>
                 }

@@ -174,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Mapear dados do backend para o formato do frontend
       const user: User = {
-        id: data.usuario.id.toString(),
+        id: (data.usuario.id ?? data.usuario._id).toString(),
         nome: data.usuario.nome,
         email: data.usuario.email,
         perfil: (data.usuario.permissoes || []).some((p: string) => p === 'admin' || p === 'admin_total') ? 'admin' : 'usuario',
@@ -206,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Mapear dados do backend para o formato do frontend
       const user: User = {
-        id: data.usuario.id.toString(),
+        id: (data.usuario.id ?? data.usuario._id).toString(),
         nome: data.usuario.nome,
         email: data.usuario.email,
         perfil: (data.usuario.permissoes || []).some((p: string) => p === 'admin' || p === 'admin_total') ? 'admin' : 'usuario',

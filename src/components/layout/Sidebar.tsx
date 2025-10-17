@@ -11,7 +11,8 @@ import {
   LogOut,
   Menu,
   X,
-  Server
+  Server,
+  Package
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -54,6 +55,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       icon: BarChart3,
       label: 'Relatórios',
       description: 'Análises e estatísticas'
+    },
+    {
+      path: '/clientes',
+      icon: Users,
+      label: 'Clientes',
+      description: 'Cadastro e consulta de clientes'
+    },
+    {
+      path: '/produtos',
+      icon: Package,
+      label: 'Produtos',
+      description: 'Cadastro e consulta de produtos'
     },
     {
       path: '/nfe/status',

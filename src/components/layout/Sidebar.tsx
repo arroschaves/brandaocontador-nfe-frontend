@@ -22,7 +22,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
-  const { logout, user } = useAuth();
+  const { logout, user, checkPermission } = useAuth();
 
   const menuItems = [
     {
@@ -80,9 +80,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   ];
 
   // Combinar itens de menu baseado no perfil do usuário
+  // Filtrar itens pela permissão necessária
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (item.path === '/configuracoes') {
+      return checkPermission('configuracoes_ver');
+    }
+    return true;
+  });
+
   const allMenuItems = user?.perfil === 'admin' 
-    ? [...menuItems, ...adminMenuItems] 
-    : menuItems;
+    ? [...filteredMenuItems, ...adminMenuItems] 
+    : filteredMenuItems;
 
   const handleLogout = () => {
     logout();

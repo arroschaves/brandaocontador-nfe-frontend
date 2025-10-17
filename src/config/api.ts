@@ -1,12 +1,19 @@
 // Configuração da API para diferentes ambientes
 export const getApiUrl = (): string => {
-  // Em produção, usar a API do Cloudflare
-  if (import.meta.env.VITE_NODE_ENV === 'production') {
+  // Prioriza variável de ambiente explícita
+  const fromEnv = import.meta.env.VITE_API_URL as string | undefined;
+  if (fromEnv && fromEnv.length > 0) {
+    return fromEnv;
+  }
+
+  // Usa modo do Vite para decidir produção vs desenvolvimento
+  if (import.meta.env.PROD) {
+    // Produção: API pública
     return 'https://api.brandaocontador.com.br';
   }
-  
-  // Em desenvolvimento, usar localhost
-  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+  // Desenvolvimento: backend local padrão
+  return 'http://localhost:3001';
 };
 
 // URL base da API
@@ -34,8 +41,7 @@ export const buildApiUrl = (endpoint: string): string => {
 // Configurações de fetch padrão
 export const DEFAULT_FETCH_CONFIG: RequestInit = {
   headers: {
-    'Content-Type': 'application/json',
-    'User-Agent': 'Brandao-Contador-NFe/1.0'
+    'Content-Type': 'application/json'
   },
   timeout: 15000 // 15 segundos
 };

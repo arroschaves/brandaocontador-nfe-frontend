@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -15,6 +15,7 @@ import Relatorios from './pages/Relatorios';
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import StatusPage from './pages/Status';
 import './App.css';
+import { API_BASE_URL } from './config/api';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <AuthProvider>
         <Router>
           <div className="App">
+            <BackendStatusBanner />
             <Routes>
               {/* Rotas de autenticação */}
               <Route
@@ -88,7 +90,7 @@ function App() {
               <Route
                 path="/configuracoes"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermissions={["configuracoes_ver"]}>
                     <MainLayout>
                       <Configuracoes />
                     </MainLayout>
@@ -130,6 +132,47 @@ function App() {
         </Router>
       </AuthProvider>
     </ToastProvider>
+  );
+}
+
+function BackendStatusBanner() {
+  const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const url = `${API_BASE_URL}/health`;
+    fetch(url, { signal: controller.signal })
+      .then((res) => setStatus(res.ok ? 'ok' : 'error'))
+      .catch((err) => {
+        // Ignorar erros de abort provocados por HMR/Unmount em desenvolvimento
+        if (err && (err.name === 'AbortError' || err.code === 20)) return;
+        setStatus('error');
+      });
+    return () => controller.abort();
+  }, []);
+
+  if (import.meta.env.MODE !== 'development') return null;
+
+  const bg = status === 'ok' ? '#16a34a' : status === 'loading' ? '#4b5563' : '#dc2626';
+  const label = status === 'ok' ? 'OK' : status === 'loading' ? 'CARREGANDO' : 'ERRO';
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 8,
+        right: 8,
+        padding: '6px 10px',
+        borderRadius: 6,
+        fontSize: 12,
+        color: '#fff',
+        background: bg,
+        zIndex: 9999,
+        boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+      }}
+    >
+      Backend: {label}
+    </div>
   );
 }
 

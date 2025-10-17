@@ -86,7 +86,9 @@ export const useAutoFormat = (type: FormatType, options: UseAutoFormatOptions = 
     setValue: setFormattedValue,
     handleChange,
     reset,
-    formatValue
+    formatValue,
+    // Alias para compatibilidade com código existente que usa `.format(...)`
+    format: formatValue
   };
 };
 

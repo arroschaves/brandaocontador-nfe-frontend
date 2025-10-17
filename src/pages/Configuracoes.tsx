@@ -245,26 +245,33 @@ const Configuracoes: React.FC = () => {
   const validarCamposObrigatorios = () => {
     const erros = [];
     
-    // Validar dados da empresa
-    if (!configEmpresa.razaoSocial.trim()) erros.push('Razão Social é obrigatória');
-    if (!configEmpresa.cnpj.trim()) erros.push('CNPJ é obrigatório');
-    if (!validarCNPJ(configEmpresa.cnpj)) erros.push('CNPJ inválido');
-    if (!configEmpresa.email.trim()) erros.push('E-mail Corporativo é obrigatório');
-    if (!validarEmail(configEmpresa.email)) erros.push('E-mail inválido');
-    if (!configEmpresa.telefone.trim()) erros.push('Telefone Comercial é obrigatório');
-    if (!validarTelefone(configEmpresa.telefone)) erros.push('Telefone inválido');
-    if (!configEmpresa.formaTributacao) erros.push('Forma de Tributação é obrigatória');
+    // Validar dados da empresa somente quando a aba Empresa estiver ativa
+    if (abaAtiva === 'empresa') {
+      if (!configEmpresa.razaoSocial.trim()) erros.push('Razão Social é obrigatória');
+      if (!configEmpresa.cnpj.trim()) erros.push('CNPJ é obrigatório');
+      // Exigir CNPJ válido apenas quando ambiente NFe for produção
+      const cnpjDigits = (configEmpresa.cnpj || '').replace(/\D/g, '');
+      if (configNFe.ambiente === 'producao' && cnpjDigits.length === 14 && !validarCNPJ(configEmpresa.cnpj)) {
+        erros.push('CNPJ inválido');
+      }
+      if (!configEmpresa.email.trim()) erros.push('E-mail Corporativo é obrigatório');
+      if (!validarEmail(configEmpresa.email)) erros.push('E-mail inválido');
+      if (!configEmpresa.telefone.trim()) erros.push('Telefone Comercial é obrigatório');
+      if (!validarTelefone(configEmpresa.telefone)) erros.push('Telefone inválido');
+      if (!configEmpresa.formaTributacao) erros.push('Forma de Tributação é obrigatória');
+      
+      // Validar endereço
+      const cepDigits = (configEmpresa.endereco.cep || '').replace(/\D/g, '');
+      if (!configEmpresa.endereco.cep.trim()) erros.push('CEP é obrigatório');
+      if (cepDigits.length === 8 && !validarCEP(configEmpresa.endereco.cep)) erros.push('CEP inválido');
+      if (!configEmpresa.endereco.logradouro.trim()) erros.push('Logradouro é obrigatório');
+      if (!configEmpresa.endereco.numero.trim()) erros.push('Número é obrigatório');
+      if (!configEmpresa.endereco.bairro.trim()) erros.push('Bairro é obrigatório');
+      if (!configEmpresa.endereco.municipio.trim()) erros.push('Cidade é obrigatória');
+      if (!configEmpresa.endereco.uf.trim()) erros.push('UF é obrigatória');
+    }
     
-    // Validar endereço
-    if (!configEmpresa.endereco.cep.trim()) erros.push('CEP é obrigatório');
-    if (!validarCEP(configEmpresa.endereco.cep)) erros.push('CEP inválido');
-    if (!configEmpresa.endereco.logradouro.trim()) erros.push('Logradouro é obrigatório');
-    if (!configEmpresa.endereco.numero.trim()) erros.push('Número é obrigatório');
-    if (!configEmpresa.endereco.bairro.trim()) erros.push('Bairro é obrigatório');
-    if (!configEmpresa.endereco.municipio.trim()) erros.push('Cidade é obrigatória');
-    if (!configEmpresa.endereco.uf.trim()) erros.push('UF é obrigatória');
-    
-    // Validar configurações NFe se a aba NFe estiver ativa
+    // Validar configurações NFe somente quando a aba NFe estiver ativa
     if (abaAtiva === 'nfe') {
       if (!configNFe.certificadoDigital.senha.trim()) erros.push('Senha do Certificado é obrigatória');
       if (!configNFe.emailEnvio.servidor.trim()) erros.push('Servidor SMTP é obrigatório');
@@ -472,13 +479,16 @@ const Configuracoes: React.FC = () => {
                         onChange={(e) => {
                           const formatted = cnpjFormat.format(e.target.value);
                           handleEmpresaChange('cnpj', formatted);
-                          cnpjLookup.searchCNPJ(formatted);
+                          cnpjLookup.debouncedSearch(formatted);
                         }}
                         placeholder="00.000.000/0000-00"
                         className={`pr-10 ${
-                          configEmpresa.cnpj && !validarCNPJ(configEmpresa.cnpj) 
-                            ? 'border-red-300 focus:border-red-500' 
-                            : ''
+                          (() => {
+                            const digits = (configEmpresa.cnpj || '').replace(/\D/g, '');
+                            return (
+                              configNFe.ambiente === 'producao' && digits.length === 14 && !validarCNPJ(configEmpresa.cnpj)
+                            ) ? 'border-red-300 focus:border-red-500' : '';
+                          })()
                         }`}
                       />
                       {cnpjLookup.loading && (
@@ -486,13 +496,19 @@ const Configuracoes: React.FC = () => {
                           <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                         </div>
                       )}
-                      {configEmpresa.cnpj && validarCNPJ(configEmpresa.cnpj) && !cnpjLookup.loading && (
+                      {(() => {
+                        const digits = (configEmpresa.cnpj || '').replace(/\D/g, '');
+                        return digits.length === 14 && validarCNPJ(configEmpresa.cnpj) && !cnpjLookup.loading;
+                      })() && (
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                           <Search className="h-4 w-4 text-green-500" />
                         </div>
                       )}
                     </div>
-                    {configEmpresa.cnpj && !validarCNPJ(configEmpresa.cnpj) && (
+                    {(() => {
+                      const digits = (configEmpresa.cnpj || '').replace(/\D/g, '');
+                      return configNFe.ambiente === 'producao' && digits.length === 14 && !validarCNPJ(configEmpresa.cnpj);
+                    })() && (
                       <p className="mt-1 text-sm text-red-600">CNPJ inválido</p>
                     )}
                   </FormGroup>
@@ -555,13 +571,17 @@ const Configuracoes: React.FC = () => {
                         handleEmpresaChange('telefone', formatted);
                       }}
                       placeholder="(11) 99999-9999"
-                      className={
-                        configEmpresa.telefone && !validarTelefone(configEmpresa.telefone) 
-                          ? 'border-red-300 focus:border-red-500' 
-                          : ''
-                      }
+                      className={(() => {
+                        const digits = (configEmpresa.telefone || '').replace(/\D/g, '');
+                        return ((digits.length === 10 || digits.length === 11) && !validarTelefone(configEmpresa.telefone))
+                          ? 'border-red-300 focus:border-red-500'
+                          : '';
+                      })()}
                     />
-                    {configEmpresa.telefone && !validarTelefone(configEmpresa.telefone) && (
+                    {(() => {
+                      const digits = (configEmpresa.telefone || '').replace(/\D/g, '');
+                      return ((digits.length === 10 || digits.length === 11) && !validarTelefone(configEmpresa.telefone));
+                    })() && (
                       <p className="mt-1 text-sm text-red-600">Telefone inválido</p>
                     )}
                   </FormGroup>
@@ -605,13 +625,14 @@ const Configuracoes: React.FC = () => {
                         onChange={(e) => {
                           const formatted = cepFormat.format(e.target.value);
                           handleEmpresaChange('endereco.cep', formatted);
-                          cepLookup.searchCEP(formatted);
+                          cepLookup.debouncedSearch(formatted);
                         }}
                         placeholder="00000-000"
                         className={`pr-10 ${
-                          configEmpresa.endereco.cep && !validarCEP(configEmpresa.endereco.cep) 
-                            ? 'border-red-300 focus:border-red-500' 
-                            : ''
+                          (() => {
+                            const digits = (configEmpresa.endereco.cep || '').replace(/\D/g, '');
+                            return (digits.length === 8 && !validarCEP(configEmpresa.endereco.cep)) ? 'border-red-300 focus:border-red-500' : '';
+                          })()
                         }`}
                       />
                       {cepLookup.loading && (
@@ -625,7 +646,10 @@ const Configuracoes: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    {configEmpresa.endereco.cep && !validarCEP(configEmpresa.endereco.cep) && (
+                    {(() => {
+                      const digits = (configEmpresa.endereco.cep || '').replace(/\D/g, '');
+                      return digits.length === 8 && !validarCEP(configEmpresa.endereco.cep);
+                    })() && (
                       <p className="mt-1 text-sm text-red-600">CEP inválido</p>
                     )}
                   </FormGroup>

@@ -314,7 +314,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const checkPermission = (permission: string): boolean => {
-    return state.user?.permissoes.includes(permission) || false;
+    const perms = state.user?.permissoes || [];
+    // Tratar 'admin' e 'admin_total' como superpermissões
+    if (perms.includes('admin') || perms.includes('admin_total')) {
+      return true;
+    }
+    return perms.includes(permission);
   };
 
   const clearError = () => {

@@ -76,7 +76,7 @@ const GerenciarUsuarios: React.FC = () => {
     telefone: '',
     empresa: '',
     perfil: 'usuario',
-    permissoes: ['nfe_consultar']
+    permissoes: ['nfe_consultar', 'configuracoes_ver']
   });
 
   // Verificar se o usuário tem permissão de admin
@@ -792,7 +792,7 @@ const GerenciarUsuarios: React.FC = () => {
                           setNovoUsuario({
                             ...novoUsuario, 
                             perfil,
-                            permissoes: perfil === 'admin' ? ['admin', 'nfe_emitir', 'nfe_consultar', 'nfe_cancelar'] : ['nfe_consultar']
+                            permissoes: perfil === 'admin' ? ['admin', 'nfe_emitir', 'nfe_consultar', 'nfe_cancelar'] : ['nfe_consultar', 'configuracoes_ver']
                           });
                         }}
                       >
@@ -827,6 +827,11 @@ const GerenciarUsuarios: React.FC = () => {
                             id: 'nfe_cancelar', 
                             label: 'Cancelar NFe', 
                             desc: 'Cancelar notas fiscais já emitidas' 
+                          },
+                          { 
+                            id: 'configuracoes_ver', 
+                            label: 'Configurações', 
+                            desc: 'Gerenciar dados da empresa e NFe' 
                           },
                           { 
                             id: 'admin', 
@@ -1023,7 +1028,7 @@ const GerenciarUsuarios: React.FC = () => {
                           setUsuarioSelecionado({
                             ...usuarioSelecionado, 
                             perfil,
-                            permissoes: perfil === 'admin' ? ['admin', 'nfe_emitir', 'nfe_consultar', 'nfe_cancelar'] : ['nfe_consultar']
+                            permissoes: perfil === 'admin' ? ['admin', 'nfe_emitir', 'nfe_consultar', 'nfe_cancelar'] : ['nfe_consultar', 'configuracoes_ver']
                           });
                         }}
                       >
@@ -1058,6 +1063,11 @@ const GerenciarUsuarios: React.FC = () => {
                             id: 'nfe_cancelar', 
                             label: 'Cancelar NFe', 
                             desc: 'Cancelar notas fiscais já emitidas' 
+                          },
+                          { 
+                            id: 'configuracoes_ver', 
+                            label: 'Configurações', 
+                            desc: 'Gerenciar dados da empresa e NFe' 
                           },
                           { 
                             id: 'admin', 

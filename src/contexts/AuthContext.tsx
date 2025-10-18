@@ -173,12 +173,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Mapear dados do backend para o formato do frontend
+      const rawPerms: string[] = Array.isArray(data.usuario.permissoes) ? data.usuario.permissoes : [];
+      const isAdmin = rawPerms.some((p: string) => p === 'admin' || p === 'admin_total');
+      const normalizedPerms = isAdmin ? rawPerms : Array.from(new Set([...rawPerms, 'configuracoes_ver']));
+
       const user: User = {
         id: (data.usuario.id ?? data.usuario._id).toString(),
         nome: data.usuario.nome,
         email: data.usuario.email,
-        perfil: (data.usuario.permissoes || []).some((p: string) => p === 'admin' || p === 'admin_total') ? 'admin' : 'usuario',
-        permissoes: data.usuario.permissoes,
+        perfil: isAdmin ? 'admin' : 'usuario',
+        permissoes: normalizedPerms,
         empresa: {
           id: '1',
           nome: 'Brandão Contador',
@@ -205,12 +209,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Mapear dados do backend para o formato do frontend
+      const rawPerms: string[] = Array.isArray(data.usuario.permissoes) ? data.usuario.permissoes : [];
+      const isAdmin = rawPerms.some((p: string) => p === 'admin' || p === 'admin_total');
+      const normalizedPerms = isAdmin ? rawPerms : Array.from(new Set([...rawPerms, 'configuracoes_ver']));
+
       const user: User = {
         id: (data.usuario.id ?? data.usuario._id).toString(),
         nome: data.usuario.nome,
         email: data.usuario.email,
-        perfil: (data.usuario.permissoes || []).some((p: string) => p === 'admin' || p === 'admin_total') ? 'admin' : 'usuario',
-        permissoes: data.usuario.permissoes,
+        perfil: isAdmin ? 'admin' : 'usuario',
+        permissoes: normalizedPerms,
         empresa: {
           id: '1',
           nome: 'Brandão Contador',

@@ -493,11 +493,26 @@ const Configuracoes: React.FC = () => {
   
   const testarEnvioEmail = async () => {
     try {
-      showToast('Enviando email de teste...', 'info');
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      showToast('Email de teste enviado com sucesso!', 'success');
-    } catch (error) {
-      showToast('Erro ao enviar email de teste', 'error');
+      showToast('Enviando e-mail de teste...', 'info');
+      const destinatario = configEmpresa.email || configNFe.emailEnvio.usuario || 'bcbrandaocontador@gmail.com';
+      const resp = await configService.testarEmail(destinatario);
+      const data = resp?.data;
+      if (data?.sucesso) {
+        const previewUrl = data?.resultado?.previewUrl;
+        if (previewUrl) {
+          showToast('E-mail de teste enviado com sucesso!', 'success', 8000, {
+            label: 'Abrir prévia',
+            onClick: () => window.open(previewUrl, '_blank')
+          });
+        } else {
+          showToast('E-mail de teste enviado com sucesso!', 'success');
+        }
+      } else {
+        showToast(data?.erro || 'Erro ao enviar e-mail de teste', 'error');
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.erro || 'Erro ao enviar e-mail de teste';
+      showToast(msg, 'error');
     }
   };
   

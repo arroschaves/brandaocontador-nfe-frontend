@@ -96,7 +96,9 @@ export const configService = {
   getNFeConfig: () => api.get('/configuracoes/nfe'),
   updateNFeConfig: (payload: any) => api.patch('/configuracoes/nfe', payload),
   getNotificacoesConfig: () => api.get('/configuracoes/notificacoes'),
-  updateNotificacoesConfig: (payload: any) => api.patch('/configuracoes/notificacoes', payload)
+  updateNotificacoesConfig: (payload: any) => api.patch('/configuracoes/notificacoes', payload),
+
+  testarEmail: (para?: string) => api.post('/configuracoes/email/teste', { para })
 };
 
 export const clienteService = {

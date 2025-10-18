@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend — React + Vite
 
-## Getting Started
+Aplicação frontend do Sistema NFe construída com React + Vite.
 
-First, run the development server:
+## Requisitos
+- Node `>=20` (alinhado com CI/Vercel)
+- npm 9+ recomendado
 
+## Desenvolvimento
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci          # instala dependências
+npm run dev     # inicia servidor de desenvolvimento
+```
+- Abra `http://localhost:3000/`.
+- HMR habilitado; alterações em `src/` recarregam automaticamente.
+
+## Build e Preview
+```bash
+npm run build    # gera build de produção em dist/
+npm run preview  # serve dist/ para validação (porta padrão 4173)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Ambiente
+- Variáveis `VITE_*` via `.env.development`, `.env.production` e `vercel.json`.
+- Principal: `VITE_API_URL` (URL do backend).
+- Em desenvolvimento, há um banner de status do backend (usa `VITE_API_URL`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy (Vercel)
+- Push no repositório `frontend` aciona build automático na Vercel.
+- Build usa Node 20 e `vite build`; saída publicada de `dist/`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Configurações
+- Porta de dev: configurada em `vite.config.ts` (`server.port = 3000`).
+- Alias `@` aponta para `src/`.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Referências
+- Vite: https://vitejs.dev
+- React: https://react.dev

@@ -67,7 +67,7 @@ const Clientes: React.FC = () => {
       if (filtroTexto) params.q = filtroTexto;
       if (filtroAtivo !== 'todos') params.ativo = filtroAtivo === 'ativo';
       const { data } = await clienteService.list(params);
-      setClientes(data || []);
+      setClientes((data?.clientes) || []);
     } catch (err: any) {
       showToast(err?.response?.data?.message || 'Erro ao listar clientes', 'error');
     } finally {

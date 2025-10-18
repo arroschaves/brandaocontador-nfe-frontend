@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Building2, User, Building, Mail, Lock, Eye, EyeOff, Phone, MapPin, Search, Loader2 } from 'lucide-react';
 import { Button, ButtonLoading } from '../components/ui/button';
@@ -20,6 +20,7 @@ import {
 import { useAutoFormat } from '../hooks/useAutoFormat';
 import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
 import { buildApiUrl } from '../config/api';
+import { formatCooldown } from '../utils/time';
 
 interface FormData {
   tipoCliente: 'cpf' | 'cnpj';
@@ -59,6 +60,17 @@ const Cadastro: React.FC = () => {
   const [nivelSenha, setNivelSenha] = useState<string>('');
   const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const [apiMessage, setApiMessage] = useState('');
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
+
+
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const interval = setInterval(() => {
+      setCooldownSeconds(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownSeconds]);
 
   const [formData, setFormData] = useState<FormData>({
     tipoCliente: 'cpf',
@@ -295,7 +307,12 @@ const Cadastro: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (cooldownSeconds > 0) {
+      setError(`Aguarde ${formatCooldown(cooldownSeconds)} para tentar novamente.`);
+      return;
+    }
+
     alert('🖱️ Botão cadastrar clicado!');
     console.log('🖱️ Botão cadastrar clicado!');
     console.log('📋 Dados do formulário:', formData);
@@ -353,6 +370,27 @@ const Cadastro: React.FC = () => {
 
         console.log('📡 Response status:', response.status);
         console.log('📡 Response headers:', response.headers);
+
+        // Tratamento específico para rate limiting 429
+        if (response.status === 429) {
+          const retryAfterHeader = response.headers.get('Retry-After');
+          let retrySeconds = 120; // padrão: 2 minutos
+          if (retryAfterHeader) {
+            const parsed = parseInt(retryAfterHeader, 10);
+            if (!isNaN(parsed)) {
+              retrySeconds = parsed;
+            } else {
+              const retryDate = new Date(retryAfterHeader);
+              const delta = Math.ceil((retryDate.getTime() - Date.now()) / 1000);
+              if (!isNaN(delta) && delta > 0) {
+                retrySeconds = delta;
+              }
+            }
+          }
+          setCooldownSeconds(retrySeconds);
+          setError(`Muitas tentativas. Aguarde ${formatCooldown(retrySeconds)} antes de tentar novamente.`);
+          return;
+        }
         
         if (!response.ok) {
           const errorText = await response.text();
@@ -401,11 +439,11 @@ const Cadastro: React.FC = () => {
             }
           });
         }, 2000);
-      }
+      } 
       
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
-      setError(error.message || 'Erro de conexão. Tente novamente.');
+      setError('Falha de rede ao comunicar com o servidor. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -916,6 +954,12 @@ const Cadastro: React.FC = () => {
               </div>
             )}
 
+            {cooldownSeconds > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                <p className="text-sm text-yellow-700">Muitas tentativas. Aguarde {formatCooldown(cooldownSeconds)} para tentar novamente.</p>
+              </div>
+            )}
+
             {success && (
               <div className="bg-green-50 border border-green-200 rounded-md p-3">
                 <p className="text-sm text-green-600">{success}</p>
@@ -929,7 +973,7 @@ const Cadastro: React.FC = () => {
                   Cadastrando...
                 </ButtonLoading>
               ) : (
-                <Button type="submit" className="w-full" onClick={() => console.log('🎯 Botão Cadastrar clicado!')}>
+                <Button type="submit" className="w-full" disabled={cooldownSeconds > 0} onClick={() => console.log('🎯 Botão Cadastrar clicado!')}>
                   Cadastrar
                 </Button>
               )}

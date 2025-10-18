@@ -65,7 +65,7 @@ const Produtos: React.FC = () => {
       if (filtroTexto) params.q = filtroTexto;
       if (filtroAtivo !== 'todos') params.ativo = filtroAtivo === 'ativo';
       const { data } = await produtoService.list(params);
-      setProdutos(data || []);
+      setProdutos((data?.produtos) || []);
     } catch (err: any) {
       showToast(err?.response?.data?.message || 'Erro ao listar produtos', 'error');
     } finally {

@@ -16,7 +16,8 @@ import {
   Database,
   Wifi,
   Search,
-  Loader2
+  Loader2,
+  Trash2
 } from 'lucide-react';
 import { PageLayout } from '../components/layout/PageLayout';
 import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card';
@@ -231,6 +232,7 @@ const Configuracoes: React.FC = () => {
               ...cfg.notificacoes
             }));
           }
+          showToast('Configurações carregadas com sucesso!', 'success');
         } else {
           showToast(data?.erro || 'Erro ao carregar configurações', 'error');
         }
@@ -368,9 +370,36 @@ const Configuracoes: React.FC = () => {
         const data = response?.data;
         if (data?.sucesso) {
           const cfg = data.configuracoes || {};
-          if (cfg.empresa) setConfigEmpresa(prev => ({ ...prev, ...cfg.empresa }));
-          if (cfg.nfe) setConfigNFe(prev => ({ ...prev, ...cfg.nfe }));
-          if (cfg.notificacoes) setConfigNotificacoes(prev => ({ ...prev, ...cfg.notificacoes }));
+          if (cfg.empresa) {
+            setConfigEmpresa(prev => ({
+              ...prev,
+              ...cfg.empresa,
+              endereco: {
+                ...prev.endereco,
+                ...(cfg.empresa.endereco || {})
+              }
+            }));
+          }
+          if (cfg.nfe) {
+            setConfigNFe(prev => ({
+              ...prev,
+              ...cfg.nfe,
+              certificadoDigital: {
+                ...prev.certificadoDigital,
+                ...(cfg.nfe.certificadoDigital || {})
+              },
+              emailEnvio: {
+                ...prev.emailEnvio,
+                ...(cfg.nfe.emailEnvio || {})
+              }
+            }));
+          }
+          if (cfg.notificacoes) {
+            setConfigNotificacoes(prev => ({
+              ...prev,
+              ...cfg.notificacoes
+            }));
+          }
           showToast('Configurações salvas com sucesso!', 'success');
         } else {
           showToast(data?.erro || 'Erro ao salvar configurações', 'error');
@@ -577,6 +606,38 @@ const Configuracoes: React.FC = () => {
       showToast(msg, 'error');
     } finally {
       // Opcional: recarregar configurações para refletir demais campos
+      try {
+        await carregarConfiguracoes();
+      } catch {}
+    }
+  };
+
+  const removerCertificado = async () => {
+    try {
+      showToast('Removendo certificado digital...', 'info');
+      const response = isAdmin
+        ? await configService.removeCertificado()
+        : await meService.removeCertificado();
+      const data = response?.data;
+      if (data?.sucesso) {
+        setConfigNFe(prev => ({
+          ...prev,
+          certificadoDigital: {
+            arquivo: '',
+            senha: '',
+            validade: '',
+            status: 'nao_configurado'
+          }
+        }));
+        showToast('Certificado removido com sucesso.', 'success');
+      } else {
+        const erroMsg = data?.erro || 'Falha ao remover certificado';
+        showToast(erroMsg, 'error');
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.erro || 'Erro ao remover certificado digital';
+      showToast(msg, 'error');
+    } finally {
       try {
         await carregarConfiguracoes();
       } catch {}
@@ -1088,6 +1149,10 @@ const Configuracoes: React.FC = () => {
                           Carregar
                         </Button>
                       </label>
+                      <Button variant="destructive" size="sm" onClick={removerCertificado} disabled={!configNFe.certificadoDigital.arquivo}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remover
+                      </Button>
                     </div>
                   </div>
                   

@@ -18,7 +18,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { buildApiUrl } from '@/config/api';
+import { adminService, authService } from '../services/api';
 import { PageLayout } from '../components/layout/PageLayout';
 import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card';
 import { Button, ButtonLoading } from '../components/ui/button';
@@ -91,19 +91,8 @@ const GerenciarUsuarios: React.FC = () => {
   const carregarUsuarios = async () => {
     setLoading(true);
     try {
-      // Carregar usuários da API
-      const response = await fetch(buildApiUrl('/admin/usuarios'), {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao carregar usuários');
-      }
-
-      const data = await response.json();
-      setUsuarios(data.usuarios || []);
+      const { data } = await adminService.listUsuarios();
+      setUsuarios(data?.usuarios || []);
     } catch (error) {
       showToast('Erro ao carregar usuários', 'error');
       console.error('Erro ao carregar usuários:', error);
@@ -187,15 +176,7 @@ const GerenciarUsuarios: React.FC = () => {
       };
 
       // Fazer chamada para o backend
-      const response = await fetch(buildApiUrl('/auth/register'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dadosUsuario)
-      });
-
-      const resultado = await response.json();
+      const { data: resultado } = await authService.register(dadosUsuario);
 
       if (resultado.sucesso) {
         // Criar usuário para a lista local
@@ -245,19 +226,10 @@ const GerenciarUsuarios: React.FC = () => {
 
   const handleAlterarStatus = async (usuarioId: string, novoStatus: 'ativo' | 'inativo' | 'bloqueado') => {
     try {
-      const response = await fetch(buildApiUrl(`/admin/usuarios/${usuarioId}/status`), {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ status: novoStatus })
-      });
+      const { data: resultado } = await adminService.updateStatus(usuarioId, novoStatus);
 
-      const resultado = await response.json();
-
-      if (!response.ok || !resultado.sucesso) {
-        throw new Error(resultado.erro || 'Falha ao alterar status');
+      if (!resultado?.sucesso) {
+        throw new Error(resultado?.erro || 'Falha ao alterar status');
       }
 
       setUsuarios(usuarios.map(u => 
@@ -300,19 +272,10 @@ const GerenciarUsuarios: React.FC = () => {
         status: usuarioSelecionado.status
       };
 
-      const response = await fetch(buildApiUrl(`/admin/usuarios/${usuarioSelecionado.id}`), {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(payload)
-      });
+      const { data: resultado } = await adminService.updateUsuario(usuarioSelecionado.id, payload);
 
-      const resultado = await response.json();
-
-      if (!response.ok || !resultado.sucesso) {
-        throw new Error(resultado.erro || 'Falha ao atualizar usuário');
+      if (!resultado?.sucesso) {
+        throw new Error(resultado?.erro || 'Falha ao atualizar usuário');
       }
 
       // Atualizar usuário na lista local com resposta do backend, se disponível
@@ -348,17 +311,10 @@ const GerenciarUsuarios: React.FC = () => {
     }
 
     try {
-      const response = await fetch(buildApiUrl(`/admin/usuarios/${usuarioId}`), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const { data: resultado } = await adminService.deleteUsuario(usuarioId);
 
-      const resultado = await response.json();
-
-      if (!response.ok || !resultado.sucesso) {
-        throw new Error(resultado.erro || 'Falha ao excluir usuário');
+      if (!resultado?.sucesso) {
+        throw new Error(resultado?.erro || 'Falha ao excluir usuário');
       }
 
       setUsuarios(usuarios.filter(u => u.id !== usuarioId));

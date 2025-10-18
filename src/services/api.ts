@@ -4,9 +4,6 @@ import { API_BASE_URL } from '../config/api'
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 })
 
 // Interceptor para adicionar token automaticamente
@@ -49,6 +46,10 @@ export const authService = {
     return api.get('/auth/validate')
   },
 
+  register: (data: any) => {
+    return api.post('/auth/register', data)
+  },
+
   logout: () => {
     // Limpar dados locais
     localStorage.removeItem('auth_token')
@@ -88,9 +89,11 @@ export const configService = {
 
   // Admin: upload do certificado
   uploadCertificado: (formData: FormData) =>
-    api.post('/configuracoes/certificado', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    }),
+    api.post('/configuracoes/certificado', formData),
+
+  // Admin: remover certificado
+  removeCertificado: () =>
+    api.delete('/configuracoes/certificado'),
 
   // NFe: acessível a qualquer usuário autenticado
   getNFeConfig: () => api.get('/configuracoes/nfe'),
@@ -121,8 +124,17 @@ export const meService = {
   get: () => api.get('/me'),
   update: (data: any) => api.patch('/me', data),
   uploadCertificado: (formData: FormData) =>
-    api.post('/me/certificado', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    api.post('/me/certificado', formData),
+  removeCertificado: () =>
+    api.delete('/me/certificado')
+};
+export const adminService = {
+  listUsuarios: (params?: any) => api.get('/admin/usuarios', { params }),
+  updateStatus: (usuarioId: string, status: 'ativo' | 'inativo' | 'bloqueado') =>
+    api.patch(`/admin/usuarios/${usuarioId}/status`, { status }),
+  updateUsuario: (usuarioId: string, data: any) =>
+    api.patch(`/admin/usuarios/${usuarioId}`, data),
+  deleteUsuario: (usuarioId: string) =>
+    api.delete(`/admin/usuarios/${usuarioId}`),
 };
 export default api

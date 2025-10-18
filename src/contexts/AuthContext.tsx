@@ -151,6 +151,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔐 authAPI.login - Response status:', response.status);
       console.log('🔐 authAPI.login - Response ok:', response.ok);
       console.log('🔐 authAPI.login - Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Tratamento específico para rate limiting (HTTP 429)
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('Retry-After');
+        let msg = 'Muitas tentativas. Aguarde e tente novamente.';
+        if (retryAfter) {
+          let seconds: number | null = null;
+          const parsed = parseInt(retryAfter, 10);
+          if (!Number.isNaN(parsed)) {
+            seconds = parsed;
+          } else {
+            const retryDate = new Date(retryAfter);
+            const delta = Math.ceil((retryDate.getTime() - Date.now()) / 1000);
+            if (!Number.isNaN(delta) && delta > 0) {
+              seconds = delta;
+            }
+          }
+          if (seconds && seconds > 0) {
+            msg = `Muitas tentativas. Aguarde ${seconds}s e tente novamente.`;
+          }
+        }
+        throw new Error(msg);
+      }
       
       const responseText = await response.text();
       console.log('🔐 authAPI.login - Response text bruto:', responseText);
@@ -262,7 +285,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     } catch (error) {
       console.error('🎯 AuthContext.login - Erro capturado:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro ao fazer login';
+      let errorMessage = error instanceof Error ? error.message : 'Erro ao fazer login';
+      if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+        if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('network error') || msg.includes('timeout')) {
+          errorMessage = 'Falha de rede ao comunicar com o servidor. Tente novamente.';
+        }
+      }
       console.error('🎯 AuthContext.login - Mensagem de erro:', errorMessage);
       
       dispatch({ 

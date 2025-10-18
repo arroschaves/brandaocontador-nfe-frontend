@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button, ButtonLoading } from '../components/ui/button';
 import { Input } from '../components/ui/Input';
 import { useToast } from '../contexts/ToastContext';
+import { formatCooldown } from '../utils/time';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -14,14 +15,63 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Cooldown após rate limiting (HTTP 429)
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
 
   const { login, isAuthenticated, error, clearError, user, isLoading: authLoading } = useAuth();
   const { showToast } = useToast();
+
+  // Helper: formatar cooldown em mm:ss
+
+
+  // Helper: extrair segundos do Retry-After a partir da mensagem de erro
+  const extractRetrySeconds = (msg: string): number | null => {
+    const secMatch = msg.match(/Aguarde\s+(\d+)\s*s/i);
+    if (secMatch) {
+      const sec = parseInt(secMatch[1], 10);
+      if (!Number.isNaN(sec) && sec > 0) return sec;
+    }
+    const minMatch = msg.match(/Aguarde\s+(\d+)\s+minuto/i);
+    if (minMatch) {
+      const mins = parseInt(minMatch[1], 10);
+      if (!Number.isNaN(mins) && mins > 0) return mins * 60;
+    }
+    return null;
+  };
 
   // Limpar erro quando componente montar
   useEffect(() => {
     clearError();
   }, []);
+
+  // Detectar erros de rate limit (429) e iniciar cooldown
+  useEffect(() => {
+    if (!error) return;
+    const isRateLimited = /Limite de tentativas|Muitas tentativas|Aguarde/i.test(error);
+    if (!isRateLimited) return;
+
+    const seconds = extractRetrySeconds(error) ?? 60; // padrão: 60s
+    setCooldownSeconds(seconds);
+  }, [error]);
+
+  // Countdown do cooldown
+  useEffect(() => {
+    if (cooldownSeconds == null) return;
+    if (cooldownSeconds <= 0) {
+      showToast('Você já pode tentar novamente', 'info');
+      setCooldownSeconds(null);
+      clearError();
+      return;
+    }
+    const interval = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev == null) return null;
+        const next = prev - 1;
+        return next > 0 ? next : 0;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownSeconds]);
 
   // Debug logs temporários
   useEffect(() => {
@@ -78,6 +128,12 @@ const Login: React.FC = () => {
     console.log('🔑 Login - Iniciando processo de login');
     console.log('🔑 Login - Email:', formData.email);
     console.log('🔑 Login - Password:', formData.password ? '***' : 'vazio');
+
+    // Impedir tentativa durante cooldown
+    if (cooldownSeconds && cooldownSeconds > 0) {
+      showToast('Muitas tentativas. Aguarde o cooldown terminar.', 'warning');
+      return;
+    }
     
     if (!validateForm()) {
       console.log('🔑 Login - Validação falhou');
@@ -99,8 +155,10 @@ const Login: React.FC = () => {
       }
     } catch (error) {
       console.error('🔑 Login - Erro capturado:', error);
-      console.error('🔑 Login - Tipo do erro:', error.constructor.name);
-      console.error('🔑 Login - Mensagem:', error.message);
+      // @ts-ignore
+      console.error('🔑 Login - Tipo do erro:', error?.constructor?.name);
+      // @ts-ignore
+      console.error('🔑 Login - Mensagem:', error?.message);
     } finally {
       setIsLoading(false);
       console.log('🔑 Login - Processo finalizado');
@@ -145,7 +203,7 @@ const Login: React.FC = () => {
                   onChange={handleInputChange}
                   className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                   placeholder="seu@email.com"
-                  disabled={isLoading}
+                  disabled={isLoading || !!cooldownSeconds}
                 />
               </div>
               {errors.email && (
@@ -170,13 +228,13 @@ const Login: React.FC = () => {
                   onChange={handleInputChange}
                   className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                   placeholder="Sua senha"
-                  disabled={isLoading}
+                  disabled={isLoading || !!cooldownSeconds}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
+                  disabled={isLoading || !!cooldownSeconds}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
@@ -197,6 +255,15 @@ const Login: React.FC = () => {
               </div>
             )}
 
+            {/* Cooldown info */}
+            {cooldownSeconds != null && cooldownSeconds > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                <p className="text-sm text-yellow-700">
+                  Muitas tentativas. Aguarde {formatCooldown(cooldownSeconds)} para tentar novamente.
+                </p>
+              </div>
+            )}
+
             {/* Submit Button */}
             <div>
               {isLoading ? (
@@ -204,8 +271,8 @@ const Login: React.FC = () => {
                   Entrando...
                 </ButtonLoading>
               ) : (
-                <Button type="submit" className="w-full">
-                  Entrar
+                <Button type="submit" className="w-full" disabled={isLoading || !!cooldownSeconds}>
+                  {cooldownSeconds ? `Aguarde ${formatCooldown(cooldownSeconds)}...` : 'Entrar'}
                 </Button>
               )}
             </div>

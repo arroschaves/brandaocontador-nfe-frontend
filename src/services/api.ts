@@ -86,11 +86,18 @@ export const configService = {
   updateConfig: (data: any) => 
     api.post('/configuracoes', data),
 
+  // Admin: upload do certificado
   uploadCertificado: (formData: FormData) =>
     api.post('/configuracoes/certificado', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
-}
+
+  // NFe: acessível a qualquer usuário autenticado
+  getNFeConfig: () => api.get('/configuracoes/nfe'),
+  updateNFeConfig: (payload: any) => api.patch('/configuracoes/nfe', payload),
+  getNotificacoesConfig: () => api.get('/configuracoes/notificacoes'),
+  updateNotificacoesConfig: (payload: any) => api.patch('/configuracoes/notificacoes', payload)
+};
 
 export const clienteService = {
   list: (params?: any) => api.get('/clientes', { params }),
@@ -108,4 +115,12 @@ export const produtoService = {
   remove: (id: string) => api.delete(`/produtos/${id}`),
 }
 
+export const meService = {
+  get: () => api.get('/me'),
+  update: (data: any) => api.patch('/me', data),
+  uploadCertificado: (formData: FormData) =>
+    api.post('/me/certificado', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+};
 export default api

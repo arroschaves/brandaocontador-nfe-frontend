@@ -25,10 +25,11 @@ import { FormGroup } from '../components/ui/FormGroup';
 import { Button, ButtonLoading } from '../components/ui/button';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
-import { configService } from '../services/api';
+import { configService, meService } from '../services/api';
 import { useAutoFormat } from '../hooks/useAutoFormat';
 import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
 import { validarCNPJ, validarCEP, validarEmail, validarTelefone } from '../utils/validations';
+import { useMemo } from 'react';
 
 interface ConfiguracaoEmpresa {
   razaoSocial: string;
@@ -188,54 +189,120 @@ const Configuracoes: React.FC = () => {
     carregarConfiguracoes();
   }, []);
   
-  const { checkPermission } = useAuth();
-  const canEdit = checkPermission('admin');
+  const { user, checkPermission } = useAuth();
+  const isAdmin = checkPermission('admin');
+  const canEdit = true;
 
   const carregarConfiguracoes = async () => {
     setLoading(true);
     try {
-      const response = await configService.getConfig();
-      const data = response?.data;
-
-      if (data?.sucesso) {
-        const cfg = data.configuracoes || {};
-
-        // Mapear dados recebidos para estados locais, mantendo defaults
-        if (cfg.empresa) {
-          setConfigEmpresa(prev => ({
-            ...prev,
-            ...cfg.empresa,
-            endereco: {
-              ...prev.endereco,
-              ...cfg.empresa.endereco
-            }
-          }));
-        }
-        if (cfg.nfe) {
-          setConfigNFe(prev => ({
-            ...prev,
-            ...cfg.nfe,
-            certificadoDigital: {
-              ...prev.certificadoDigital,
-              ...(cfg.nfe.certificadoDigital || {})
-            },
-            emailEnvio: {
-              ...prev.emailEnvio,
-              ...(cfg.nfe.emailEnvio || {})
-            }
-          }));
-        }
-        if (cfg.notificacoes) {
-          setConfigNotificacoes(prev => ({
-            ...prev,
-            ...cfg.notificacoes
-          }));
+      if (isAdmin) {
+        const response = await configService.getConfig();
+        const data = response?.data;
+        if (data?.sucesso) {
+          const cfg = data.configuracoes || {};
+          if (cfg.empresa) {
+            setConfigEmpresa(prev => ({
+              ...prev,
+              ...cfg.empresa,
+              endereco: {
+                ...prev.endereco,
+                ...(cfg.empresa.endereco || {})
+              }
+            }));
+          }
+          if (cfg.nfe) {
+            setConfigNFe(prev => ({
+              ...prev,
+              ...cfg.nfe,
+              certificadoDigital: {
+                ...prev.certificadoDigital,
+                ...(cfg.nfe.certificadoDigital || {})
+              },
+              emailEnvio: {
+                ...prev.emailEnvio,
+                ...(cfg.nfe.emailEnvio || {})
+              }
+            }));
+          }
+          if (cfg.notificacoes) {
+            setConfigNotificacoes(prev => ({
+              ...prev,
+              ...cfg.notificacoes
+            }));
+          }
+        } else {
+          showToast(data?.erro || 'Erro ao carregar configurações', 'error');
         }
       } else {
-        showToast(data?.erro || 'Erro ao carregar configurações', 'error');
+        const response = await meService.get();
+        const data = response?.data;
+        if (data?.sucesso) {
+          const usuario = data.usuario || data.user || {};
+          setConfigEmpresa(prev => ({
+            ...prev,
+            razaoSocial: usuario.razaoSocial || prev.razaoSocial,
+            nomeFantasia: usuario.nomeFantasia || prev.nomeFantasia,
+            cnpj: usuario.documento || prev.cnpj,
+            inscricaoEstadual: usuario.inscricaoEstadual || prev.inscricaoEstadual,
+            inscricaoMunicipal: prev.inscricaoMunicipal,
+            email: usuario.email || prev.email,
+            telefone: usuario.telefone || prev.telefone,
+            endereco: {
+              ...prev.endereco,
+              cep: usuario.endereco?.cep || prev.endereco.cep,
+              logradouro: usuario.endereco?.logradouro || prev.endereco.logradouro,
+              numero: usuario.endereco?.numero || prev.endereco.numero,
+              complemento: usuario.endereco?.complemento || prev.endereco.complemento,
+              bairro: usuario.endereco?.bairro || prev.endereco.bairro,
+              municipio: usuario.endereco?.cidade || prev.endereco.municipio,
+              uf: usuario.endereco?.uf || prev.endereco.uf
+            }
+          }));
+
+          // Carregar configurações de NFe para clientes
+          try {
+            const respNfe = await configService.getNFeConfig();
+            const dNfe = respNfe?.data;
+            if (dNfe?.sucesso) {
+              const nfe = dNfe.nfe || {};
+              setConfigNFe(prev => ({
+                ...prev,
+                ...nfe,
+                certificadoDigital: {
+                  ...prev.certificadoDigital,
+                  ...(nfe.certificadoDigital || {})
+                },
+                emailEnvio: {
+                  ...prev.emailEnvio,
+                  ...(nfe.emailEnvio || {})
+                }
+              }));
+            }
+          } catch (e) {
+            // Silenciar falha de NFe para não bloquear carregamento da página
+          }
+
+          // Carregar preferências de Notificações para clientes
+          try {
+            const respNotif = await configService.getNotificacoesConfig();
+            const dNotif = respNotif?.data;
+            if (dNotif?.sucesso) {
+              const notif = dNotif.notificacoes || {};
+              setConfigNotificacoes(prev => ({
+                ...prev,
+                ...notif
+              }));
+            }
+          } catch (e) {
+            // Silenciar falha de Notificações
+          }
+        } else {
+          showToast(data?.erro || 'Erro ao carregar seus dados', 'error');
+        }
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.erro || 'Erro ao carregar configurações';
+      const msg = error?.response?.data?.erro || (isAdmin ? 'Erro ao carregar configurações' : 'Erro ao carregar seus dados');
       showToast(msg, 'error');
     } finally {
       setLoading(false);
@@ -284,39 +351,130 @@ const Configuracoes: React.FC = () => {
   };
 
   const salvarConfiguracoes = async () => {
-    if (!canEdit) {
-      showToast('Acesso negado: apenas administradores podem alterar configurações.', 'error');
-      return;
-    }
     const erros = validarCamposObrigatorios();
-    
     if (erros.length > 0) {
       showToast(`Erro de validação: ${erros[0]}`, 'error');
       return;
     }
-    
     setSalvando(true);
     try {
-      const payload = {
-        empresa: configEmpresa,
-        nfe: configNFe,
-        notificacoes: configNotificacoes
-      };
-
-      const response = await configService.updateConfig(payload);
-      const data = response?.data;
-
-      if (data?.sucesso) {
-        const cfg = data.configuracoes || {};
-        if (cfg.empresa) setConfigEmpresa(prev => ({ ...prev, ...cfg.empresa }));
-        if (cfg.nfe) setConfigNFe(prev => ({ ...prev, ...cfg.nfe }));
-        if (cfg.notificacoes) setConfigNotificacoes(prev => ({ ...prev, ...cfg.notificacoes }));
-        showToast('Configurações salvas com sucesso!', 'success');
+      if (isAdmin) {
+        const payload = {
+          empresa: configEmpresa,
+          nfe: configNFe,
+          notificacoes: configNotificacoes
+        };
+        const response = await configService.updateConfig(payload);
+        const data = response?.data;
+        if (data?.sucesso) {
+          const cfg = data.configuracoes || {};
+          if (cfg.empresa) setConfigEmpresa(prev => ({ ...prev, ...cfg.empresa }));
+          if (cfg.nfe) setConfigNFe(prev => ({ ...prev, ...cfg.nfe }));
+          if (cfg.notificacoes) setConfigNotificacoes(prev => ({ ...prev, ...cfg.notificacoes }));
+          showToast('Configurações salvas com sucesso!', 'success');
+        } else {
+          showToast(data?.erro || 'Erro ao salvar configurações', 'error');
+        }
       } else {
-        showToast(data?.erro || 'Erro ao salvar configurações', 'error');
+        if (abaAtiva === 'nfe') {
+          const nfePayload: any = {
+            ambiente: configNFe.ambiente,
+            serie: configNFe.serie,
+            numeracaoInicial: configNFe.numeracaoInicial,
+            emailEnvio: {
+              servidor: configNFe.emailEnvio.servidor,
+              porta: configNFe.emailEnvio.porta,
+              usuario: configNFe.emailEnvio.usuario,
+              senha: configNFe.emailEnvio.senha,
+              ssl: configNFe.emailEnvio.ssl,
+            },
+          };
+          const response = await configService.updateNFeConfig(nfePayload);
+          const data = response?.data;
+          if (data?.sucesso) {
+            const nfe = data.nfe || {};
+            setConfigNFe(prev => ({
+              ...prev,
+              ...nfe,
+              certificadoDigital: {
+                ...prev.certificadoDigital,
+                ...(nfe.certificadoDigital || {})
+              },
+              emailEnvio: {
+                ...prev.emailEnvio,
+                ...(nfe.emailEnvio || {})
+              }
+            }));
+            showToast('Configurações de NFe salvas com sucesso!', 'success');
+          } else {
+            showToast(data?.erro || 'Erro ao salvar NFe', 'error');
+          }
+        } else if (abaAtiva === 'notificacoes') {
+          const response = await configService.updateNotificacoesConfig(configNotificacoes);
+          const data = response?.data;
+          if (data?.sucesso) {
+            const notif = data.notificacoes || {};
+            setConfigNotificacoes(prev => ({
+              ...prev,
+              ...notif
+            }));
+            showToast('Preferências de Notificações atualizadas!', 'success');
+          } else {
+            showToast(data?.erro || 'Erro ao salvar Notificações', 'error');
+          }
+        } else {
+          const cnpjDigits = (configEmpresa.cnpj || '').replace(/\D/g, '');
+          const payload: any = {
+            razaoSocial: configEmpresa.razaoSocial,
+            nomeFantasia: configEmpresa.nomeFantasia,
+            documento: cnpjDigits || undefined,
+            inscricaoEstadual: configEmpresa.inscricaoEstadual,
+            email: configEmpresa.email,
+            telefone: configEmpresa.telefone,
+            endereco: {
+              cep: configEmpresa.endereco.cep,
+              logradouro: configEmpresa.endereco.logradouro,
+              numero: configEmpresa.endereco.numero,
+              complemento: configEmpresa.endereco.complemento,
+              bairro: configEmpresa.endereco.bairro,
+              cidade: configEmpresa.endereco.municipio,
+              uf: configEmpresa.endereco.uf
+            }
+          };
+          Object.keys(payload).forEach((k) => {
+            if (payload[k] === undefined) delete payload[k];
+          });
+          const response = await meService.update(payload);
+          const data = response?.data;
+          if (data?.sucesso) {
+            const u = data.usuario || {};
+            setConfigEmpresa(prev => ({
+              ...prev,
+              razaoSocial: u.razaoSocial || prev.razaoSocial,
+              nomeFantasia: u.nomeFantasia || prev.nomeFantasia,
+              cnpj: u.documento || prev.cnpj,
+              inscricaoEstadual: u.inscricaoEstadual || prev.inscricaoEstadual,
+              email: u.email || prev.email,
+              telefone: u.telefone || prev.telefone,
+              endereco: {
+                ...prev.endereco,
+                cep: u.endereco?.cep || prev.endereco.cep,
+                logradouro: u.endereco?.logradouro || prev.endereco.logradouro,
+                numero: u.endereco?.numero || prev.endereco.numero,
+                complemento: u.endereco?.complemento || prev.endereco.complemento,
+                bairro: u.endereco?.bairro || prev.endereco.bairro,
+                municipio: u.endereco?.cidade || prev.endereco.municipio,
+                uf: u.endereco?.uf || prev.endereco.uf
+              }
+            }));
+            showToast('Dados atualizados com sucesso!', 'success');
+          } else {
+            showToast(data?.erro || 'Erro ao atualizar seus dados', 'error');
+          }
+        }
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.erro || 'Erro ao salvar configurações';
+      const msg = error?.response?.data?.erro || (isAdmin ? 'Erro ao salvar configurações' : 'Erro ao atualizar seus dados');
       showToast(msg, 'error');
     } finally {
       setSalvando(false);
@@ -361,7 +519,9 @@ const Configuracoes: React.FC = () => {
       formData.append('certificado', file);
       formData.append('senha', senha);
 
-      const response = await configService.uploadCertificado(formData);
+      const response = isAdmin 
+        ? await configService.uploadCertificado(formData)
+        : await meService.uploadCertificado(formData);
       const data = response?.data;
 
       if (data?.sucesso) {
@@ -438,11 +598,14 @@ const Configuracoes: React.FC = () => {
     }
   };
   
-  const abas = [
+  const abas = isAdmin ? [
     { id: 'empresa', nome: 'Empresa', icon: Building },
     { id: 'nfe', nome: 'NFe', icon: FileText },
     { id: 'notificacoes', nome: 'Notificações', icon: Bell },
     { id: 'sistema', nome: 'Sistema', icon: Database }
+  ] : [
+    { id: 'empresa', nome: 'Empresa', icon: Building },
+    { id: 'nfe', nome: 'NFe', icon: FileText }
   ];
   
   return (

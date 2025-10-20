@@ -4,6 +4,7 @@ import { Bell, Settings, User, Menu } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from './Sidebar';
 import ErrorBoundary from '../ErrorBoundary';
+import { Notificacao } from '../../types';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -15,13 +16,56 @@ interface TopBarProps {
 
 const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState(0);
+  const [notifications, setNotifications] = useState<Notificacao[]>([]);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   // Simular notificações (em produção, viria de uma API)
   useEffect(() => {
-    // Simular algumas notificações
-    setNotifications(3);
+    setNotifications([
+      {
+        id: '1',
+        tipo: 'warning',
+        titulo: 'Certificado vence em 15 dias',
+        mensagem: 'Seu certificado digital está próximo do vencimento.',
+        lida: false,
+        dataCreated: new Date().toISOString()
+      },
+      {
+        id: '2',
+        tipo: 'info',
+        titulo: 'NFe cancelada',
+        mensagem: 'A NFe #123 foi cancelada com sucesso.',
+        lida: false,
+        dataCreated: new Date().toISOString()
+      },
+      {
+        id: '3',
+        tipo: 'error',
+        titulo: 'Erro SEFAZ',
+        mensagem: 'Falha de conexão com SEFAZ na última consulta.',
+        lida: false,
+        dataCreated: new Date().toISOString()
+      }
+    ]);
   }, []);
+
+  const unreadCount = notifications.filter(n => !n.lida).length;
+
+  const markAsRead = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, lida: true, dataLida: new Date().toISOString() } : n));
+  };
+
+  const deleteNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => n.lida ? n : { ...n, lida: true, dataLida: new Date().toISOString() }));
+  };
+
+  const clearAll = () => {
+    setNotifications([]);
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 lg:pl-64 h-16">{/* Altura fixa para compensação consistente */}
@@ -44,14 +88,54 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
         
         <div className="flex items-center space-x-4">
           {/* Notificações */}
-          <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-            <Bell className="h-5 w-5" />
-            {notifications > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {notifications > 9 ? '9+' : notifications}
-              </span>
+          <div className="relative">
+            <button
+              onClick={() => setIsNotifOpen(prev => !prev)}
+              className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {isNotifOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <div className="px-4 py-2 border-b flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900">Notificações</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={markAllAsRead} className="text-xs text-blue-600 hover:text-blue-800">Marcar todas como lidas</button>
+                    <button onClick={clearAll} className="text-xs text-red-600 hover:text-red-800">Excluir todas</button>
+                  </div>
+                </div>
+                <ul className="max-h-64 overflow-auto">
+                  {notifications.length === 0 ? (
+                    <li className="px-4 py-3 text-sm text-gray-500">Sem notificações.</li>
+                  ) : (
+                    notifications.map(n => (
+                      <li key={n.id} className={`px-4 py-3 border-b last:border-b-0 ${n.lida ? 'bg-gray-50' : 'bg-white'}`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">{n.titulo}</p>
+                            <p className="text-sm text-gray-600">{n.mensagem}</p>
+                            <p className="text-xs text-gray-400 mt-1">{new Date(n.dataCreated).toLocaleString()}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            {!n.lida && (
+                              <button onClick={() => markAsRead(n.id)} className="text-xs text-blue-600 hover:text-blue-800">Ler</button>
+                            )}
+                            <button onClick={() => deleteNotification(n.id)} className="text-xs text-red-600 hover:text-red-800">Excluir</button>
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
             )}
-          </button>
+          </div>
           
           {/* Configurações rápidas */}
           <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">

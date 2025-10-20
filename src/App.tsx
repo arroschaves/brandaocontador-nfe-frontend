@@ -18,6 +18,7 @@ import './App.css';
 import { API_BASE_URL } from './config/api';
 import Clientes from './pages/Clientes';
 import Produtos from './pages/Produtos';
+import InutilizarNFe from './pages/InutilizarNFe';
 
 function App() {
   return (
@@ -83,6 +84,16 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <ConsultarNFe />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inutilizar-nfe"
+                element={
+                  <ProtectedRoute requiredPermissions={["nfe_inutilizar"]}>
+                    <MainLayout>
+                      <InutilizarNFe />
                     </MainLayout>
                   </ProtectedRoute>
                 }

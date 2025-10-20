@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   Server,
-  Package
+  Package,
+  Ban
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -43,6 +44,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       icon: Search,
       label: 'Consultar NFe',
       description: 'Buscar por chave de acesso'
+    },
+    {
+      path: '/inutilizar-nfe',
+      icon: Ban,
+      label: 'Inutilizar NFe',
+      description: 'Homologar inutilização de numeração'
     },
     {
       path: '/historico',
@@ -97,6 +104,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const filteredMenuItems = menuItems.filter((item) => {
     if (item.path === '/configuracoes') {
       return checkPermission('configuracoes_ver');
+    }
+    if (item.path === '/inutilizar-nfe') {
+      return checkPermission('nfe_inutilizar');
     }
     return true;
   });

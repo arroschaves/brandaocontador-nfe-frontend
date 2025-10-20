@@ -77,6 +77,8 @@ export const nfeService = {
   status: () => 
     api.get('/nfe/status'),
   
+  inutilizar: (payload: { serie: number; numeroInicial: number; numeroFinal: number; justificativa: string; ano?: string }) =>
+    api.post('/nfe/inutilizar', payload),
 
 }
 

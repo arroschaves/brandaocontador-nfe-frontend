@@ -120,7 +120,6 @@ export const validateCNPJ = (cnpj: string): boolean => {
 
 export const validateCPF = (cpf: string): boolean => {
   const cleaned = cpf.replace(/\D/g, '')
-  
   if (cleaned.length !== 11) return false
   if (/^(\d)\1{10}$/.test(cleaned)) return false
   
@@ -128,26 +127,17 @@ export const validateCPF = (cpf: string): boolean => {
   for (let i = 0; i < 9; i++) {
     sum += parseInt(cleaned.charAt(i)) * (10 - i)
   }
-  
-  let remainder = sum % 11
-  const digit1 = remainder < 2 ? 0 : 11 - remainder
-  
-  if (parseInt(cleaned.charAt(9)) !== digit1) return false
+  let remainder = (sum * 10) % 11
+  if (remainder === 10 || remainder === 11) remainder = 0
+  if (remainder !== parseInt(cleaned.charAt(9))) return false
   
   sum = 0
   for (let i = 0; i < 10; i++) {
     sum += parseInt(cleaned.charAt(i)) * (11 - i)
   }
-  
-  remainder = sum % 11
-  const digit2 = remainder < 2 ? 0 : 11 - remainder
-  
-  return parseInt(cleaned.charAt(10)) === digit2
-}
-
-export const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
+  remainder = (sum * 10) % 11
+  if (remainder === 10 || remainder === 11) remainder = 0
+  return remainder === parseInt(cleaned.charAt(10))
 }
 
 export const validateCEP = (cep: string): boolean => {
@@ -155,30 +145,72 @@ export const validateCEP = (cep: string): boolean => {
   return cleaned.length === 8
 }
 
-export const validateNFeKey = (key: string): boolean => {
-  const cleaned = key.replace(/\D/g, '')
-  return cleaned.length === 44
-}
-
-// Utilitários de string
-export const removeSpecialChars = (str: string): string => {
-  return str.replace(/[^a-zA-Z0-9\s]/g, '')
-}
-
-export const onlyNumbers = (str: string): string => {
-  return str.replace(/\D/g, '')
-}
-
-export const capitalize = (str: string): string => {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
-}
-
-export const truncate = (str: string, length: number): string => {
-  if (str.length <= length) return str
-  return str.substring(0, length) + '...'
-}
-
 // Utilitários de NFe
+export const mapNFeStatusLabel = (status: NFeStatus): string => {
+  const labels: Record<NFeStatus, string> = {
+    autorizada: 'Autorizada',
+    cancelada: 'Cancelada',
+    denegada: 'Denegada',
+    rejeitada: 'Rejeitada',
+    emitida: 'Emitida',
+    pendente: 'Pendente',
+  }
+  return labels[status]
+}
+
+export const deepClone = <T>(obj: T): T => {
+  return JSON.parse(JSON.stringify(obj))
+}
+
+export const isEmpty = (obj: any): boolean => {
+  if (obj == null) return true
+  if (Array.isArray(obj) || typeof obj === 'string') return obj.length === 0
+  if (typeof obj === 'object') return Object.keys(obj).length === 0
+  return false
+}
+
+export const pick = <T, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> => {
+  const result = {} as Pick<T, K>
+  keys.forEach(key => {
+    if (key in obj) {
+      result[key] = obj[key]
+    }
+  })
+  return result
+}
+
+export const omit = <T, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
+  const result = { ...obj }
+  keys.forEach(key => {
+    delete result[key]
+  })
+  return result
+}
+
+// Utilitários de erro
+export const getErrorMessage = (error: any): string => {
+  if (typeof error === 'string') return error
+  if (error?.message) return error.message
+  if (error?.response?.data?.message) return error.response.data.message
+  return 'Erro desconhecido'
+}
+
+export const isNetworkError = (error: any): boolean => {
+  return error?.code === 'NETWORK_ERROR' || error?.message?.includes('Network Error')
+}
+
+// Utilitários de ambiente
+export const isDevelopment = (): boolean => {
+  return import.meta.env.MODE === 'development'
+}
+
+export const isProduction = (): boolean => {
+  return import.meta.env.MODE === 'production'
+}
+
+// Removido getApiUrl duplicado; use config/api.ts
+export { getApiUrl, API_BASE_URL } from '../config/api'
+
 export const getNFeStatusText = (status: NFeStatus): string => {
   const statusMap: Record<NFeStatus, string> = {
     rascunho: 'Rascunho',
@@ -406,29 +438,4 @@ export const omit = <T, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
     delete result[key]
   })
   return result
-}
-
-// Utilitários de erro
-export const getErrorMessage = (error: any): string => {
-  if (typeof error === 'string') return error
-  if (error?.message) return error.message
-  if (error?.response?.data?.message) return error.response.data.message
-  return 'Erro desconhecido'
-}
-
-export const isNetworkError = (error: any): boolean => {
-  return error?.code === 'NETWORK_ERROR' || error?.message?.includes('Network Error')
-}
-
-// Utilitários de ambiente
-export const isDevelopment = (): boolean => {
-  return import.meta.env.MODE === 'development'
-}
-
-export const isProduction = (): boolean => {
-  return import.meta.env.MODE === 'production'
-}
-
-export const getApiUrl = (): string => {
-  return import.meta.env.VITE_API_URL || 'http://localhost:3001'
 }

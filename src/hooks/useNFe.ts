@@ -37,6 +37,7 @@ interface UseNFeReturn {
   loadNFeByChave: (chave: string) => Promise<NFe | null>;
   emitirNFe: (nfeData: any) => Promise<boolean>;
   cancelarNFe: (chave: string, justificativa: string) => Promise<boolean>;
+  inutilizarNFe: (serie: number, numeroInicial: number, numeroFinal: number, justificativa: string, ano?: string) => Promise<boolean>;
   downloadXML: (chave: string) => Promise<void>;
   downloadPDF: (chave: string) => Promise<void>;
   enviarEmail: (chave: string, email: string) => Promise<boolean>;
@@ -178,6 +179,26 @@ export const useNFe = (): UseNFeReturn => {
     }
   }, [showToast]);
 
+  // Função para inutilizar numeração de NFe
+  const inutilizarNFe = useCallback(async (serie: number, numeroInicial: number, numeroFinal: number, justificativa: string, ano?: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await nfeService.inutilizar({ serie, numeroInicial, numeroFinal, justificativa, ano });
+      showToast('Inutilização homologada com sucesso!', 'success');
+      return true;
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao inutilizar numeração';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showToast]);
+
   // Função para download do XML
   const downloadXML = useCallback(async (chave: string): Promise<void> => {
     try {
@@ -270,6 +291,7 @@ export const useNFe = (): UseNFeReturn => {
     loadNFeByChave,
     emitirNFe,
     cancelarNFe,
+    inutilizarNFe,
     downloadXML,
     downloadPDF,
     enviarEmail

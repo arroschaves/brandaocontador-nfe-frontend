@@ -3,10 +3,21 @@ import { Users, UserPlus, Search, Edit, Trash2, CheckCircle, XCircle } from 'luc
 import { PageLayout } from '../components/layout/PageLayout';
 import { Card, CardBody } from '../components/ui/card';
 import { Button, ButtonLoading } from '../components/ui/button';
-import { FormGroup, Input, Select, TextArea } from '../components/ui/Form';
+import { Input, Select, TextArea } from '../components/ui/Form';
+import { FormGroup } from '../components/ui/FormGroup';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { clienteService } from '../services/api';
+
+interface Endereco {
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+}
 
 interface Cliente {
   _id: string;
@@ -15,8 +26,10 @@ interface Cliente {
   nome: string;
   razaoSocial?: string;
   nomeFantasia?: string;
+  inscricaoEstadual?: string;
   email?: string;
   telefone?: string;
+  endereco?: Endereco;
   observacoes?: string;
   ativo: boolean;
   dataCadastro?: string;
@@ -28,8 +41,10 @@ interface NovoCliente {
   nome: string;
   razaoSocial?: string;
   nomeFantasia?: string;
+  inscricaoEstadual?: string;
   email?: string;
   telefone?: string;
+  endereco?: Endereco;
   observacoes?: string;
   ativo?: boolean;
 }
@@ -54,8 +69,18 @@ const Clientes: React.FC = () => {
     nome: '',
     razaoSocial: '',
     nomeFantasia: '',
+    inscricaoEstadual: '',
     email: '',
     telefone: '',
+    endereco: {
+      cep: '',
+      logradouro: '',
+      numero: '',
+      complemento: '',
+      bairro: '',
+      cidade: '',
+      uf: '',
+    },
     observacoes: '',
     ativo: true,
   });
@@ -100,8 +125,18 @@ const Clientes: React.FC = () => {
       nome: '',
       razaoSocial: '',
       nomeFantasia: '',
+      inscricaoEstadual: '',
       email: '',
       telefone: '',
+      endereco: {
+        cep: '',
+        logradouro: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        cidade: '',
+        uf: '',
+      },
       observacoes: '',
       ativo: true,
     });
@@ -149,8 +184,10 @@ const Clientes: React.FC = () => {
         nome: selecionado.nome,
         razaoSocial: selecionado.razaoSocial,
         nomeFantasia: selecionado.nomeFantasia,
+        inscricaoEstadual: selecionado.inscricaoEstadual,
         email: selecionado.email,
         telefone: selecionado.telefone,
+        endereco: selecionado.endereco,
         observacoes: selecionado.observacoes,
         ativo: selecionado.ativo,
       };
@@ -166,21 +203,19 @@ const Clientes: React.FC = () => {
   };
 
   return (
-    <PageLayout title="Clientes">
+    <PageLayout
+      title="Clientes"
+      subtitle="Cadastre e gerencie seus clientes"
+      icon={Users}
+      actions={(
+        <Button onClick={handleNovo} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+          <UserPlus className="h-4 w-4" />
+          Novo Cliente
+        </Button>
+      )}
+    >
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Users className="h-6 w-6" />
-              Clientes
-            </h1>
-            <p className="text-gray-600 mt-1">Cadastre e gerencie seus clientes</p>
-          </div>
-          <Button onClick={handleNovo} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
-            <UserPlus className="h-4 w-4" />
-            Novo Cliente
-          </Button>
-        </div>
+        {/* Header moved to PageLayout actions */}
 
         <Card>
           <CardBody>
@@ -305,6 +340,9 @@ const Clientes: React.FC = () => {
                     <FormGroup label="Nome Fantasia">
                       <Input value={novoCliente.nomeFantasia || ''} onChange={(e) => setNovoCliente({ ...novoCliente, nomeFantasia: e.target.value })} />
                     </FormGroup>
+                    <FormGroup label="Inscrição Estadual">
+                      <Input value={novoCliente.inscricaoEstadual || ''} onChange={(e) => setNovoCliente({ ...novoCliente, inscricaoEstadual: e.target.value })} />
+                    </FormGroup>
                   </>
                 )}
 
@@ -314,6 +352,34 @@ const Clientes: React.FC = () => {
                 <FormGroup label="Telefone">
                   <Input value={novoCliente.telefone || ''} onChange={(e) => setNovoCliente({ ...novoCliente, telefone: e.target.value })} />
                 </FormGroup>
+
+                <FormGroup label="CEP">
+                  <Input value={novoCliente.endereco?.cep || ''} onChange={(e) => setNovoCliente({ ...novoCliente, endereco: { ...novoCliente.endereco, cep: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Logradouro">
+                  <Input value={novoCliente.endereco?.logradouro || ''} onChange={(e) => setNovoCliente({ ...novoCliente, endereco: { ...novoCliente.endereco, logradouro: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Número">
+                  <Input value={novoCliente.endereco?.numero || ''} onChange={(e) => setNovoCliente({ ...novoCliente, endereco: { ...novoCliente.endereco, numero: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Complemento">
+                  <Input value={novoCliente.endereco?.complemento || ''} onChange={(e) => setNovoCliente({ ...novoCliente, endereco: { ...novoCliente.endereco, complemento: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Bairro">
+                  <Input value={novoCliente.endereco?.bairro || ''} onChange={(e) => setNovoCliente({ ...novoCliente, endereco: { ...novoCliente.endereco, bairro: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Cidade">
+                  <Input value={novoCliente.endereco?.cidade || ''} onChange={(e) => setNovoCliente({ ...novoCliente, endereco: { ...novoCliente.endereco, cidade: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="UF">
+                  <Select value={novoCliente.endereco?.uf || ''} onChange={(e) => setNovoCliente({ ...novoCliente, endereco: { ...novoCliente.endereco, uf: e.target.value } })}>
+                    <option value="">Selecione</option>
+                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                      <option key={uf} value={uf}>{uf}</option>
+                    ))}
+                  </Select>
+                </FormGroup>
+
                 <FormGroup label="Observações" className="md:col-span-2">
                   <TextArea value={novoCliente.observacoes || ''} onChange={(e) => setNovoCliente({ ...novoCliente, observacoes: e.target.value })} />
                 </FormGroup>
@@ -368,6 +434,9 @@ const Clientes: React.FC = () => {
                     <FormGroup label="Nome Fantasia">
                       <Input value={selecionado.nomeFantasia || ''} onChange={(e) => setSelecionado({ ...selecionado!, nomeFantasia: e.target.value })} />
                     </FormGroup>
+                    <FormGroup label="Inscrição Estadual">
+                      <Input value={selecionado.inscricaoEstadual || ''} onChange={(e) => setSelecionado({ ...selecionado!, inscricaoEstadual: e.target.value })} />
+                    </FormGroup>
                   </>
                 )}
 
@@ -377,6 +446,34 @@ const Clientes: React.FC = () => {
                 <FormGroup label="Telefone">
                   <Input value={selecionado.telefone || ''} onChange={(e) => setSelecionado({ ...selecionado!, telefone: e.target.value })} />
                 </FormGroup>
+
+                <FormGroup label="CEP">
+                  <Input value={selecionado.endereco?.cep || ''} onChange={(e) => setSelecionado({ ...selecionado!, endereco: { ...selecionado.endereco, cep: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Logradouro">
+                  <Input value={selecionado.endereco?.logradouro || ''} onChange={(e) => setSelecionado({ ...selecionado!, endereco: { ...selecionado.endereco, logradouro: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Número">
+                  <Input value={selecionado.endereco?.numero || ''} onChange={(e) => setSelecionado({ ...selecionado!, endereco: { ...selecionado.endereco, numero: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Complemento">
+                  <Input value={selecionado.endereco?.complemento || ''} onChange={(e) => setSelecionado({ ...selecionado!, endereco: { ...selecionado.endereco, complemento: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Bairro">
+                  <Input value={selecionado.endereco?.bairro || ''} onChange={(e) => setSelecionado({ ...selecionado!, endereco: { ...selecionado.endereco, bairro: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="Cidade">
+                  <Input value={selecionado.endereco?.cidade || ''} onChange={(e) => setSelecionado({ ...selecionado!, endereco: { ...selecionado.endereco, cidade: e.target.value } })} />
+                </FormGroup>
+                <FormGroup label="UF">
+                  <Select value={selecionado.endereco?.uf || ''} onChange={(e) => setSelecionado({ ...selecionado!, endereco: { ...selecionado.endereco, uf: e.target.value } })}>
+                    <option value="">Selecione</option>
+                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                      <option key={uf} value={uf}>{uf}</option>
+                    ))}
+                  </Select>
+                </FormGroup>
+
                 <FormGroup label="Observações" className="md:col-span-2">
                   <TextArea value={selecionado.observacoes || ''} onChange={(e) => setSelecionado({ ...selecionado!, observacoes: e.target.value })} />
                 </FormGroup>

@@ -168,146 +168,121 @@ const Login: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <Building2 className="h-8 w-8 text-white" />
+    <>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Email */}
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            Email
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Mail className="h-5 w-5 text-gray-400" />
+            </div>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+              placeholder="seu@email.com"
+              disabled={isLoading || !!cooldownSeconds}
+            />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Sistema NFe
-          </h2>
-          <p className="text-gray-600">
-            Brandão Contador
-          </p>
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
         </div>
 
-        {/* Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
-                  placeholder="seu@email.com"
-                  disabled={isLoading || !!cooldownSeconds}
-                />
-              </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
+        {/* Password */}
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            Senha
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Lock className="h-5 w-5 text-gray-400" />
             </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Senha
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
-                  placeholder="Sua senha"
-                  disabled={isLoading || !!cooldownSeconds}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading || !!cooldownSeconds}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-
-            {/* Cooldown info */}
-            {cooldownSeconds != null && cooldownSeconds > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                <p className="text-sm text-yellow-700">
-                  Muitas tentativas. Aguarde {formatCooldown(cooldownSeconds)} para tentar novamente.
-                </p>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <div>
-              {isLoading ? (
-                <ButtonLoading className="w-full">
-                  Entrando...
-                </ButtonLoading>
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleInputChange}
+              className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+              placeholder="Sua senha"
+              disabled={isLoading || !!cooldownSeconds}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={isLoading || !!cooldownSeconds}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               ) : (
-                <Button type="submit" className="w-full" disabled={isLoading || !!cooldownSeconds}>
-                  {cooldownSeconds ? `Aguarde ${formatCooldown(cooldownSeconds)}...` : 'Entrar'}
-                </Button>
+                <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               )}
-            </div>
-          </form>
-
-
-
-          {/* Footer Links */}
-          <div className="mt-6 text-center space-y-2">
-            <div>
-              <Link
-                to="/esqueci-senha"
-                className="text-sm text-blue-600 hover:text-blue-500"
-              >
-                Esqueceu sua senha?
-              </Link>
-            </div>
-            <div className="text-sm text-gray-600">
-              Não possui uma conta?{' '}
-              <Link
-                to="/cadastro"
-                className="text-blue-600 hover:text-blue-500 font-medium"
-              >
-                Cadastre-se aqui
-              </Link>
-            </div>
+            </button>
           </div>
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+          )}
         </div>
 
-        {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
-          <p>&copy; 2024 Brandão Contador. Todos os direitos reservados.</p>
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        {/* Cooldown info */}
+        {cooldownSeconds != null && cooldownSeconds > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+            <p className="text-sm text-yellow-700">
+              Muitas tentativas. Aguarde {formatCooldown(cooldownSeconds)} para tentar novamente.
+            </p>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <div>
+          {isLoading ? (
+            <ButtonLoading className="w-full">
+              Entrando...
+            </ButtonLoading>
+          ) : (
+            <Button type="submit" className="w-full" disabled={isLoading || !!cooldownSeconds}>
+              {cooldownSeconds ? `Aguarde ${formatCooldown(cooldownSeconds)}...` : 'Entrar'}
+            </Button>
+          )}
+        </div>
+      </form>
+
+      {/* Footer Links */}
+      <div className="mt-6 text-center space-y-2">
+        <div>
+          <Link
+            to="/esqueci-senha"
+            className="text-sm text-blue-600 hover:text-blue-500"
+          >
+            Esqueceu sua senha?
+          </Link>
+        </div>
+        <div className="text-sm text-gray-600">
+          Não possui uma conta?{' '}
+          <Link
+            to="/cadastro"
+            className="text-blue-600 hover:text-blue-500 font-medium"
+          >
+            Cadastre-se aqui
+          </Link>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

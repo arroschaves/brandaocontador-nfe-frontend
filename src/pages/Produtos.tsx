@@ -3,7 +3,8 @@ import { Package, Plus, Search, Edit, Trash2, CheckCircle, XCircle } from 'lucid
 import { PageLayout } from '../components/layout/PageLayout';
 import { Card, CardBody } from '../components/ui/card';
 import { Button, ButtonLoading } from '../components/ui/button';
-import { FormGroup, Input, Select, TextArea } from '../components/ui/Form';
+import { Input, Select, TextArea } from '../components/ui/Form';
+import { FormGroup } from '../components/ui/FormGroup';
 import { useToast } from '../contexts/ToastContext';
 import { produtoService } from '../services/api';
 
@@ -17,6 +18,9 @@ interface Produto {
   unidade?: string;
   valorUnitario?: number;
   cest?: string;
+  cst?: string;
+  tipoTributacao?: string;
+  origem?: string;
   ativo: boolean;
   dataCadastro?: string;
 }
@@ -30,6 +34,9 @@ interface NovoProduto {
   unidade?: string;
   valorUnitario?: number;
   cest?: string;
+  cst?: string;
+  tipoTributacao?: string;
+  origem?: string;
   ativo?: boolean;
 }
 
@@ -55,6 +62,9 @@ const Produtos: React.FC = () => {
     unidade: 'UN',
     valorUnitario: 0,
     cest: '',
+    cst: '',
+    tipoTributacao: 'integral',
+    origem: '0',
     ativo: true,
   });
 
@@ -101,6 +111,9 @@ const Produtos: React.FC = () => {
       unidade: 'UN',
       valorUnitario: 0,
       cest: '',
+      cst: '',
+      tipoTributacao: 'integral',
+      origem: '0',
       ativo: true,
     });
     setModalNovo(true);
@@ -148,8 +161,11 @@ const Produtos: React.FC = () => {
         ncm: selecionado.ncm,
         cfop: selecionado.cfop,
         unidade: selecionado.unidade,
-        valorUnitario: Number(selecionado.valorUnitario || 0),
+        valorUnitario: selecionado.valorUnitario,
         cest: selecionado.cest,
+        cst: selecionado.cst,
+        tipoTributacao: selecionado.tipoTributacao,
+        origem: selecionado.origem,
         ativo: selecionado.ativo,
       };
       await produtoService.update(selecionado._id, payload);
@@ -164,21 +180,19 @@ const Produtos: React.FC = () => {
   };
 
   return (
-    <PageLayout title="Produtos">
+    <PageLayout
+      title="Produtos"
+      subtitle="Cadastre e gerencie seus produtos"
+      icon={Package}
+      actions={(
+        <Button onClick={handleNovo} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+          <Plus className="h-4 w-4" />
+          Novo Produto
+        </Button>
+      )}
+    >
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Package className="h-6 w-6" />
-              Produtos
-            </h1>
-            <p className="text-gray-600 mt-1">Cadastre e gerencie seus produtos</p>
-          </div>
-          <Button onClick={handleNovo} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4" />
-            Novo Produto
-          </Button>
-        </div>
+        {/* Header movido para as ações do PageLayout */}
 
         <Card>
           <CardBody>
@@ -301,6 +315,35 @@ const Produtos: React.FC = () => {
                 <FormGroup label="CEST">
                   <Input value={novoProduto.cest || ''} onChange={(e) => setNovoProduto({ ...novoProduto, cest: e.target.value })} />
                 </FormGroup>
+                <FormGroup label="CST (ICMS)">
+                  <Select value={novoProduto.cst || ''} onChange={(e) => setNovoProduto({ ...novoProduto, cst: e.target.value })}>
+                    <option value="">Selecione</option>
+                    <option value="00">00 - Tributado integralmente</option>
+                    <option value="10">10 - Tributado e com ST</option>
+                    <option value="20">20 - Com redução de base</option>
+                    <option value="40">40 - Isento</option>
+                    <option value="41">41 - Não tributado</option>
+                    <option value="60">60 - Substituição tributária</option>
+                    <option value="70">70 - Com redução e ST</option>
+                    <option value="90">90 - Outros</option>
+                  </Select>
+                </FormGroup>
+                <FormGroup label="Tipo de Tributação (ICMS)">
+                  <Select value={novoProduto.tipoTributacao || 'integral'} onChange={(e) => setNovoProduto({ ...novoProduto, tipoTributacao: e.target.value })}>
+                    <option value="integral">Tributado integralmente</option>
+                    <option value="reducao_base">Redução de base de cálculo</option>
+                    <option value="isento">Isento</option>
+                    <option value="nao_tributado">Não tributado</option>
+                    <option value="st">Substituição tributária</option>
+                  </Select>
+                </FormGroup>
+                <FormGroup label="Origem">
+                  <Select value={novoProduto.origem || '0'} onChange={(e) => setNovoProduto({ ...novoProduto, origem: e.target.value })}>
+                    <option value="0">0 - Nacional</option>
+                    <option value="1">1 - Estrangeira (Importação direta)</option>
+                    <option value="2">2 - Estrangeira (Adquirida no mercado interno)</option>
+                  </Select>
+                </FormGroup>
                 <FormGroup label="Descrição" className="md:col-span-2">
                   <TextArea value={novoProduto.descricao || ''} onChange={(e) => setNovoProduto({ ...novoProduto, descricao: e.target.value })} />
                 </FormGroup>
@@ -352,6 +395,35 @@ const Produtos: React.FC = () => {
                 </FormGroup>
                 <FormGroup label="CEST">
                   <Input value={selecionado.cest || ''} onChange={(e) => setSelecionado({ ...selecionado!, cest: e.target.value })} />
+                </FormGroup>
+                <FormGroup label="CST (ICMS)">
+                  <Select value={selecionado.cst || ''} onChange={(e) => setSelecionado({ ...selecionado!, cst: e.target.value })}>
+                    <option value="">Selecione</option>
+                    <option value="00">00 - Tributado integralmente</option>
+                    <option value="10">10 - Tributado e com ST</option>
+                    <option value="20">20 - Com redução de base</option>
+                    <option value="40">40 - Isento</option>
+                    <option value="41">41 - Não tributado</option>
+                    <option value="60">60 - Substituição tributária</option>
+                    <option value="70">70 - Com redução e ST</option>
+                    <option value="90">90 - Outros</option>
+                  </Select>
+                </FormGroup>
+                <FormGroup label="Tipo de Tributação (ICMS)">
+                  <Select value={selecionado.tipoTributacao || 'integral'} onChange={(e) => setSelecionado({ ...selecionado!, tipoTributacao: e.target.value })}>
+                    <option value="integral">Tributado integralmente</option>
+                    <option value="reducao_base">Redução de base de cálculo</option>
+                    <option value="isento">Isento</option>
+                    <option value="nao_tributado">Não tributado</option>
+                    <option value="st">Substituição tributária</option>
+                  </Select>
+                </FormGroup>
+                <FormGroup label="Origem">
+                  <Select value={selecionado.origem || '0'} onChange={(e) => setSelecionado({ ...selecionado!, origem: e.target.value })}>
+                    <option value="0">0 - Nacional</option>
+                    <option value="1">1 - Estrangeira (Importação direta)</option>
+                    <option value="2">2 - Estrangeira (Adquirida no mercado interno)</option>
+                  </Select>
                 </FormGroup>
                 <FormGroup label="Descrição" className="md:col-span-2">
                   <TextArea value={selecionado.descricao || ''} onChange={(e) => setSelecionado({ ...selecionado!, descricao: e.target.value })} />

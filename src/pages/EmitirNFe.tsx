@@ -21,6 +21,7 @@ import { useToast } from '../contexts/ToastContext';
 import notificationService from '../services/notificationService';
 import errorService from '../services/errorService';
 import { API_BASE_URL } from '../config/api';
+import { CFOP_OPTIONS, CST_ICMS_OPTIONS, CST_PIS_OPTIONS, CST_COFINS_OPTIONS, NCM_SUGGESTIONS } from '../constants/fiscalPresets';
 
 interface ItemNFe {
   id: string;
@@ -32,6 +33,9 @@ interface ItemNFe {
   quantidade: number;
   valorUnitario: number;
   valorTotal: number;
+  cstIcms?: string;
+  cstPis?: string;
+  cstCofins?: string;
 }
 
 interface DadosNFe {
@@ -41,6 +45,8 @@ interface DadosNFe {
   finalidade: 'normal' | 'complementar' | 'ajuste' | 'devolucao';
   consumidorFinal: boolean;
   presencaComprador: 'presencial' | 'internet' | 'teleatendimento' | 'nfc' | 'operacao_externa' | 'outros';
+  dataEmissao: string;
+  dataSaida?: string;
   
   // Destinatário
   destinatario: {
@@ -81,6 +87,7 @@ const EmitirNFe: React.FC = () => {
     finalidade: 'normal',
     consumidorFinal: true,
     presencaComprador: 'presencial',
+    dataEmissao: new Date().toISOString().substring(0, 10),
     destinatario: {
       tipo: 'pf',
       nome: '',
@@ -104,7 +111,10 @@ const EmitirNFe: React.FC = () => {
     cfop: '5102',
     unidade: 'UN',
     quantidade: 1,
-    valorUnitario: 0
+    valorUnitario: 0,
+    cstIcms: '60',
+    cstPis: '01',
+    cstCofins: '01'
   });
   
   const handleInputChange = (field: string, value: any) => {
@@ -159,16 +169,33 @@ const EmitirNFe: React.FC = () => {
       return;
     }
     
+    // Validação mínima de NCM
+    if (!novoItem.ncm || (novoItem.ncm && novoItem.ncm.replace(/\D/g, '').length !== 8)) {
+      showToast('NCM é obrigatório e deve ter 8 dígitos', 'error');
+      return;
+    }
+    
+    // Validação CFOP (4 dígitos e presente na lista)
+    const cfopValue = (novoItem.cfop || '').replace(/\D/g, '');
+    const cfopValidos = new Set(CFOP_OPTIONS.map(o => o.value));
+    if (!/^\d{4}$/.test(cfopValue) || !cfopValidos.has(cfopValue)) {
+      showToast('CFOP inválido ou não cadastrado', 'error');
+      return;
+    }
+    
     const item: ItemNFe = {
       id: Date.now().toString(),
       codigo: novoItem.codigo!,
       descricao: novoItem.descricao!,
       ncm: novoItem.ncm || '',
-      cfop: novoItem.cfop || '5102',
+      cfop: cfopValue,
       unidade: novoItem.unidade || 'UN',
       quantidade: novoItem.quantidade!,
       valorUnitario: novoItem.valorUnitario!,
-      valorTotal: novoItem.quantidade! * novoItem.valorUnitario!
+      valorTotal: novoItem.quantidade! * novoItem.valorUnitario!,
+      cstIcms: novoItem.cstIcms || '60',
+      cstPis: novoItem.cstPis || '01',
+      cstCofins: novoItem.cstCofins || '01'
     };
     
     setDados(prev => ({
@@ -183,7 +210,10 @@ const EmitirNFe: React.FC = () => {
       cfop: '5102',
       unidade: 'UN',
       quantidade: 1,
-      valorUnitario: 0
+      valorUnitario: 0,
+      cstIcms: '60',
+      cstPis: '01',
+      cstCofins: '01'
     });
     
     showToast('Item adicionado com sucesso', 'success');
@@ -282,6 +312,28 @@ const EmitirNFe: React.FC = () => {
     if (!dados.serie.trim()) {
       showToast('Série é obrigatória', 'error');
       return false;
+    }
+    
+    // Validar datas
+    if (!dados.dataEmissao) {
+      showToast('Data de emissão é obrigatória', 'error');
+      return false;
+    }
+    const dataEmi = new Date(dados.dataEmissao);
+    if (isNaN(dataEmi.getTime())) {
+      showToast('Data de emissão inválida', 'error');
+      return false;
+    }
+    if (dados.dataSaida) {
+      const dataSai = new Date(dados.dataSaida);
+      if (isNaN(dataSai.getTime())) {
+        showToast('Data de saída inválida', 'error');
+        return false;
+      }
+      if (dataSai < dataEmi) {
+        showToast('Data de saída não pode ser anterior à emissão', 'error');
+        return false;
+      }
     }
     
     // Validar destinatário
@@ -454,10 +506,29 @@ const EmitirNFe: React.FC = () => {
       title="Emitir NFe"
       subtitle="Preencha os dados para emitir uma nova Nota Fiscal Eletrônica"
       icon={FileText}
+      actions={(
+        <div className="hidden md:flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <a href="#dados-gerais">Geral</a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href="#destinatario">Destinatário</a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href="#itens">Itens</a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href="#totais">Totais</a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href="#observacoes">Observações</a>
+          </Button>
+        </div>
+      )}
     >
       <div className="space-y-6">
         {/* Dados Gerais */}
-        <Card>
+        <Card id="dados-gerais" className="scroll-mt-24">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <FileText className="h-5 w-5 text-blue-600" />
@@ -535,7 +606,7 @@ const EmitirNFe: React.FC = () => {
         </Card>
         
         {/* Destinatário */}
-        <Card>
+        <Card id="destinatario" className="scroll-mt-24">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <User className="h-5 w-5 text-green-600" />
@@ -710,13 +781,19 @@ const EmitirNFe: React.FC = () => {
                   />
                 </FormGroup>
                 
-                <FormGroup label="NCM">
+                <FormGroup label="NCM" required>
                   <Input
                     value={novoItem.ncm || ''}
                     onChange={(e) => setNovoItem(prev => ({ ...prev, ncm: e.target.value }))}
                     placeholder="00000000"
                     maxLength={8}
+                    list="ncmSuggestions"
                   />
+                  <datalist id="ncmSuggestions">
+                    {NCM_SUGGESTIONS.map((n) => (
+                      <option key={n} value={n} />
+                    ))}
+                  </datalist>
                 </FormGroup>
                 
                 <FormGroup label="CFOP" required>
@@ -724,11 +801,9 @@ const EmitirNFe: React.FC = () => {
                     value={novoItem.cfop || '5102'}
                     onChange={(e) => setNovoItem(prev => ({ ...prev, cfop: e.target.value }))}
                   >
-                    <option value="5102">5102 - Venda de mercadoria adquirida ou recebida de terceiros</option>
-                    <option value="5101">5101 - Venda de produção do estabelecimento</option>
-                    <option value="5405">5405 - Venda de mercadoria adquirida ou recebida de terceiros (ST)</option>
-                    <option value="6102">6102 - Venda de mercadoria adquirida ou recebida de terceiros (Interestadual)</option>
-                    <option value="6101">6101 - Venda de produção do estabelecimento (Interestadual)</option>
+                    {CFOP_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
                   </Select>
                 </FormGroup>
                 
@@ -874,7 +949,7 @@ const EmitirNFe: React.FC = () => {
         
         {/* Totais */}
         {dados.itens.length > 0 && (
-          <Card>
+          <Card id="totais" className="scroll-mt-24">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Calculator className="h-5 w-5 text-green-600" />
@@ -901,7 +976,7 @@ const EmitirNFe: React.FC = () => {
         )}
         
         {/* Observações */}
-        <Card>
+        <Card id="observacoes" className="scroll-mt-24">
           <CardHeader>
             <CardTitle>Observações</CardTitle>
           </CardHeader>

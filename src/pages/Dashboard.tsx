@@ -164,6 +164,49 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
+      {/* Ações Rápidas */}
+      <div className="bg-white shadow-sm rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+          <Plus className="h-5 w-5" />
+          <span>Ações Rápidas</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {hasPermission('nfe.emitir') && (
+            <Link
+              to="/emitir-nfe"
+              className="group flex items-center justify-center p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
+            >
+              <div className="text-center">
+                <Plus className="h-8 w-8 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium">Emitir NFe</span>
+              </div>
+            </Link>
+          )}
+          {hasPermission('nfe.consultar') && (
+            <Link
+              to="/historico"
+              className="group flex items-center justify-center p-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105"
+            >
+              <div className="text-center">
+                <History className="h-8 w-8 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium">Histórico</span>
+              </div>
+            </Link>
+          )}
+          {hasPermission('configuracoes.editar') && (
+            <Link
+              to="/configuracoes"
+              className="group flex items-center justify-center p-6 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+            >
+              <div className="text-center">
+                <Settings className="h-8 w-8 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium">Configurações</span>
+              </div>
+            </Link>
+          )}
+        </div>
+      </div>
+
       {/* Status do Sistema */}
       <div className="bg-white shadow-sm rounded-lg p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center space-x-2">
@@ -286,41 +329,7 @@ const Dashboard: React.FC = () => {
           <span>Ações Rápidas</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {hasPermission('nfe.emitir') && (
-            <Link
-              to="/emitir-nfe"
-              className="group flex items-center justify-center p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
-            >
-              <div className="text-center">
-                <Plus className="h-8 w-8 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium">Emitir NFe</span>
-              </div>
-            </Link>
-          )}
-          
-          {hasPermission('nfe.consultar') && (
-            <Link
-              to="/historico"
-              className="group flex items-center justify-center p-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105"
-            >
-              <div className="text-center">
-                <History className="h-8 w-8 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium">Histórico</span>
-              </div>
-            </Link>
-          )}
-          
-          {hasPermission('configuracoes.editar') && (
-            <Link
-              to="/configuracoes"
-              className="group flex items-center justify-center p-6 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-            >
-              <div className="text-center">
-                <Settings className="h-8 w-8 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium">Configurações</span>
-              </div>
-            </Link>
-          )}
+          {/* Removido: seção duplicada após mover para o topo */}
         </div>
       </div>
 

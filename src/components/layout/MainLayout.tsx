@@ -24,8 +24,8 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
   }, []);
 
   return (
-    <header className="bg-white border-b border-gray-200 lg:pl-64">
-      <div className="flex items-center justify-between px-4 py-3">
+    <header className="bg-white border-b border-gray-200 lg:pl-64 h-16">{/* Altura fixa para compensação consistente */}
+      <div className="flex h-full items-center justify-between px-4">{/* Removido py para evitar deslocamento extra */}
         <div className="flex items-center space-x-4">
           <button
             onClick={onMenuToggle}
@@ -81,7 +81,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
 const MainContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <main className="lg:pl-64 min-h-screen bg-gray-50">
-      <div className="pt-20 px-4 py-6"> {/* Espaço para o TopBar fixo + padding */}
+      <div className="pt-16 px-4 pb-6">{/* Compensação exata do TopBar fixo */}
         {children}
       </div>
     </main>
@@ -134,21 +134,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 };
 
 // Layout para páginas de autenticação (sem sidebar)
-const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const AuthLayout: React.FC<{ children: React.ReactNode; size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' }> = ({ children, size = 'md' }) => {
+  const sizeMap: Record<string, string> = {
+    sm: 'sm:max-w-sm',
+    md: 'sm:max-w-md',
+    lg: 'sm:max-w-lg',
+    xl: 'sm:max-w-xl',
+    '2xl': 'sm:max-w-2xl',
+    '3xl': 'sm:max-w-3xl',
+  };
+  const widthClass = sizeMap[size] || sizeMap.md;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      <div className={`sm:mx-auto sm:w-full ${widthClass}`}>
         <div className="flex justify-center">
           <div className="h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-xl">NFe</span>
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-          Sistema NFe Brandão
+          Sistema NFe - Brandão Contador
         </h2>
       </div>
       
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className={`mt-8 sm:mx-auto sm:w-full ${widthClass}`}>
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {children}
         </div>

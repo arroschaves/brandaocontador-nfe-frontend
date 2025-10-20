@@ -361,12 +361,7 @@ const Configuracoes: React.FC = () => {
     setSalvando(true);
     try {
       if (isAdmin) {
-        const payload = {
-          empresa: configEmpresa,
-          nfe: configNFe,
-          notificacoes: configNotificacoes
-        };
-        const response = await configService.updateConfig(payload);
+        const response = await configService.getConfig();
         const data = response?.data;
         if (data?.sucesso) {
           const cfg = data.configuracoes || {};
@@ -605,6 +600,11 @@ const Configuracoes: React.FC = () => {
       const msg = error?.response?.data?.erro || 'Erro ao carregar certificado digital';
       showToast(msg, 'error');
     } finally {
+      // Limpar input para permitir reenvio do mesmo arquivo
+      try {
+        const inputEl = document.getElementById('input-certificado') as HTMLInputElement | null;
+        if (inputEl) inputEl.value = '';
+      } catch {}
       // Opcional: recarregar configurações para refletir demais campos
       try {
         await carregarConfiguracoes();
@@ -1137,18 +1137,30 @@ const Configuracoes: React.FC = () => {
                     </div>
                     
                     <div className="flex space-x-2">
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept=".p12,.pfx"
-                          onChange={uploadCertificado}
-                          className="hidden"
-                        />
-                        <Button variant="secondary" size="sm" as="span">
-                          <Upload className="h-4 w-4 mr-2" />
-                          Carregar
-                        </Button>
-                      </label>
+                      <input
+                        id="input-certificado"
+                        name="certificado"
+                        type="file"
+                        accept=".p12,.pfx"
+                        onClick={(e) => { (e.currentTarget as HTMLInputElement).value = '' }}
+                        onChange={uploadCertificado}
+                        className="hidden"
+                      />
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        onClick={() => {
+                          const senha = (configNFe.certificadoDigital.senha || '').trim();
+                          if (!senha) {
+                            showToast('Informe a senha do certificado antes de carregar.', 'warning');
+                            return;
+                          }
+                          document.getElementById('input-certificado')?.click();
+                        }}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Carregar
+                      </Button>
                       <Button variant="destructive" size="sm" onClick={removerCertificado} disabled={!configNFe.certificadoDigital.arquivo}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         Remover

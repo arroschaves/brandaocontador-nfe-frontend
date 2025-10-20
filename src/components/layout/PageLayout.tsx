@@ -69,7 +69,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-white border-b border-gray-200 sticky top-16 z-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumbs */}
         {breadcrumbs && breadcrumbs.length > 0 && (
@@ -130,11 +130,14 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             </div>
             
             {actions && (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 {actions}
               </div>
             )}
           </div>
+          {subtitle && (
+            <p className="text-sm text-gray-600 mt-2">{subtitle}</p>
+          )}
         </div>
       </div>
     </div>

@@ -570,7 +570,7 @@ const Cadastro: React.FC = () => {
                     <label htmlFor="inscricaoEstadual" className="block text-sm font-medium text-gray-700 mb-2">
                       Inscrição Estadual
                     </label>
-                    <p className="text-xs text-gray-500 mb-2">Registro na SEFAZ do estado. Obrigatório para contribuintes do ICMS; informe "ISENTO" se aplicável.</p>
+
                     <Input
                       id="inscricaoEstadual"
                       name="inscricaoEstadual"
@@ -589,11 +589,7 @@ const Cadastro: React.FC = () => {
                 <label htmlFor="documento" className="block text-sm font-medium text-gray-700 mb-2">
                   {formData.tipoCliente === 'cpf' ? 'CPF' : 'CNPJ'}
                 </label>
-                <p className="text-xs text-gray-500 mb-2">
-                  {formData.tipoCliente === 'cpf'
-                    ? 'Cadastro de Pessoa Física. Informe os 11 dígitos (aceitamos máscara).'
-                    : 'Cadastro Nacional da Pessoa Jurídica. Informe os 14 dígitos (aceitamos máscara).'}
-                </p>
+
                 <div className="relative">
                   <Input
                     id="documento"
@@ -782,12 +778,12 @@ const Cadastro: React.FC = () => {
                 <MapPin className="h-5 w-5 mr-2" />
                 Endereço
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label htmlFor="endereco.cep" className="block text-sm font-medium text-gray-700 mb-2">
                     CEP
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">Código de Endereçamento Postal. Preenchimento automático quando completo.</p>
+
                   <div className="relative">
                     <Input
                       id="endereco.cep"
@@ -904,7 +900,7 @@ const Cadastro: React.FC = () => {
                   <label htmlFor="endereco.uf" className="block text-sm font-medium text-gray-700 mb-2">
                     UF
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">Unidade Federativa do endereço (estado).</p>
+
                   <select
                     id="endereco.uf"
                     name="endereco.uf"

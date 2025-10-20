@@ -31,7 +31,7 @@ function App() {
               <Route
                 path="/login"
                 element={
-                  <AuthLayout>
+                  <AuthLayout size="xl">
                     <Login />
                   </AuthLayout>
                 }
@@ -39,9 +39,7 @@ function App() {
               <Route
                 path="/cadastro"
                 element={
-                  <AuthLayout>
-                    <Cadastro />
-                  </AuthLayout>
+                  <Cadastro />
                 }
               />
               

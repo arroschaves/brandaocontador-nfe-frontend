@@ -31,6 +31,33 @@ jobs:
           echo "Cabeçalhos do frontend:" 
           curl -s -I "$TARGET_URL"
 
+      - name: Validate SPA /login and assets
+        env:
+          TARGET_URL: https://nfe.brandaocontador.com.br
+        run: |
+          echo "Validando /login 200"
+          LOGIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL/login")
+          echo "Status /login: $LOGIN_STATUS"
+          if [ "$LOGIN_STATUS" != "200" ]; then
+            echo "Falha: /login não respondeu 200"; exit 1;
+          fi
+          echo "Capturando assets do index"
+          curl -s "$TARGET_URL" > /tmp/index.html
+          JS_ASSET=$(grep -oE 'assets/[A-Za-z0-9._-]+\\.js' /tmp/index.html | head -n1)
+          CSS_ASSET=$(grep -oE 'assets/[A-Za-z0-9._-]+\\.css' /tmp/index.html | head -n1)
+          echo "JS: $JS_ASSET | CSS: $CSS_ASSET"
+          if [ -z "$JS_ASSET" ] || [ -z "$CSS_ASSET" ]; then
+            echo "Falha: não encontrou assets JS/CSS no index.html"; exit 1;
+          fi
+          echo "HEAD assets"
+          curl -s -I "$TARGET_URL/$JS_ASSET"
+          curl -s -I "$TARGET_URL/$CSS_ASSET"
+          {
+            echo "- /login: HTTP $LOGIN_STATUS"
+            echo "- JS asset: $JS_ASSET"
+            echo "- CSS asset: $CSS_ASSET"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Validate Backend Health (CORS)
         env:
           TARGET_URL: https://nfe.brandaocontador.com.br

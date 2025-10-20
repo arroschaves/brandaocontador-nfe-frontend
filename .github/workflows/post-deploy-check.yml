@@ -1,0 +1,55 @@
+name: Frontend Post-Deploy Check
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  wait_and_validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Wait for site to return HTTP 200
+        env:
+          TARGET_URL: https://nfe.brandaocontador.com.br
+        run: |
+          echo "Validando frontend em: $TARGET_URL"
+          for i in $(seq 1 40); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
+            if [ "$STATUS" = "200" ]; then
+              echo "OK: site respondeu HTTP 200"
+              break
+            fi
+            echo "Tentativa $i -> status $STATUS (aguardando deploy do Vercel)"
+            sleep 15
+          done
+          FINAL=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
+          if [ "$FINAL" != "200" ]; then
+            echo "Falha: site não respondeu 200 após espera"; exit 1;
+          fi
+          echo "Cabeçalhos do frontend:" 
+          curl -s -I "$TARGET_URL"
+
+      - name: Validate Backend Health (CORS)
+        env:
+          TARGET_URL: https://nfe.brandaocontador.com.br
+          API_HEALTH_URL: https://api.brandaocontador.com.br/api/health
+        run: |
+          echo "Validando API Health com Origin=$TARGET_URL"
+          API_STATUS=$(curl -s -w "%{http_code}" -H "Origin: $TARGET_URL" "$API_HEALTH_URL" -o /tmp/health.json)
+          echo "Status da API: $API_STATUS"
+          cat /tmp/health.json
+          if [ "$API_STATUS" != "200" ]; then
+            echo "Falha: API de saúde não respondeu 200"; exit 1;
+          fi
+          if ! grep -q '"sucesso":true' /tmp/health.json; then
+            echo "Falha: JSON de saúde não contém sucesso=true"; exit 1;
+          fi
+          {
+            echo "### Verificação Pós-Deploy do Frontend"
+            echo "- Frontend: $TARGET_URL — HTTP 200"
+            echo "- API Health: $API_HEALTH_URL — HTTP $API_STATUS"
+            echo "- Headers do Frontend:"
+            curl -s -I "$TARGET_URL" | sed 's/^/- /'
+          } >> "$GITHUB_STEP_SUMMARY"

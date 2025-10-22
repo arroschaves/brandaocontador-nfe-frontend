@@ -69,47 +69,11 @@ const Relatorios: React.FC = () => {
   const carregarDados = async () => {
     setLoading(true);
     try {
-      // Simular carregamento de dados
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (tipoRelatorio === 'vendas') {
-        setRelatorioVendas({
-          periodo: 'Dezembro 2024',
-          totalVendas: 125000.50,
-          quantidadeNFes: 89,
-          ticketMedio: 1404.50,
-          crescimento: 12.5
-        });
-        
-        setVendasPorPeriodo([
-          { periodo: '01/12', valor: 4500.00, quantidade: 3 },
-          { periodo: '02/12', valor: 6200.00, quantidade: 4 },
-          { periodo: '03/12', valor: 3800.00, quantidade: 2 },
-          { periodo: '04/12', valor: 7100.00, quantidade: 5 },
-          { periodo: '05/12', valor: 5900.00, quantidade: 4 },
-          { periodo: '06/12', valor: 8300.00, quantidade: 6 },
-          { periodo: '07/12', valor: 4700.00, quantidade: 3 }
-        ]);
-        
-        setProdutosMaisVendidos([
-          { codigo: 'PROD001', descricao: 'Produto A', quantidade: 25, valor: 15000.00 },
-          { codigo: 'PROD002', descricao: 'Produto B', quantidade: 18, valor: 12500.00 },
-          { codigo: 'PROD003', descricao: 'Produto C', quantidade: 15, valor: 9800.00 },
-          { codigo: 'PROD004', descricao: 'Produto D', quantidade: 12, valor: 7200.00 },
-          { codigo: 'PROD005', descricao: 'Produto E', quantidade: 10, valor: 5500.00 }
-        ]);
-      } else {
-        setRelatorioImpostos({
-          periodo: 'Dezembro 2024',
-          icms: 8500.00,
-          ipi: 2100.00,
-          pis: 1200.00,
-          cofins: 5500.00,
-          total: 17300.00
-        });
-      }
-    } catch (error) {
-      showToast('Erro ao carregar dados do relatório', 'error');
+      // Limpar dados simulados: manter estado vazio
+      setRelatorioVendas(null);
+      setRelatorioImpostos(null);
+      setVendasPorPeriodo([]);
+      setProdutosMaisVendidos([]);
     } finally {
       setLoading(false);
     }
@@ -117,8 +81,15 @@ const Relatorios: React.FC = () => {
   
   const exportarRelatorio = async (formato: 'pdf' | 'excel') => {
     try {
-      // Simular exportação
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (tipoRelatorio === 'vendas' && !relatorioVendas) {
+        showToast('Nenhum dado de vendas para exportar no período selecionado.', 'info');
+        return;
+      }
+      if (tipoRelatorio === 'impostos' && !relatorioImpostos) {
+        showToast('Nenhum dado de impostos para exportar no período selecionado.', 'info');
+        return;
+      }
+      // Em futura integração: chamar endpoint real de exportação
       showToast(`Relatório exportado em ${formato.toUpperCase()} com sucesso!`, 'success');
     } catch (error) {
       showToast('Erro ao exportar relatório', 'error');
@@ -357,6 +328,18 @@ const Relatorios: React.FC = () => {
           </>
         )}
         
+        {/* Estado vazio para Vendas */}
+        {tipoRelatorio === 'vendas' && !relatorioVendas && (
+          <Card>
+            <CardBody>
+              <div className="py-12 text-center">
+                <p className="text-gray-700 font-medium">Nenhum dado de vendas para o período selecionado.</p>
+                <p className="text-gray-500 text-sm mt-1">Emita NFes para visualizar KPIs e gráficos aqui.</p>
+              </div>
+            </CardBody>
+          </Card>
+        )}
+        
         {/* Relatório de Impostos */}
         {tipoRelatorio === 'impostos' && relatorioImpostos && (
           <>
@@ -472,6 +455,18 @@ const Relatorios: React.FC = () => {
               </CardBody>
             </Card>
           </>
+        )}
+        
+        {/* Estado vazio para Impostos */}
+        {tipoRelatorio === 'impostos' && !relatorioImpostos && (
+          <Card>
+            <CardBody>
+              <div className="py-12 text-center">
+                <p className="text-gray-700 font-medium">Nenhum dado de impostos para o período selecionado.</p>
+                <p className="text-gray-500 text-sm mt-1">Emita e atualize NFes para visualizar os resumos fiscais.</p>
+              </div>
+            </CardBody>
+          </Card>
         )}
         
         {loading && (

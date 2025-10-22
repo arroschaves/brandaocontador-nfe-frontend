@@ -102,11 +102,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   // Combinar itens de menu baseado no perfil do usuário
   // Filtrar itens pela permissão necessária
   const filteredMenuItems = menuItems.filter((item) => {
+    if (item.path === '/emitir-nfe') {
+      return checkPermission('nfe_emitir');
+    }
     if (item.path === '/configuracoes') {
       return checkPermission('configuracoes_ver');
     }
     if (item.path === '/inutilizar-nfe') {
       return checkPermission('nfe_inutilizar');
+    }
+    if (item.path === '/consultar-nfe' || item.path === '/clientes' || item.path === '/produtos') {
+      return checkPermission('nfe_consultar');
     }
     return true;
   });

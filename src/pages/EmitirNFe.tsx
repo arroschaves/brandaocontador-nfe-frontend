@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText,
@@ -11,13 +11,16 @@ import {
   Calculator,
   Send,
   Save,
-  AlertCircle
+  AlertCircle,
+  Search,
+  Loader2
 } from 'lucide-react';
 import { PageLayout } from '../components/layout/PageLayout';
 import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card';
 import { FormGroup, Input, Select, TextArea } from '../components/ui/Form';
 import { Button, ButtonLoading } from '../components/ui/button';
 import { useToast } from '../contexts/ToastContext';
+import { useNFe } from '../hooks/useNFe';
 import notificationService from '../services/notificationService';
 import errorService from '../services/errorService';
 import { API_BASE_URL } from '../config/api';
@@ -77,7 +80,7 @@ interface DadosNFe {
 const EmitirNFe: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const { emitirNFe: emitirNFeHook, isLoading } = useNFe();
   const [salvando, setSalvando] = useState(false);
   
   const [dados, setDados] = useState<DadosNFe>({
@@ -116,6 +119,151 @@ const EmitirNFe: React.FC = () => {
     cstPis: '01',
     cstCofins: '01'
   });
+
+  // Busca de clientes
+  const [clienteQuery, setClienteQuery] = useState('');
+  const [clienteResultados, setClienteResultados] = useState<any[]>([]);
+  const [clienteLoading, setClienteLoading] = useState(false);
+  const [clienteSelecionado, setClienteSelecionado] = useState<any | null>(null);
+
+  useEffect(() => {
+    const q = clienteQuery.trim();
+    if (q.length < 2) {
+      setClienteResultados([]);
+      return;
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      setClienteLoading(true);
+      try {
+        const url = `${API_BASE_URL}/clientes?q=${encodeURIComponent(q)}&ativo=true`;
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+          },
+          signal: controller.signal
+        });
+        const json = await res.json();
+        if (!res.ok || !json.sucesso) {
+          throw { response: { status: res.status, data: json } };
+        }
+        setClienteResultados(json.clientes || []);
+      } catch (err) {
+        errorService.handleApiError(err, 'buscar clientes');
+      } finally {
+        setClienteLoading(false);
+      }
+    }, 300);
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [clienteQuery]);
+
+  const handleSelecionarCliente = (cliente: any) => {
+    setClienteSelecionado(cliente);
+    setClienteQuery('');
+    setClienteResultados([]);
+    setDados(prev => ({
+      ...prev,
+      destinatario: {
+        tipo: (cliente.tipo === 'cnpj' ? 'pj' : 'pf'),
+        nome: cliente.nome || cliente.razaoSocial || '',
+        documento: cliente.documento || '',
+        inscricaoEstadual: cliente.inscricaoEstadual || '',
+        email: cliente.email || '',
+        telefone: cliente.telefone || '',
+        endereco: {
+          cep: cliente.endereco?.cep || '',
+          logradouro: cliente.endereco?.logradouro || '',
+          numero: cliente.endereco?.numero || '',
+          complemento: cliente.endereco?.complemento || '',
+          bairro: cliente.endereco?.bairro || '',
+          municipio: cliente.endereco?.cidade || '',
+          uf: cliente.endereco?.uf || 'SP'
+        }
+      }
+    }));
+    showToast('Cliente selecionado', 'success');
+  };
+
+  const limparClienteSelecionado = () => {
+    setClienteSelecionado(null);
+    setDados(prev => ({
+      ...prev,
+      destinatario: {
+        tipo: 'pf',
+        nome: '',
+        documento: '',
+        inscricaoEstadual: '',
+        email: '',
+        telefone: '',
+        endereco: {
+          cep: '',
+          logradouro: '',
+          numero: '',
+          complemento: '',
+          bairro: '',
+          municipio: '',
+          uf: 'SP'
+        }
+      }
+    }));
+  };
+
+  // Busca de produtos
+  const [produtoQuery, setProdutoQuery] = useState('');
+  const [produtoResultados, setProdutoResultados] = useState<any[]>([]);
+  const [produtoLoading, setProdutoLoading] = useState(false);
+
+  useEffect(() => {
+    const q = produtoQuery.trim();
+    if (q.length < 2) {
+      setProdutoResultados([]);
+      return;
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      setProdutoLoading(true);
+      try {
+        const url = `${API_BASE_URL}/produtos?q=${encodeURIComponent(q)}&ativo=true`;
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+          },
+          signal: controller.signal
+        });
+        const json = await res.json();
+        if (!res.ok || !json.sucesso) {
+          throw { response: { status: res.status, data: json } };
+        }
+        setProdutoResultados(json.produtos || []);
+      } catch (err) {
+        errorService.handleApiError(err, 'buscar produtos');
+      } finally {
+        setProdutoLoading(false);
+      }
+    }, 300);
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [produtoQuery]);
+
+  const handleSelecionarProduto = (produto: any) => {
+    setProdutoQuery('');
+    setProdutoResultados([]);
+    setNovoItem(prev => ({
+      ...prev,
+      codigo: produto.codigo || produto.nome || '',
+      descricao: produto.nome || produto.descricao || '',
+      ncm: produto.ncm || '',
+      cfop: produto.cfop || prev.cfop || '5102',
+      unidade: produto.unidade || 'UN',
+      valorUnitario: typeof produto.valorUnitario === 'number' ? produto.valorUnitario : (prev.valorUnitario || 0)
+    }));
+    showToast('Produto selecionado', 'success');
+  };
   
   const handleInputChange = (field: string, value: any) => {
     if (field.includes('.')) {
@@ -459,41 +607,23 @@ const EmitirNFe: React.FC = () => {
   const emitirNFe = async () => {
     if (!validarDados()) return;
     
-    setLoading(true);
     const loadingToast = notificationService.loading('Emitindo NFe...');
     
     try {
-      const response = await fetch(`${API_BASE_URL}/nfe/emitir`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify(dados)
-      });
-      
-      const result = await response.json();
+      const sucesso = await emitirNFeHook(dados);
       
       notificationService.dismiss(loadingToast);
       
-      if (!response.ok) {
-        throw { response: { status: response.status, data: result } };
+      if (sucesso) {
+        notificationService.nfeSuccess(
+          'NFe emitida com sucesso!',
+          'NFe processada'
+        );
+        navigate('/historico');
       }
-      
-      if (!result.sucesso) {
-        throw { response: { status: response.status, data: result } };
-      }
-      
-      notificationService.nfeSuccess(
-        'NFe emitida com sucesso!',
-        result.numero || result.chave
-      );
-      navigate('/historico');
     } catch (error) {
       notificationService.dismiss(loadingToast);
       errorService.handleNfeError(error, 'emissão');
-    } finally {
-      setLoading(false);
     }
   };
   
@@ -615,34 +745,59 @@ const EmitirNFe: React.FC = () => {
           </CardHeader>
           <CardBody>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormGroup label="Tipo" required>
-                  <Select
-                    value={dados.destinatario.tipo}
-                    onChange={(e) => handleInputChange('destinatario.tipo', e.target.value)}
-                  >
-                    <option value="pf">Pessoa Física</option>
-                    <option value="pj">Pessoa Jurídica</option>
-                  </Select>
-                </FormGroup>
-                
-                <FormGroup label="Nome/Razão Social" required>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Buscar cliente</label>
+                <div className="flex items-center gap-2">
                   <Input
-                    value={dados.destinatario.nome}
-                    onChange={(e) => handleInputChange('destinatario.nome', e.target.value)}
-                    placeholder="Nome completo ou razão social"
+                    value={clienteQuery}
+                    onChange={(e) => setClienteQuery(e.target.value)}
+                    placeholder="Nome, documento ou email"
                   />
-                </FormGroup>
-                
-                <FormGroup label={dados.destinatario.tipo === 'pf' ? 'CPF' : 'CNPJ'} required>
-                  <Input
-                    value={dados.destinatario.documento}
-                    onChange={(e) => handleInputChange('destinatario.documento', e.target.value)}
-                    placeholder={dados.destinatario.tipo === 'pf' ? '000.000.000-00' : '00.000.000/0000-00'}
-                  />
-                </FormGroup>
+                  {clienteLoading && (
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  )}
+                </div>
+                {clienteResultados.length > 0 && (
+                  <div className="mt-2 border rounded-md divide-y bg-white shadow">
+                    {clienteResultados.slice(0, 5).map((c) => (
+                      <button
+                        key={c._id || c.id || c.documento}
+                        type="button"
+                        onClick={() => handleSelecionarCliente(c)}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                      >
+                        <div className="font-medium text-gray-900">
+                          {c.nome || c.razaoSocial || c.nomeFantasia}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {(c.documento || '').toString()} • {(c.email || 'sem email')}
+                          {' • '}
+                          {(c.endereco?.cidade || '-')}{' / '}{(c.endereco?.uf || '-')}
+                        </div>
+                      </button>
+                    ))}
+                    {clienteResultados.length > 5 && (
+                      <div className="px-3 py-2 text-xs text-gray-500">
+                        Mais {clienteResultados.length - 5} resultados... refine a busca
+                      </div>
+                    )}
+                  </div>
+                )}
+                {clienteSelecionado && (
+                  <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded p-2">
+                    <div className="text-sm text-green-700">
+                      Selecionado: {clienteSelecionado.nome || clienteSelecionado.razaoSocial} ({clienteSelecionado.documento})
+                    </div>
+                    <button
+                      type="button"
+                      onClick={limparClienteSelecionado}
+                      className="text-xs text-green-700 underline"
+                    >
+                      Trocar
+                    </button>
+                  </div>
+                )}
               </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormGroup label="E-mail">
                   <Input
@@ -772,6 +927,48 @@ const EmitirNFe: React.FC = () => {
             {/* Adicionar Item */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">Adicionar Item</h4>
+              <div className="space-y-2 mb-2">
+                <label className="text-sm font-medium text-gray-700">Buscar produto</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={produtoQuery}
+                    onChange={(e) => setProdutoQuery(e.target.value)}
+                    placeholder="Nome, código, NCM ou descrição"
+                  />
+                  {produtoLoading && (
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  )}
+                </div>
+                {produtoResultados.length > 0 && (
+                  <div className="mt-2 border rounded-md divide-y bg-white shadow">
+                    {produtoResultados.slice(0, 5).map((p) => (
+                      <button
+                        key={p._id || p.id || p.codigo || p.nome}
+                        type="button"
+                        onClick={() => handleSelecionarProduto(p)}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                      >
+                        <div className="font-medium text-gray-900">
+                          {p.nome} {p.codigo ? `(${p.codigo})` : ''}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          NCM: {p.ncm || '-'} • CFOP: {p.cfop || '-'} • Unidade: {p.unidade || '-'}
+                        </div>
+                        {typeof p.valorUnitario === 'number' && (
+                          <div className="text-xs text-gray-500">
+                            Preço: {formatarMoeda(p.valorUnitario)}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                    {produtoResultados.length > 5 && (
+                      <div className="px-3 py-2 text-xs text-gray-500">
+                        Mais {produtoResultados.length - 5} resultados... refine a busca
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-8 gap-4">
                 <FormGroup label="Código" required>
                   <Input
@@ -1014,7 +1211,7 @@ const EmitirNFe: React.FC = () => {
           
           <ButtonLoading
             onClick={emitirNFe}
-            loading={loading}
+            loading={isLoading}
             disabled={dados.itens.length === 0 || salvando}
             className="min-w-[200px]"
           >

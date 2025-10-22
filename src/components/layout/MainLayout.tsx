@@ -18,36 +18,94 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notificacao[]>([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  // Removido: useEffect com notificações mockadas. Integração com status real abaixo.
 
-  // Simular notificações (em produção, viria de uma API)
-  useEffect(() => {
-    setNotifications([
-      {
-        id: '1',
+  // Substituição: remover mock e carregar status real
+  const buildNotificationsFromStatus = (status: any): Notificacao[] => {
+    const notifs: Notificacao[] = [];
+    const nowIso = new Date().toISOString();
+
+    if (!status?.certificado?.carregado) {
+      notifs.push({
+        id: 'cert-nao-configurado',
         tipo: 'warning',
-        titulo: 'Certificado vence em 15 dias',
-        mensagem: 'Seu certificado digital está próximo do vencimento.',
+        titulo: 'Certificado digital não configurado',
+        mensagem: 'Carregue o arquivo .pfx e informe a senha em Configurações.',
         lida: false,
-        dataCreated: new Date().toISOString()
-      },
-      {
-        id: '2',
-        tipo: 'info',
-        titulo: 'NFe cancelada',
-        mensagem: 'A NFe #123 foi cancelada com sucesso.',
-        lida: false,
-        dataCreated: new Date().toISOString()
-      },
-      {
-        id: '3',
+        dataCreated: nowIso
+      });
+    }
+
+    if (status?.sefaz && status.sefaz.disponivel === false) {
+      notifs.push({
+        id: 'sefaz-indisponivel',
         tipo: 'error',
-        titulo: 'Erro SEFAZ',
-        mensagem: 'Falha de conexão com SEFAZ na última consulta.',
+        titulo: 'Falha de conexão com SEFAZ',
+        mensagem: 'SEFAZ está indisponível no momento. Tente novamente mais tarde.',
         lida: false,
-        dataCreated: new Date().toISOString()
+        dataCreated: nowIso
+      });
+    }
+
+    if (status?.sefaz?.simulacao) {
+      notifs.push({
+        id: 'modo-simulacao',
+        tipo: 'info',
+        titulo: 'Sistema em modo de simulação',
+        mensagem: 'Operações estão em ambiente de teste/homologação.',
+        lida: false,
+        dataCreated: nowIso
+      });
+    }
+
+    const dirs = status?.diretorios || {};
+    const faltantes: string[] = [];
+    if (dirs.xmls === false) faltantes.push('XMLs');
+    if (dirs.enviadas === false) faltantes.push('Enviadas');
+    if (dirs.falhas === false) faltantes.push('Falhas');
+    if (faltantes.length > 0) {
+      notifs.push({
+        id: 'dirs-faltantes',
+        tipo: 'warning',
+        titulo: 'Diretórios não encontrados',
+        mensagem: `Verifique diretórios: ${faltantes.join(', ')}.`,
+        lida: false,
+        dataCreated: nowIso
+      });
+    }
+
+    return notifs;
+  };
+
+  // Buscar status real e atualizar notificações
+  const refreshStatus = async () => {
+    try {
+      const { nfeService } = await import('../../services/api');
+      const resp = await nfeService.status();
+      const data = resp?.data;
+      if (data?.sucesso) {
+        const notifs = buildNotificationsFromStatus(data.status);
+        setNotifications(notifs);
+      } else {
+        setNotifications([]);
       }
-    ]);
+    } catch (err) {
+      // Em caso de erro, não exibir mocks; manter vazio
+      setNotifications([]);
+    }
+  };
+
+  // Carregar ao montar
+  useEffect(() => {
+    refreshStatus();
   }, []);
+
+  // Atualizar quando abrir o painel de notificações
+  useEffect(() => {
+    if (isNotifOpen) {
+      refreshStatus();
+    }
+  }, [isNotifOpen]);
 
   const unreadCount = notifications.filter(n => !n.lida).length;
 

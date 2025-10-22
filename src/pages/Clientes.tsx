@@ -162,7 +162,21 @@ const Clientes: React.FC = () => {
   const handleSalvarNovo = async () => {
     try {
       setSalvando(true);
-      const payload = { ...novoCliente };
+      const documentoLimpo = (novoCliente.documento || '').replace(/\D/g, '');
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (novoCliente.tipo === 'cpf' && documentoLimpo.length !== 11) {
+        showToast('CPF deve conter 11 dígitos (apenas números)', 'error');
+        return;
+      }
+      if (novoCliente.tipo === 'cnpj' && documentoLimpo.length !== 14) {
+        showToast('CNPJ deve conter 14 dígitos (apenas números)', 'error');
+        return;
+      }
+      if (novoCliente.email && !emailRegex.test(novoCliente.email)) {
+        showToast('Email inválido', 'error');
+        return;
+      }
+      const payload = { ...novoCliente, documento: documentoLimpo };
       await clienteService.create(payload);
       showToast('Cliente cadastrado com sucesso', 'success');
       setModalNovo(false);
@@ -178,9 +192,23 @@ const Clientes: React.FC = () => {
     if (!selecionado) return;
     try {
       setSalvando(true);
+      const documentoLimpo = (selecionado.documento || '').replace(/\D/g, '');
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (selecionado.tipo === 'cpf' && documentoLimpo.length !== 11) {
+        showToast('CPF deve conter 11 dígitos (apenas números)', 'error');
+        return;
+      }
+      if (selecionado.tipo === 'cnpj' && documentoLimpo.length !== 14) {
+        showToast('CNPJ deve conter 14 dígitos (apenas números)', 'error');
+        return;
+      }
+      if (selecionado.email && !emailRegex.test(selecionado.email)) {
+        showToast('Email inválido', 'error');
+        return;
+      }
       const payload = {
         tipo: selecionado.tipo,
-        documento: selecionado.documento,
+        documento: documentoLimpo,
         nome: selecionado.nome,
         razaoSocial: selecionado.razaoSocial,
         nomeFantasia: selecionado.nomeFantasia,

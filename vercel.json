@@ -15,6 +15,20 @@
       "destination": "/index.html"
     }
   ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ],
   "env": {
     "VITE_API_URL": "https://api.brandaocontador.com.br",
     "VITE_APP_NAME": "Sistema NFe",

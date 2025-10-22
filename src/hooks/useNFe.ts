@@ -3,6 +3,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { nfeService } from '../services/api';
 import { buildApiUrl } from '../config/api';
+import { convertToBackendFormat } from '../utils/nfeDataConverter';
 
 // Tipos
 interface NFe {
@@ -145,7 +146,10 @@ export const useNFe = (): UseNFeReturn => {
     setError(null);
     
     try {
-      await nfeService.emitir(nfeData);
+      // Converter dados do frontend para o formato esperado pelo backend
+      const dadosConvertidos = convertToBackendFormat(nfeData);
+      
+      await nfeService.emitir(dadosConvertidos);
       showToast('NFe emitida com sucesso!', 'success');
       return true;
       

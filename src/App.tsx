@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { Toaster } from 'sonner';
 import ProtectedRoute from './components/ProtectedRoute';
 import { MainLayout, AuthLayout } from './components/layout/MainLayout';
 import Login from './pages/Login';
@@ -26,6 +27,7 @@ function App() {
       <AuthProvider>
         <Router>
           <div className="App">
+            <Toaster richColors position="top-right" />
             <BackendStatusBanner />
             <Routes>
               {/* Rotas de autenticação */}
@@ -61,7 +63,7 @@ function App() {
               <Route
                 path="/emitir-nfe"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermissions={["nfe_emitir"]}>
                     <MainLayout>
                       <EmitirNFe />
                     </MainLayout>
@@ -81,7 +83,7 @@ function App() {
               <Route
                 path="/consultar-nfe"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermissions={["nfe_consultar"]}>
                     <MainLayout>
                       <ConsultarNFe />
                     </MainLayout>
@@ -141,7 +143,7 @@ function App() {
               <Route
                 path="/clientes"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermissions={["nfe_consultar"]}>
                     <MainLayout>
                       <Clientes />
                     </MainLayout>
@@ -151,7 +153,7 @@ function App() {
               <Route
                 path="/produtos"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermissions={["nfe_consultar"]}>
                     <MainLayout>
                       <Produtos />
                     </MainLayout>
@@ -172,14 +174,27 @@ function BackendStatusBanner() {
   useEffect(() => {
     const controller = new AbortController();
     const url = `${API_BASE_URL}/health`;
-    fetch(url, { signal: controller.signal })
-      .then((res) => setStatus(res.ok ? 'ok' : 'error'))
-      .catch((err) => {
-        // Ignorar erros de abort provocados por HMR/Unmount em desenvolvimento
-        if (err && (err.name === 'AbortError' || err.code === 20)) return;
-        setStatus('error');
-      });
-    return () => controller.abort();
+
+    const run = () => {
+      fetch(url, { signal: controller.signal })
+        .then((res) => setStatus(res.ok ? 'ok' : 'error'))
+        .catch((err) => {
+          // Ignorar erros de abort provocados por HMR/Unmount em desenvolvimento
+          if (err && (err.name === 'AbortError' || err.code === 20)) return;
+          setStatus('error');
+        });
+    };
+
+    // Primeira tentativa imediata
+    run();
+
+    // Segunda tentativa após breve atraso (mitiga race com StrictMode/HMR)
+    const retryId = setTimeout(run, 1200);
+
+    return () => {
+      controller.abort();
+      clearTimeout(retryId);
+    };
   }, []);
 
   if (import.meta.env.MODE !== 'development') return null;

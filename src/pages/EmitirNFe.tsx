@@ -1194,7 +1194,7 @@ const EmitirNFe: React.FC = () => {
           <Button
             onClick={salvarRascunho}
             variant="secondary"
-            disabled={salvando || loading}
+            disabled={salvando || isLoading}
           >
             {salvando ? (
               <>

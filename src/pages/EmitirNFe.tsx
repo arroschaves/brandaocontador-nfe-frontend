@@ -1,3 +1,4 @@
+// Correção aplicada: isLoading em vez de loading no botão Salvar Rascunho
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {

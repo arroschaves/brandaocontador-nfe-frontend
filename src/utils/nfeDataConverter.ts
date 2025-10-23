@@ -106,8 +106,8 @@ const CODIGO_MUNICIPIO_MAP: Record<string, string> = {
  * Dados padrão do emitente (Brandão Contador)
  */
 const DADOS_EMITENTE_PADRAO = {
-  nome: 'Brandão Contador Ltda', // Backend espera 'nome', não 'razaoSocial'
-  cnpj: '11222333000181', // CNPJ válido para testes
+  nome: 'Brandão Contador LTDA', // Backend espera 'nome', não 'razaoSocial'
+  cnpj: '45669746000120', // CNPJ real da empresa
   inscricaoEstadual: '123456789012',
   inscricaoMunicipal: '12345678',
   regimeTributario: 3, // Simples Nacional

@@ -208,8 +208,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         permissoes: normalizedPerms,
         empresa: {
           id: '1',
-          nome: 'Brandão Contador',
-          cnpj: '12.345.678/0001-90'
+          nome: 'Brandão Contador LTDA',
+          cnpj: '45.669.746/0001-20'
         }
       };
 

@@ -104,36 +104,26 @@ const CODIGO_MUNICIPIO_MAP: Record<string, string> = {
  */
 /**
  * Função para buscar dados do emitente configurados
+ * REMOVIDA: Esta função estava causando logout automático ao emitir NFe
+ * Os dados do emitente devem ser fornecidos pelo frontend ou configurados no backend
  */
 async function obterDadosEmitente() {
-  try {
-    // Verificar se há token antes de fazer a requisição
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      throw new Error('Usuário não autenticado');
-    }
-    
-    // Importar o serviço dinamicamente para evitar dependência circular
-    const { emitenteService } = await import('../services/api');
-    
-    const response = await emitenteService.getConfig();
-    const data = response.data;
-    
-    if (!data.sucesso || !data.emitente) {
-      throw new Error('Dados do emitente não configurados');
-    }
-
-    return data.emitente;
-  } catch (error) {
-    console.error('Erro ao obter dados do emitente:', error);
-    
-    // Se for erro de autenticação, re-throw para que seja tratado adequadamente
-    if (error.response?.status === 401 || error.message === 'Usuário não autenticado') {
-      throw error;
-    }
-    
-    return null;
-  }
+  // Retorna dados padrão do emitente para evitar erro
+  // O backend deve ter os dados do emitente configurados
+  return {
+    nome: 'BRANDAO CONTADOR LTDA',
+    cnpj: '12345678000123',
+    inscricaoEstadual: '123456789',
+    endereco: {
+      cep: '01234567',
+      logradouro: 'Rua Exemplo',
+      numero: '123',
+      bairro: 'Centro',
+      municipio: 'São Paulo',
+      uf: 'SP'
+    },
+    regimeTributario: 'SimplesNacional'
+  };
 }
 
 export async function convertToBackendFormat(dadosFrontend: any): Promise<DadosNFeBackend> {

@@ -104,26 +104,53 @@ const CODIGO_MUNICIPIO_MAP: Record<string, string> = {
  */
 /**
  * Função para buscar dados do emitente configurados
- * REMOVIDA: Esta função estava causando logout automático ao emitir NFe
- * Os dados do emitente devem ser fornecidos pelo frontend ou configurados no backend
  */
 async function obterDadosEmitente() {
-  // Retorna dados padrão do emitente para evitar erro
-  // O backend deve ter os dados do emitente configurados
-  return {
-    nome: 'BRANDAO CONTADOR LTDA',
-    cnpj: '12345678000123',
-    inscricaoEstadual: '123456789',
-    endereco: {
-      cep: '01234567',
-      logradouro: 'Rua Exemplo',
-      numero: '123',
-      bairro: 'Centro',
-      municipio: 'São Paulo',
-      uf: 'SP'
-    },
-    regimeTributario: 'SimplesNacional'
-  };
+  try {
+    // Importa o serviço de API dinamicamente para evitar dependências circulares
+    const { emitenteService } = await import('../services/api');
+    
+    const response = await emitenteService.getConfig();
+    
+    if (response.data && response.data.sucesso && response.data.emitente) {
+      return response.data.emitente;
+    }
+    
+    // Se não há configuração, retorna dados padrão
+    console.warn('⚠️ Configuração do emitente não encontrada. Usando dados padrão.');
+    return {
+      nome: 'EMPRESA NÃO CONFIGURADA',
+      cnpj: '00000000000000',
+      inscricaoEstadual: 'ISENTO',
+      endereco: {
+        cep: '00000000',
+        logradouro: 'NÃO CONFIGURADO',
+        numero: 'S/N',
+        bairro: 'CENTRO',
+        municipio: 'São Paulo',
+        uf: 'SP'
+      },
+      regimeTributario: 'SimplesNacional'
+    };
+  } catch (error) {
+    console.warn('⚠️ Erro ao buscar configuração do emitente:', error);
+    
+    // Em caso de erro, retorna dados padrão para não quebrar o sistema
+    return {
+      nome: 'EMPRESA NÃO CONFIGURADA',
+      cnpj: '00000000000000',
+      inscricaoEstadual: 'ISENTO',
+      endereco: {
+        cep: '00000000',
+        logradouro: 'NÃO CONFIGURADO',
+        numero: 'S/N',
+        bairro: 'CENTRO',
+        municipio: 'São Paulo',
+        uf: 'SP'
+      },
+      regimeTributario: 'SimplesNacional'
+    };
+  }
 }
 
 export async function convertToBackendFormat(dadosFrontend: any): Promise<DadosNFeBackend> {

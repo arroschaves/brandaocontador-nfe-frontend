@@ -404,6 +404,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [state.isAuthenticated, state.token]);
 
+  // Escutar eventos de logout do interceptor do axios
+  useEffect(() => {
+    const handleAuthLogout = (event: CustomEvent) => {
+      console.log('🔒 AuthContext - Evento de logout recebido:', event.detail);
+      logout();
+    };
+
+    window.addEventListener('auth:logout', handleAuthLogout as EventListener);
+    
+    return () => {
+      window.removeEventListener('auth:logout', handleAuthLogout as EventListener);
+    };
+  }, []);
+
   const value: AuthContextType = {
     ...state,
     login,

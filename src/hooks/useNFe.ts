@@ -154,7 +154,18 @@ export const useNFe = (): UseNFeReturn => {
       return true;
       
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao emitir NFe';
+      let errorMessage = 'Erro ao emitir NFe';
+      
+      if (err instanceof Error) {
+        if (err.message === 'Usuário não autenticado') {
+          errorMessage = 'Sessão expirada. Faça login novamente.';
+        } else if (err.response?.status === 401) {
+          errorMessage = 'Sessão expirada. Você será redirecionado para o login.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
       setError(errorMessage);
       showToast(errorMessage, 'error');
       return false;

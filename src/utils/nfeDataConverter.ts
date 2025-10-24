@@ -107,6 +107,12 @@ const CODIGO_MUNICIPIO_MAP: Record<string, string> = {
  */
 async function obterDadosEmitente() {
   try {
+    // Verificar se há token antes de fazer a requisição
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('Usuário não autenticado');
+    }
+    
     // Importar o serviço dinamicamente para evitar dependência circular
     const { emitenteService } = await import('../services/api');
     
@@ -120,6 +126,12 @@ async function obterDadosEmitente() {
     return data.emitente;
   } catch (error) {
     console.error('Erro ao obter dados do emitente:', error);
+    
+    // Se for erro de autenticação, re-throw para que seja tratado adequadamente
+    if (error.response?.status === 401 || error.message === 'Usuário não autenticado') {
+      throw error;
+    }
+    
     return null;
   }
 }

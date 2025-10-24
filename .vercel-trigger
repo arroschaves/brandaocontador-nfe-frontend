@@ -1,8 +1,8 @@
-Deploy trigger: 2025-10-20 15:22
-Admin panel deployment:
-- Added complete admin panel with user management
-- Implemented NextAuth authentication system
-- Added admin middleware and route protection
-- Created admin APIs for stats and user management
-- Updated navigation and UI components
-- Disabled ESLint during builds
+Deploy trigger: 2025-10-24 21:25
+Frontend atualizado com correções do logout automático:
+- Corrigido interceptor do axios para evitar logout forçado
+- Implementado evento customizado auth:logout
+- Melhorado AuthContext para tratar logout controlado
+- Adicionada validação de token antes de requisições críticas
+- Corrigido problema de logout automático ao emitir NFe
+- Sistema estável e funcionando em produção

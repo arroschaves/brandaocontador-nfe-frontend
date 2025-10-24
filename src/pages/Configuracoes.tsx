@@ -491,6 +491,10 @@ const Configuracoes: React.FC = () => {
                 uf: u.endereco?.uf || prev.endereco.uf
               }
             }));
+            
+            // Salvar também os dados do emitente para NFe
+            await salvarDadosEmitente();
+            
             showToast('Dados atualizados com sucesso!', 'success');
           } else {
             showToast(data?.erro || 'Erro ao atualizar seus dados', 'error');
@@ -502,6 +506,56 @@ const Configuracoes: React.FC = () => {
       showToast(msg, 'error');
     } finally {
       setSalvando(false);
+    }
+  };
+
+  // Função para salvar dados do emitente
+  const salvarDadosEmitente = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('Token de autenticação não encontrado', 'error');
+        return;
+      }
+
+      const emitentePayload = {
+        emitente: {
+          nome: configEmpresa.razaoSocial,
+          cnpj: configEmpresa.cnpj.replace(/\D/g, ''),
+          inscricaoEstadual: configEmpresa.inscricaoEstadual,
+          inscricaoMunicipal: configEmpresa.inscricaoMunicipal,
+          regimeTributario: configEmpresa.regimeTributario === 'simples_nacional' ? 1 : 
+                           configEmpresa.regimeTributario === 'lucro_presumido' ? 2 : 
+                           configEmpresa.regimeTributario === 'lucro_real' ? 3 : 1,
+          endereco: {
+            cep: configEmpresa.endereco.cep.replace(/\D/g, ''),
+            logradouro: configEmpresa.endereco.logradouro,
+            numero: configEmpresa.endereco.numero,
+            complemento: configEmpresa.endereco.complemento,
+            bairro: configEmpresa.endereco.bairro,
+            municipio: configEmpresa.endereco.municipio,
+            uf: configEmpresa.endereco.uf
+          }
+        }
+      };
+
+      const response = await fetch('/api/emitente/config', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(emitentePayload)
+      });
+
+      const data = await response.json();
+      if (data.sucesso) {
+        console.log('Dados do emitente salvos com sucesso');
+      } else {
+        console.error('Erro ao salvar dados do emitente:', data.erro);
+      }
+    } catch (error) {
+      console.error('Erro ao salvar dados do emitente:', error);
     }
   };
   

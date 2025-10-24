@@ -720,18 +720,16 @@ const EmitirNFe: React.FC = () => {
                 </Select>
               </FormGroup>
               
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="consumidorFinal"
-                  checked={dados.consumidorFinal}
-                  onChange={(e) => handleInputChange('consumidorFinal', e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                <label htmlFor="consumidorFinal" className="text-sm font-medium text-gray-700">
-                  Consumidor Final
-                </label>
-              </div>
+              <FormGroup label="Tipo de Contribuinte" required>
+                <Select
+                  value={dados.consumidorFinal}
+                  onChange={(e) => handleInputChange('consumidorFinal', e.target.value)}
+                >
+                  <option value="0">Contribuinte</option>
+                  <option value="1">Consumidor Final</option>
+                  <option value="9">Não Contribuinte</option>
+                </Select>
+              </FormGroup>
             </div>
           </CardBody>
         </Card>

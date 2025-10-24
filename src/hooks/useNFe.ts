@@ -147,7 +147,7 @@ export const useNFe = (): UseNFeReturn => {
     
     try {
       // Converter dados do frontend para o formato esperado pelo backend
-      const dadosConvertidos = convertToBackendFormat(nfeData);
+      const dadosConvertidos = await convertToBackendFormat(nfeData);
       
       await nfeService.emitir(dadosConvertidos);
       showToast('NFe emitida com sucesso!', 'success');

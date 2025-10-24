@@ -6,7 +6,7 @@ export interface DadosNFeBackend {
   tipoOperacao: number; // 0=Entrada, 1=Saída
   finalidade: number; // 1=Normal, 2=Complementar, 3=Ajuste, 4=Devolução
   presencaComprador: number; // 0-9 códigos específicos
-  consumidorFinal: boolean;
+  consumidorFinal: number; // 0=Contribuinte, 1=Consumidor Final, 9=Não Contribuinte
   dataEmissao: string;
   dataSaida?: string;
   destinatario: {
@@ -103,35 +103,52 @@ const CODIGO_MUNICIPIO_MAP: Record<string, string> = {
  * Converte dados do frontend para o formato esperado pelo backend
  */
 /**
- * Dados padrão do emitente (Brandão Contador)
+ * Função para buscar dados do emitente configurados
  */
-const DADOS_EMITENTE_PADRAO = {
-  nome: 'Brandão Contador LTDA', // Backend espera 'nome', não 'razaoSocial'
-  cnpj: '45669746000120', // CNPJ real da empresa
-  inscricaoEstadual: '123456789012',
-  inscricaoMunicipal: '12345678',
-  regimeTributario: 3, // Simples Nacional
-  endereco: {
-    cep: '01234567',
-    logradouro: 'Rua das Empresas',
-    numero: '123',
-    complemento: 'Sala 456',
-    bairro: 'Centro',
-    municipio: 'São Paulo',
-    codigoMunicipio: '3550308',
-    uf: 'SP'
-  }
-};
+async function obterDadosEmitente() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token de autenticação não encontrado');
+    }
 
-export function convertToBackendFormat(dadosFrontend: any): DadosNFeBackend {
+    const response = await fetch('/api/emitente/config', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar dados do emitente: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.sucesso || !data.emitente) {
+      throw new Error('Dados do emitente não configurados');
+    }
+
+    return data.emitente;
+  } catch (error) {
+    console.error('Erro ao obter dados do emitente:', error);
+    return null;
+  }
+}
+
+export async function convertToBackendFormat(dadosFrontend: any): Promise<DadosNFeBackend> {
   // Calcular totais
   const totais = calcularTotais(dadosFrontend.itens || []);
   
   // Preparar destinatário
   const destinatario = prepararDestinatario(dadosFrontend.destinatario);
   
-  // Usar dados do emitente fornecidos ou padrão
-  const emitente = dadosFrontend.emitente || DADOS_EMITENTE_PADRAO;
+  // Usar dados do emitente fornecidos ou buscar configuração
+  const emitente = dadosFrontend.emitente || await obterDadosEmitente();
+  
+  if (!emitente) {
+    throw new Error('Dados do emitente não configurados. Configure os dados da empresa nas Configurações.');
+  }
   
   return {
     naturezaOperacao: dadosFrontend.naturezaOperacao || 'Venda',
@@ -139,7 +156,7 @@ export function convertToBackendFormat(dadosFrontend: any): DadosNFeBackend {
     tipoOperacao: TIPO_OPERACAO_MAP[dadosFrontend.tipoOperacao] ?? 1,
     finalidade: FINALIDADE_MAP[dadosFrontend.finalidade] ?? 1,
     presencaComprador: PRESENCA_COMPRADOR_MAP[dadosFrontend.presencaComprador] ?? 1,
-    consumidorFinal: dadosFrontend.consumidorFinal ?? true,
+    consumidorFinal: parseInt(dadosFrontend.consumidorFinal) || 9, // 0=Contribuinte, 1=Consumidor Final, 9=Não Contribuinte
     dataEmissao: dadosFrontend.dataEmissao,
     dataSaida: dadosFrontend.dataSaida,
     destinatario,

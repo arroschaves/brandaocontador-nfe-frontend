@@ -149,4 +149,13 @@ export const adminService = {
   deleteUsuario: (usuarioId: string) =>
     api.delete(`/admin/usuarios/${usuarioId}`),
 };
+
+export const emitenteService = {
+  getConfig: () => 
+    api.get('/emitente/config'),
+  
+  updateConfig: (data: any) => 
+    api.post('/emitente/config', data),
+};
+
 export default api

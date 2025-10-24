@@ -26,7 +26,7 @@ import { FormGroup } from '../components/ui/FormGroup';
 import { Button, ButtonLoading } from '../components/ui/button';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
-import { configService, meService } from '../services/api';
+import { configService, meService, emitenteService } from '../services/api';
 import { useAutoFormat } from '../hooks/useAutoFormat';
 import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
 import { validarCNPJ, validarCEP, validarEmail, validarTelefone } from '../utils/validations';
@@ -512,12 +512,6 @@ const Configuracoes: React.FC = () => {
   // Função para salvar dados do emitente
   const salvarDadosEmitente = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showToast('Token de autenticação não encontrado', 'error');
-        return;
-      }
-
       const emitentePayload = {
         emitente: {
           nome: configEmpresa.razaoSocial,
@@ -539,23 +533,20 @@ const Configuracoes: React.FC = () => {
         }
       };
 
-      const response = await fetch('/api/emitente/config', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(emitentePayload)
-      });
-
-      const data = await response.json();
+      const response = await emitenteService.updateConfig(emitentePayload);
+      const data = response.data;
+      
       if (data.sucesso) {
         console.log('Dados do emitente salvos com sucesso');
+        showToast('Dados do emitente salvos com sucesso!', 'success');
       } else {
         console.error('Erro ao salvar dados do emitente:', data.erro);
+        showToast(data.erro || 'Erro ao salvar dados do emitente', 'error');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar dados do emitente:', error);
+      const errorMessage = error?.response?.data?.erro || 'Erro ao salvar dados do emitente';
+      showToast(errorMessage, 'error');
     }
   };
   

@@ -107,24 +107,12 @@ const CODIGO_MUNICIPIO_MAP: Record<string, string> = {
  */
 async function obterDadosEmitente() {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Token de autenticação não encontrado');
-    }
-
-    const response = await fetch('/api/emitente/config', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar dados do emitente: ${response.status}`);
-    }
-
-    const data = await response.json();
+    // Importar o serviço dinamicamente para evitar dependência circular
+    const { emitenteService } = await import('../services/api');
+    
+    const response = await emitenteService.getConfig();
+    const data = response.data;
+    
     if (!data.sucesso || !data.emitente) {
       throw new Error('Dados do emitente não configurados');
     }

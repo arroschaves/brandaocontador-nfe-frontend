@@ -74,8 +74,18 @@ export const nfeService = {
   validar: (data: any) => 
     api.post('/nfe/validar', data),
   
-  status: () => 
-    api.get('/nfe/status'),
+  status: () => {
+    // Verificar se há token de autenticação
+    const token = localStorage.getItem('auth_token')
+    
+    if (token) {
+      // Se autenticado, usar endpoint completo
+      return api.get('/nfe/status')
+    } else {
+      // Se não autenticado, usar endpoint público
+      return api.get('/nfe/status-publico')
+    }
+  },
   
   inutilizar: (payload: { serie: number; numeroInicial: number; numeroFinal: number; justificativa: string; ano?: string }) =>
     api.post('/nfe/inutilizar', payload),

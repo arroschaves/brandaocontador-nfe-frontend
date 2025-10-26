@@ -13,7 +13,7 @@ export const getApiUrl = (): string => {
   }
 
   // Desenvolvimento: backend local padrão
-  return 'http://localhost:3001';
+  return 'http://localhost:3000';
 };
 
 // URL base da API

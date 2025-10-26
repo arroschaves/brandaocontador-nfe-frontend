@@ -1,0 +1,82 @@
+name: Frontend Post-Deploy Check
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  wait_and_validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Wait for site to return HTTP 200
+        env:
+          TARGET_URL: https://nfe.brandaocontador.com.br
+        run: |
+          echo "Validando frontend em: $TARGET_URL"
+          for i in $(seq 1 40); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
+            if [ "$STATUS" = "200" ]; then
+              echo "OK: site respondeu HTTP 200"
+              break
+            fi
+            echo "Tentativa $i -> status $STATUS (aguardando deploy do Vercel)"
+            sleep 15
+          done
+          FINAL=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
+          if [ "$FINAL" != "200" ]; then
+            echo "Falha: site não respondeu 200 após espera"; exit 1;
+          fi
+          echo "Cabeçalhos do frontend:" 
+          curl -s -I "$TARGET_URL"
+
+      - name: Validate SPA /login and assets
+        env:
+          TARGET_URL: https://nfe.brandaocontador.com.br
+        run: |
+          echo "Validando /login 200"
+          LOGIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL/login")
+          echo "Status /login: $LOGIN_STATUS"
+          if [ "$LOGIN_STATUS" != "200" ]; then
+            echo "Falha: /login não respondeu 200"; exit 1;
+          fi
+          echo "Capturando assets do index"
+          curl -s "$TARGET_URL" > /tmp/index.html
+          JS_ASSET=$(grep -oE 'assets/[A-Za-z0-9._-]+\\.js' /tmp/index.html | head -n1)
+          CSS_ASSET=$(grep -oE 'assets/[A-Za-z0-9._-]+\\.css' /tmp/index.html | head -n1)
+          echo "JS: $JS_ASSET | CSS: $CSS_ASSET"
+          if [ -z "$JS_ASSET" ] || [ -z "$CSS_ASSET" ]; then
+            echo "Falha: não encontrou assets JS/CSS no index.html"; exit 1;
+          fi
+          echo "HEAD assets"
+          curl -s -I "$TARGET_URL/$JS_ASSET"
+          curl -s -I "$TARGET_URL/$CSS_ASSET"
+          {
+            echo "- /login: HTTP $LOGIN_STATUS"
+            echo "- JS asset: $JS_ASSET"
+            echo "- CSS asset: $CSS_ASSET"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate Backend Health (CORS)
+        env:
+          TARGET_URL: https://nfe.brandaocontador.com.br
+          API_HEALTH_URL: https://api.brandaocontador.com.br/api/health
+        run: |
+          echo "Validando API Health com Origin=$TARGET_URL"
+          API_STATUS=$(curl -s -w "%{http_code}" -H "Origin: $TARGET_URL" "$API_HEALTH_URL" -o /tmp/health.json)
+          echo "Status da API: $API_STATUS"
+          cat /tmp/health.json
+          if [ "$API_STATUS" != "200" ]; then
+            echo "Falha: API de saúde não respondeu 200"; exit 1;
+          fi
+          if ! grep -q '"sucesso":true' /tmp/health.json; then
+            echo "Falha: JSON de saúde não contém sucesso=true"; exit 1;
+          fi
+          {
+            echo "### Verificação Pós-Deploy do Frontend"
+            echo "- Frontend: $TARGET_URL — HTTP 200"
+            echo "- API Health: $API_HEALTH_URL — HTTP $API_STATUS"
+            echo "- Headers do Frontend:"
+            curl -s -I "$TARGET_URL" | sed 's/^/- /'
+          } >> "$GITHUB_STEP_SUMMARY"

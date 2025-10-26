@@ -134,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login: async (email: string, password: string) => {
       const body = JSON.stringify({ email, senha: password });
       
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -204,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
     
     validateToken: async (token: string) => {
-      const response = await fetch(`${API_BASE_URL}/auth/validate`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/validate`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

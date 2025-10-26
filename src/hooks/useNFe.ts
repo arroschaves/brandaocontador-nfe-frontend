@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
-import { nfeService } from '../services/api';
+import { nfeService, api } from '../services/api';
 import { buildApiUrl } from '../config/api';
 import { convertToBackendFormat } from '../utils/nfeDataConverter';
 
@@ -217,17 +217,11 @@ export const useNFe = (): UseNFeReturn => {
   // Função para download do XML
   const downloadXML = useCallback(async (chave: string): Promise<void> => {
     try {
-      const response = await fetch(buildApiUrl(`/nfe/download/xml/${chave}`), {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
+      const response = await api.get(`/api/nfe/download/xml/${chave}`, {
+        responseType: 'blob'
       });
 
-      if (!response.ok) {
-        throw new Error('Erro ao gerar XML');
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'application/xml' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -247,17 +241,11 @@ export const useNFe = (): UseNFeReturn => {
   // Função para download do PDF
   const downloadPDF = useCallback(async (chave: string): Promise<void> => {
     try {
-      const response = await fetch(buildApiUrl(`/nfe/download/pdf/${chave}`), {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
+      const response = await api.get(`/api/nfe/download/pdf/${chave}`, {
+        responseType: 'blob'
       });
 
-      if (!response.ok) {
-        throw new Error('Erro ao gerar PDF');
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

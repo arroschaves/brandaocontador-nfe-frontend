@@ -84,7 +84,7 @@ const Dashboard: React.FC = () => {
       const [histResp, statusResp, healthResp] = await Promise.all([
         nfeService.historico({ pagina: 1, limite: 10 }),
         nfeService.status(),
-        api.get('/health')
+        api.get('/api/health')
       ]);
 
       // Mapear NFes recentes

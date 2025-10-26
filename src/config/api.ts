@@ -22,15 +22,55 @@ export const API_BASE_URL = getApiUrl();
 // Endpoints específicos
 export const API_ENDPOINTS = {
   NFE: {
-    EMITIR: '/nfe/emitir',
-    VALIDAR: '/nfe/validar',
-    CONSULTAR: '/nfe/consultar',
-    CANCELAR: '/nfe/cancelar',
-    HISTORICO: '/nfe/historico',
-  
+    EMITIR: '/api/nfe/emitir',
+    VALIDAR: '/api/nfe/validar',
+    CONSULTAR: '/api/nfe/consultar',
+    CANCELAR: '/api/nfe/cancelar',
+    HISTORICO: '/api/nfe/historico',
+    INUTILIZAR: '/api/nfe/inutilizar',
+    DOWNLOAD: '/api/nfe/download',
+    STATUS: '/api/nfe/status',
+    STATUS_PUBLICO: '/api/nfe/status-publico',
+    TESTE: '/api/nfe/teste'
   },
-  STATUS: '/status',
-  CONFIGURACOES: '/configuracoes'
+  CTE: {
+    BASE: '/api/cte'
+  },
+  MDFE: {
+    BASE: '/api/mdfe'
+  },
+  EVENTOS: {
+    BASE: '/api/eventos'
+  },
+  RELATORIOS: {
+    BASE: '/api/relatorios'
+  },
+  AUTH: {
+    LOGIN: '/api/auth/login',
+    REGISTER: '/api/auth/register',
+    VALIDATE: '/api/auth/validate',
+    SOCIAL: '/api/auth/social',
+    API_KEY: '/api/auth/api-key'
+  },
+  CLIENTES: '/api/clientes',
+  PRODUTOS: '/api/produtos',
+  VALIDACAO: {
+    CNPJ: '/api/validacao/cnpj',
+    CEP: '/api/validacao/cep',
+    ESTADOS: '/api/validacao/estados',
+    MUNICIPIOS: '/api/validacao/municipios'
+  },
+  ME: '/api/me',
+  ADMIN: {
+    USUARIOS: '/api/admin/usuarios',
+    HEALTH: '/api/admin/health',
+    SECURITY_STATUS: '/api/admin/security-status',
+    ALERTS: '/api/admin/alerts'
+  },
+  HEALTH: '/api/health',
+  METRICS: '/api/metrics',
+  STATUS: '/api/status',
+  CONFIGURACOES: '/api/configuracoes'
 } as const;
 
 // Helper para construir URLs completas

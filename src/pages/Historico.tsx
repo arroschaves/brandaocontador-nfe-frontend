@@ -14,6 +14,7 @@ import { useNFe } from '../hooks/useNFe';
 import notificationService from '../services/notificationService';
 import errorService from '../services/errorService';
 import { buildApiUrl, API_ENDPOINTS } from '../config/api';
+import { api } from '../services/api';
 
 interface NFe {
   id: string;
@@ -99,27 +100,16 @@ function Historico() {
         setCarregandoMais(true);
       }
 
-      const params = new URLSearchParams({
+      const params = {
         pagina: novaPagina.toString(),
         limite: paginacao.itensPorPagina.toString(),
         ...Object.fromEntries(
           Object.entries(novosFiltros).filter(([_, value]) => value !== '')
         )
-      });
+      };
 
-      const url = `${buildApiUrl(API_ENDPOINTS.NFE.HISTORICO)}?${params}`;
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao buscar NFes');
-      }
-
-      const data = await response.json();
+      const response = await api.get('/api/nfe/historico', { params });
+      const data = response.data;
       
       if (novaPagina === 1) {
         setNfes(data.nfes);
@@ -190,21 +180,10 @@ function Historico() {
 
       notificationService.loading('Cancelando NFe...');
       
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.NFE.CANCELAR), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          chave: nfe.chave,
-          motivo
-        })
+      await api.post('/api/nfe/cancelar', {
+        chave: nfe.chave,
+        motivo
       });
-
-      if (!response.ok) {
-        throw new Error('Erro ao cancelar NFe');
-      }
 
       notificationService.success('NFe cancelada com sucesso!');
       buscarNFesComFiltros(paginacao.pagina);
@@ -219,17 +198,13 @@ function Historico() {
     try {
       notificationService.loading(`Gerando ${tipo.toUpperCase()}...`);
       
-      const response = await fetch(buildApiUrl(`/nfe/download/${tipo}/${nfe.chave}`), {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
+      const response = await api.get(`/api/nfe/download/${tipo}/${nfe.chave}`, {
+        responseType: 'blob'
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro ao gerar ${tipo.toUpperCase()}`);
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { 
+        type: tipo === 'xml' ? 'application/xml' : 'application/pdf' 
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

@@ -21,6 +21,7 @@ import { useAutoFormat } from '../hooks/useAutoFormat';
 import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
 import { buildApiUrl } from '../config/api';
 import { formatCooldown } from '../utils/time';
+import { api } from '../services/api';
 
 interface FormData {
   tipoCliente: 'cpf' | 'cnpj';
@@ -312,21 +313,15 @@ const Cadastro: React.FC = () => {
         })
       };
       
-      let response;
       let data;
       
       try {
-        response = await fetch(buildApiUrl('/auth/register'), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(dadosEnvio)
-        });
-
+        const response = await api.post('/api/auth/register', dadosEnvio);
+        data = response.data;
+      } catch (error: any) {
         // Tratamento específico para rate limiting 429
-        if (response.status === 429) {
-          const retryAfterHeader = response.headers.get('Retry-After');
+        if (error.response?.status === 429) {
+          const retryAfterHeader = error.response.headers['retry-after'];
           let retrySeconds = 120; // padrão: 2 minutos
           if (retryAfterHeader) {
             const parsed = parseInt(retryAfterHeader, 10);
@@ -345,22 +340,7 @@ const Cadastro: React.FC = () => {
           return;
         }
         
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-        
-        data = await response.json();
-      } catch (fetchError) {
-        const err = fetchError as Error;
-        if (err instanceof TypeError) {
-          // Possível problema de CORS ou conexão
-        }
-        throw err;
-      }
-
-      if (!response.ok) {
-        throw new Error(data.erro || 'Erro ao realizar cadastro');
+        throw new Error(error.response?.data?.erro || 'Erro ao realizar cadastro');
       }
 
       // Cadastro bem-sucedido

@@ -11,6 +11,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://api.brandaocontador.com.br/api/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

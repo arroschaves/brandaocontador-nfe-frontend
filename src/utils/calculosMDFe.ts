@@ -289,7 +289,7 @@ export function gerarObservacoesMDFe(dados: DadosMDFe): string[] {
   
   // Observações sobre o percurso
   observacoes.push(`Percurso: ${dados.ufInicio} → ${dados.ufFim}`);
-  if (dados.municipiosPercurso.length > 0) {
+  if (Array.isArray(dados.municipiosPercurso) && dados.municipiosPercurso.length > 0) {
     observacoes.push(`Municípios: ${dados.municipiosPercurso.join(', ')}`);
   }
   

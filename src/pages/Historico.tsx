@@ -245,7 +245,7 @@ function Historico() {
   }, [buscarNFesComFiltros]);
 
   // Estados derivados
-  const filteredNfes = nfes;
+  const filteredNfes = nfes || [];
   const isLoading = loading;
   const totalPages = Math.ceil(filteredNfes.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;

@@ -343,6 +343,10 @@ export function calcularTributos(
 export function gerarObservacoesLegais(regime: RegimeTributario): string {
   const observacoes: string[] = []
   
+  if (!regime || !regime.tipo) {
+    return 'Regime tributário não especificado.'
+  }
+  
   switch (regime.tipo) {
     case 'simples':
       observacoes.push('Documento emitido por ME/EPP optante pelo Simples Nacional.')
@@ -371,7 +375,7 @@ export function gerarObservacoesLegais(regime: RegimeTributario): string {
   observacoes.push('PREPARAÇÃO REFORMA TRIBUTÁRIA 2026:')
   observacoes.push('Sistema preparado para IBS/CBS/IS conforme EC 132/2023.')
   
-  return observacoes.join('\n')
+  return Array.isArray(observacoes) ? observacoes.join('\n') : 'Erro ao gerar observações.'
 }
 
 /**

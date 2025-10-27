@@ -231,14 +231,14 @@ const ItensNFe: React.FC<ItensNFeProps> = ({
 
   const adicionarItem = async () => {
     // Validações obrigatórias
-    const validacoes2025 = validarCampos2025(novoItem)
-    const validacoes2026 = modo2026 ? validarCampos2026(novoItem) : []
+    const validacoes2025 = validarCampos2025(novoItem) || []
+    const validacoes2026 = modo2026 ? (validarCampos2026(novoItem) || []) : []
     
-    const todasValidacoes = [...validacoes2025, ...validacoes2026]
-    const temErros = todasValidacoes.some(v => !v.valido)
+    const todasValidacoes = [...(Array.isArray(validacoes2025) ? validacoes2025 : []), ...(Array.isArray(validacoes2026) ? validacoes2026 : [])]
+    const temErros = todasValidacoes.some(v => v && !v.valido)
     
     if (temErros) {
-      const erros = todasValidacoes.filter(v => !v.valido).map(v => v.erro).join(', ')
+      const erros = todasValidacoes.filter(v => v && !v.valido).map(v => v.erro || 'Erro desconhecido').join(', ')
       alert(`Erros de validação: ${erros}`)
       return
     }

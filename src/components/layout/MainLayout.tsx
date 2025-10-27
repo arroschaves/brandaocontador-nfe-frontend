@@ -61,7 +61,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
     if (dirs.xmls === false) faltantes.push('XMLs');
     if (dirs.enviadas === false) faltantes.push('Enviadas');
     if (dirs.falhas === false) faltantes.push('Falhas');
-    if (faltantes.length > 0) {
+    if (Array.isArray(faltantes) && faltantes.length > 0) {
       notifs.push({
         id: 'dirs-faltantes',
         tipo: 'warning',

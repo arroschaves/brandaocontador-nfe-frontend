@@ -208,12 +208,11 @@ const FormularioNFe: React.FC = () => {
 
   // Gerar observações automáticas
   useEffect(() => {
-    const observacoesLegais = gerarObservacoesLegais(dados.regimeTributario, modo2026)
-    const observacoesTexto = observacoesLegais.join('\n\n')
+    const observacoesLegais = gerarObservacoesLegais(dados.regimeTributario)
     
     setDados(prev => ({
       ...prev,
-      observacoes: observacoesTexto
+      observacoes: observacoesLegais
     }))
   }, [dados.regimeTributario, modo2026])
 

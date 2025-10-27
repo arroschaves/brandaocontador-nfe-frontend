@@ -96,14 +96,17 @@ class NotificationService {
   nfeError(message, errors = []) {
     let fullMessage = message;
     
-    if (errors.length > 0) {
+    // Garantir que errors é um array válido
+    const validErrors = Array.isArray(errors) ? errors : [];
+    
+    if (validErrors.length > 0) {
       fullMessage += '\n\nErros encontrados:';
-      errors.slice(0, 3).forEach((error, index) => {
+      validErrors.slice(0, 3).forEach((error, index) => {
         fullMessage += `\n${index + 1}. ${error}`;
       });
       
-      if (errors.length > 3) {
-        fullMessage += `\n... e mais ${errors.length - 3} erro(s)`;
+      if (validErrors.length > 3) {
+        fullMessage += `\n... e mais ${validErrors.length - 3} erro(s)`;
       }
     }
     
@@ -113,21 +116,24 @@ class NotificationService {
   }
 
   validationError(errors = []) {
-    if (errors.length === 0) {
+    // Garantir que errors é um array válido
+    const validErrors = Array.isArray(errors) ? errors : [];
+    
+    if (validErrors.length === 0) {
       return this.error('Erro de validação desconhecido');
     }
 
-    if (errors.length === 1) {
-      return this.error(`Erro de validação: ${errors[0]}`);
+    if (validErrors.length === 1) {
+      return this.error(`Erro de validação: ${validErrors[0]}`);
     }
 
-    let message = `${errors.length} erros de validação encontrados:`;
-    errors.slice(0, 3).forEach((error, index) => {
+    let message = `${validErrors.length} erros de validação encontrados:`;
+    validErrors.slice(0, 3).forEach((error, index) => {
       message += `\n${index + 1}. ${error}`;
     });
     
-    if (errors.length > 3) {
-      message += `\n... e mais ${errors.length - 3} erro(s)`;
+    if (validErrors.length > 3) {
+      message += `\n... e mais ${validErrors.length - 3} erro(s)`;
     }
 
     return this.error(message, {

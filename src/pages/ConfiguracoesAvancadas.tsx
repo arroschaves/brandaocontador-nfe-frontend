@@ -54,52 +54,9 @@ export function ConfiguracoesAvancadas() {
   const [abaAtiva, setAbaAtiva] = useState<'certificados' | 'empresa' | 'sefaz' | 'alertas' | 'backup' | 'usuarios'>('certificados');
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  // Mock data
-  const certificados: Certificado[] = [
-    {
-      id: '1',
-      nome: 'Certificado Principal',
-      tipo: 'A1',
-      validade: '2024-12-31',
-      status: 'Válido',
-      cnpj: '14.200.166/0001-87'
-    },
-    {
-      id: '2',
-      nome: 'Certificado Backup',
-      tipo: 'A3',
-      validade: '2024-03-15',
-      status: 'Próximo ao vencimento',
-      cnpj: '14.200.166/0001-87'
-    }
-  ];
+  const [certificados, setCertificados] = useState<Certificado[]>([]);
 
-  const usuarios: Usuario[] = [
-    {
-      id: '1',
-      nome: 'João Silva',
-      email: 'joao@empresa.com',
-      perfil: 'Administrador',
-      status: 'Ativo',
-      ultimoAcesso: '2024-01-15 14:30'
-    },
-    {
-      id: '2',
-      nome: 'Maria Santos',
-      email: 'maria@empresa.com',
-      perfil: 'Contador',
-      status: 'Ativo',
-      ultimoAcesso: '2024-01-15 09:15'
-    },
-    {
-      id: '3',
-      nome: 'Pedro Costa',
-      email: 'pedro@empresa.com',
-      perfil: 'Operador',
-      status: 'Inativo',
-      ultimoAcesso: '2024-01-10 16:45'
-    }
-  ];
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
   const renderCertificados = () => (
     <div className="space-y-6">

@@ -111,26 +111,7 @@ const ItensNFe: React.FC<ItensNFeProps> = ({
       setProdutoLoading(true)
       // Simulação de busca - substituir por API real
       setTimeout(() => {
-        setProdutoResultados([
-          {
-            codigo: 'PROD001',
-            nome: 'Produto Exemplo 1',
-            ncm: '12345678',
-            cfop: '5102',
-            unidade: 'UN',
-            valorUnitario: 10.50,
-            gtin: '7891234567890'
-          },
-          {
-            codigo: 'PROD002', 
-            nome: 'Produto Exemplo 2',
-            ncm: '87654321',
-            cfop: '5102',
-            unidade: 'KG',
-            valorUnitario: 25.00,
-            gtin: '7891234567891'
-          }
-        ])
+        setProdutoResultados([])
         setProdutoLoading(false)
       }, 500)
     }, 300)

@@ -165,12 +165,12 @@ const GerenciarUsuarios: React.FC = () => {
         razaoSocial: novoUsuario.tipoCliente === 'cnpj' ? novoUsuario.empresa : undefined,
         nomeFantasia: novoUsuario.tipoCliente === 'cnpj' ? novoUsuario.empresa : undefined,
         endereco: {
-          cep: '00000-000',
-          logradouro: 'Rua Exemplo',
-          numero: '123',
-          bairro: 'Centro',
-          cidade: 'São Paulo',
-          uf: 'SP'
+          cep: '',
+          logradouro: '',
+          numero: '',
+          bairro: '',
+          cidade: '',
+          uf: ''
         },
         permissoes: novoUsuario.permissoes
       };

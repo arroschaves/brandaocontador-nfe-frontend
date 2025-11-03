@@ -30,6 +30,7 @@ import { configService, meService, emitenteService } from '../services/api';
 import { useAutoFormat } from '../hooks/useAutoFormat';
 import { useCNPJLookup, useCEPLookup } from '../hooks/useCNPJLookup';
 import { validarCNPJ, validarCEP, validarEmail, validarTelefone } from '../utils/validations';
+import { cepService, CEPError } from '../services/cepService';
 import { useMemo } from 'react';
 
 interface ConfiguracaoEmpresa {
@@ -85,6 +86,8 @@ const Configuracoes: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState<'empresa' | 'nfe' | 'notificacoes' | 'sistema'>('empresa');
+  const [cepBuscando, setCepBuscando] = useState(false);
+  const [cepErro, setCepErro] = useState<string | null>(null);
   
   const [configEmpresa, setConfigEmpresa] = useState<ConfiguracaoEmpresa>({
     razaoSocial: 'Brandão Contador Ltda',
@@ -142,6 +145,8 @@ const Configuracoes: React.FC = () => {
 
   // Hooks para busca automática
   const cnpjLookup = useCNPJLookup({
+    autoSearch: true,
+    debounceMs: 800,
     onDataFound: (data) => {
       setConfigEmpresa(prev => ({
         ...prev,
@@ -167,24 +172,43 @@ const Configuracoes: React.FC = () => {
     }
   });
 
-  const cepLookup = useCEPLookup({
-    onDataFound: (data) => {
+  // Handler para busca de CEP com ViaCEP e fallback BrasilAPI
+  const handleBuscaCEP = async (cep: string) => {
+    const cepLimpo = cep.replace(/[^\d]/g, '');
+    
+    // Validação básica
+    if (cepLimpo.length !== 8) {
+      setCepErro(null);
+      return;
+    }
+
+    setCepBuscando(true);
+    setCepErro(null);
+
+    try {
+      const dados = await cepService.buscarEnderecoCEP(cep);
+      
+      // Preenche o formulário com os dados retornados
       setConfigEmpresa(prev => ({
         ...prev,
         endereco: {
           ...prev.endereco,
-          logradouro: data.logradouro,
-          bairro: data.bairro,
-          municipio: data.localidade,
-          uf: data.uf
+          logradouro: dados.logradouro || prev.endereco.logradouro,
+          bairro: dados.bairro || prev.endereco.bairro,
+          municipio: dados.localidade || prev.endereco.municipio,
+          uf: dados.uf || prev.endereco.uf
         }
       }));
-      showToast('Endereço preenchido automaticamente!', 'success');
-    },
-    onError: (error) => {
-      showToast(error, 'error');
+      
+      showToast('Endereço preenchido automaticamente com sucesso!', 'success');
+    } catch (error) {
+      const errorMessage = (error as CEPError)?.message || 'Erro ao buscar CEP';
+      setCepErro(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setCepBuscando(false);
     }
-  });
+  };
   
   useEffect(() => {
     carregarConfiguracoes();
@@ -700,6 +724,20 @@ const Configuracoes: React.FC = () => {
       setConfigEmpresa(prev => ({ ...prev, [field]: value }));
     }
   };
+
+  // Handler para busca obrigatória de CNPJ ao perder foco
+  const handleCNPJBlur = async () => {
+    const cnpjDigits = (configEmpresa.cnpj || '').replace(/\D/g, '');
+    
+    // Se o CNPJ tem 14 dígitos, força a busca
+    if (cnpjDigits.length === 14) {
+      try {
+        await cnpjLookup.searchCNPJ(configEmpresa.cnpj);
+      } catch (error) {
+        console.error('Erro ao buscar CNPJ:', error);
+      }
+    }
+  };
   
   const handleNFeChange = (field: string, value: any) => {
     if (field.includes('.')) {
@@ -804,6 +842,7 @@ const Configuracoes: React.FC = () => {
                           handleEmpresaChange('cnpj', formatted);
                           cnpjLookup.debouncedSearch(formatted);
                         }}
+                        onBlur={handleCNPJBlur}
                         placeholder="00.000.000/0000-00"
                         className={`pr-10 ${
                           (() => {
@@ -814,17 +853,17 @@ const Configuracoes: React.FC = () => {
                           })()
                         }`}
                       />
-                      {cnpjLookup.loading && (
+                      {cnpjLookup.isLoading && (
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                           <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                         </div>
                       )}
                       {(() => {
                         const digits = (configEmpresa.cnpj || '').replace(/\D/g, '');
-                        return digits.length === 14 && validarCNPJ(configEmpresa.cnpj) && !cnpjLookup.loading;
+                        return digits.length === 14 && validarCNPJ(configEmpresa.cnpj) && !cnpjLookup.isLoading;
                       })() && (
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                          <Search className="h-4 w-4 text-green-500" />
+                          <CheckCircle className="h-4 w-4 text-green-500" />
                         </div>
                       )}
                     </div>
@@ -833,6 +872,9 @@ const Configuracoes: React.FC = () => {
                       return configNFe.ambiente === 'producao' && digits.length === 14 && !validarCNPJ(configEmpresa.cnpj);
                     })() && (
                       <p className="mt-1 text-sm text-red-600">CNPJ inválido</p>
+                    )}
+                    {cnpjLookup.error && (
+                      <p className="mt-1 text-sm text-yellow-600">⚠️ {cnpjLookup.error}</p>
                     )}
                   </FormGroup>
                   
@@ -948,24 +990,38 @@ const Configuracoes: React.FC = () => {
                         onChange={(e) => {
                           const formatted = cepFormat.format(e.target.value);
                           handleEmpresaChange('endereco.cep', formatted);
-                          cepLookup.debouncedSearch(formatted);
+                          // Limpa erro anterior quando usuário digita
+                          setCepErro(null);
+                        }}
+                        onBlur={(e) => {
+                          // Busca CEP ao sair do campo se tiver 8 dígitos
+                          const cepLimpo = e.target.value.replace(/[^\d]/g, '');
+                          if (cepLimpo.length === 8 && validarCEP(e.target.value)) {
+                            handleBuscaCEP(e.target.value);
+                          }
                         }}
                         placeholder="00000-000"
                         className={`pr-10 ${
                           (() => {
                             const digits = (configEmpresa.endereco.cep || '').replace(/\D/g, '');
-                            return (digits.length === 8 && !validarCEP(configEmpresa.endereco.cep)) ? 'border-red-300 focus:border-red-500' : '';
+                            const isValid = digits.length === 8 && validarCEP(configEmpresa.endereco.cep);
+                            return (digits.length === 8 && !isValid) ? 'border-red-300 focus:border-red-500' : '';
                           })()
                         }`}
                       />
-                      {cepLookup.loading && (
+                      {cepBuscando && (
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                           <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                         </div>
                       )}
-                      {configEmpresa.endereco.cep && validarCEP(configEmpresa.endereco.cep) && !cepLookup.loading && (
+                      {!cepBuscando && configEmpresa.endereco.cep && validarCEP(configEmpresa.endereco.cep) && !cepErro && (
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                          <Search className="h-4 w-4 text-green-500" />
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        </div>
+                      )}
+                      {cepErro && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          <AlertCircle className="h-4 w-4 text-red-500" />
                         </div>
                       )}
                     </div>
@@ -974,6 +1030,12 @@ const Configuracoes: React.FC = () => {
                       return digits.length === 8 && !validarCEP(configEmpresa.endereco.cep);
                     })() && (
                       <p className="mt-1 text-sm text-red-600">CEP inválido</p>
+                    )}
+                    {cepErro && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {cepErro}
+                      </p>
                     )}
                   </FormGroup>
                   

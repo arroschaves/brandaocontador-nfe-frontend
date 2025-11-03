@@ -318,6 +318,11 @@ const Cadastro: React.FC = () => {
       try {
         const response = await api.post('/api/auth/register', dadosEnvio);
         data = response.data;
+        
+        // Validação de resposta
+        if (!data) {
+          throw new Error('Resposta vazia do servidor');
+        }
       } catch (error: any) {
         // Tratamento específico para rate limiting 429
         if (error.response?.status === 429) {
@@ -347,18 +352,18 @@ const Cadastro: React.FC = () => {
       setSuccess('Cadastro realizado com sucesso!');
       
       // Se o backend retornou um token e usuário, fazer login automático
-      if (data.token && data.usuario) {
+      if (data && data.token && data.usuario && data.usuario.id) {
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('auth_user', JSON.stringify({
           id: data.usuario.id?.toString?.() || String(data.usuario.id),
-          nome: data.usuario.nome,
-          email: data.usuario.email,
+          nome: data.usuario.nome || '',
+          email: data.usuario.email || '',
           perfil: (data.usuario.permissoes || []).includes('admin') ? 'admin' : 'usuario',
           permissoes: data.usuario.permissoes || []
         }));
         navigate('/dashboard');
       } else {
-        // Redirecionar para login
+        // Redirecionar para login se não tiver token ou usuário
         setTimeout(() => {
           navigate('/login', { 
             state: { 
@@ -369,7 +374,9 @@ const Cadastro: React.FC = () => {
       } 
       
     } catch (error: any) {
-      setError('Falha de rede ao comunicar com o servidor. Tente novamente.');
+      console.error('❌ Erro ao cadastrar:', error);
+      const errorMsg = error?.response?.data?.erro || error?.message || 'Falha de rede ao comunicar com o servidor. Tente novamente.';
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }

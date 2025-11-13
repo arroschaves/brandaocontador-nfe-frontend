@@ -1,5 +1,5 @@
-import React from 'react';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import React from "react";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -10,7 +10,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   rightIcon?: React.ReactNode;
 }
 
-interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextAreaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -23,12 +24,16 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   error?: string;
   helperText?: string;
   required?: boolean;
-  options?: Array<{ value: string | number; label: string; disabled?: boolean }>;
+  options?: Array<{
+    value: string | number;
+    label: string;
+    disabled?: boolean;
+  }>;
   placeholder?: string;
   children?: React.ReactNode;
 }
 
-interface PasswordInputProps extends Omit<InputProps, 'type'> {
+interface PasswordInputProps extends Omit<InputProps, "type"> {
   showToggle?: boolean;
 }
 
@@ -47,7 +52,7 @@ interface RadioGroupProps {
   error?: string;
   helperText?: string;
   required?: boolean;
-  direction?: 'horizontal' | 'vertical';
+  direction?: "horizontal" | "vertical";
 }
 
 interface FormGroupProps {
@@ -55,12 +60,8 @@ interface FormGroupProps {
   className?: string;
 }
 
-const FormGroup: React.FC<FormGroupProps> = ({ children, className = '' }) => {
-  return (
-    <div className={`space-y-1 ${className}`}>
-      {children}
-    </div>
-  );
+const FormGroup: React.FC<FormGroupProps> = ({ children, className = "" }) => {
+  return <div className={`space-y-1 ${className}`}>{children}</div>;
 };
 
 const Input: React.FC<InputProps> = ({
@@ -70,15 +71,19 @@ const Input: React.FC<InputProps> = ({
   required,
   leftIcon,
   rightIcon,
-  className = '',
+  className = "",
   ...props
 }) => {
-  const inputId = props.id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const inputId =
+    props.id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
     <FormGroup>
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor={inputId}
+          className="block text-sm font-medium text-gray-700"
+        >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -94,10 +99,10 @@ const Input: React.FC<InputProps> = ({
           id={inputId}
           className={`
             block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            ${leftIcon ? 'pl-10' : ''}
-            ${rightIcon ? 'pr-10' : ''}
-            ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
-            ${props.disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}
+            ${leftIcon ? "pl-10" : ""}
+            ${rightIcon ? "pr-10" : ""}
+            ${error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-300"}
+            ${props.disabled ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}
             ${className}
           `}
         />
@@ -133,7 +138,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   return (
     <Input
       {...props}
-      type={showPassword ? 'text' : 'password'}
+      type={showPassword ? "text" : "password"}
       rightIcon={
         showToggle ? (
           <button
@@ -141,7 +146,11 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
             onClick={togglePassword}
             className="text-gray-400 hover:text-gray-600 focus:outline-none"
           >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
         ) : undefined
       }
@@ -155,15 +164,19 @@ const TextArea: React.FC<TextAreaProps> = ({
   helperText,
   required,
   rows = 3,
-  className = '',
+  className = "",
   ...props
 }) => {
-  const textareaId = props.id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+  const textareaId =
+    props.id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
     <FormGroup>
       {label && (
-        <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor={textareaId}
+          className="block text-sm font-medium text-gray-700"
+        >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -174,8 +187,8 @@ const TextArea: React.FC<TextAreaProps> = ({
         rows={rows}
         className={`
           block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical
-          ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
-          ${props.disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}
+          ${error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-300"}
+          ${props.disabled ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}
           ${className}
         `}
       />
@@ -199,16 +212,20 @@ const Select: React.FC<SelectProps> = ({
   required,
   options,
   placeholder,
-  className = '',
+  className = "",
   children,
   ...props
 }) => {
-  const selectId = props.id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  const selectId =
+    props.id || `select-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
     <FormGroup>
       {label && (
-        <label htmlFor={selectId} className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor={selectId}
+          className="block text-sm font-medium text-gray-700"
+        >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -218,8 +235,8 @@ const Select: React.FC<SelectProps> = ({
         id={selectId}
         className={`
           block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
-          ${props.disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}
+          ${error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-300"}
+          ${props.disabled ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}
           ${className}
         `}
       >
@@ -233,15 +250,16 @@ const Select: React.FC<SelectProps> = ({
                 {placeholder}
               </option>
             )}
-            {options && options.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-                disabled={option.disabled}
-              >
-                {option.label}
-              </option>
-            ))}
+            {options &&
+              options.map((option) => (
+                <option
+                  key={option.value}
+                  value={option.value}
+                  disabled={option.disabled}
+                >
+                  {option.label}
+                </option>
+              ))}
           </>
         )}
       </select>
@@ -262,10 +280,11 @@ const Checkbox: React.FC<CheckboxProps> = ({
   label,
   error,
   helperText,
-  className = '',
+  className = "",
   ...props
 }) => {
-  const checkboxId = props.id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
+  const checkboxId =
+    props.id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
     <FormGroup>
@@ -277,8 +296,8 @@ const Checkbox: React.FC<CheckboxProps> = ({
             type="checkbox"
             className={`
               h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded
-              ${error ? 'border-red-300' : ''}
-              ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}
+              ${error ? "border-red-300" : ""}
+              ${props.disabled ? "opacity-50 cursor-not-allowed" : ""}
               ${className}
             `}
           />
@@ -311,7 +330,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
   error,
   helperText,
   required,
-  direction = 'vertical'
+  direction = "vertical",
 }) => {
   return (
     <FormGroup>
@@ -321,36 +340,41 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
           {required && <span className="text-red-500 ml-1">*</span>}
         </div>
       )}
-      <div className={`${direction === 'horizontal' ? 'flex space-x-4' : 'space-y-2'}`}>
-        {options && options.map((option) => {
-          const radioId = `${name}-${option.value}`;
-          return (
-            <div key={option.value} className="flex items-center">
-              <input
-                id={radioId}
-                name={name}
-                type="radio"
-                value={option.value}
-                checked={value === option.value}
-                onChange={(e) => onChange(e.target.value)}
-                disabled={option.disabled}
-                className={`
+      <div
+        className={`${direction === "horizontal" ? "flex space-x-4" : "space-y-2"}`}
+      >
+        {options &&
+          options.map((option) => {
+            const radioId = `${name}-${option.value}`;
+            return (
+              <div key={option.value} className="flex items-center">
+                <input
+                  id={radioId}
+                  name={name}
+                  type="radio"
+                  value={option.value}
+                  checked={value === option.value}
+                  onChange={(e) => onChange(e.target.value)}
+                  disabled={option.disabled}
+                  className={`
                   h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300
-                  ${error ? 'border-red-300' : ''}
-                  ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                  ${error ? "border-red-300" : ""}
+                  ${option.disabled ? "opacity-50 cursor-not-allowed" : ""}
                 `}
-              />
-              <label
-                htmlFor={radioId}
-                className={`ml-3 block text-sm font-medium text-gray-700 ${
-                  option.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                }`}
-              >
-                {option.label}
-              </label>
-            </div>
-          );
-        })}
+                />
+                <label
+                  htmlFor={radioId}
+                  className={`ml-3 block text-sm font-medium text-gray-700 ${
+                    option.disabled
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
+                >
+                  {option.label}
+                </label>
+              </div>
+            );
+          })}
       </div>
       {error && (
         <div className="flex items-center space-x-1 text-red-600">
@@ -372,7 +396,7 @@ export {
   TextArea,
   Select,
   Checkbox,
-  RadioGroup
+  RadioGroup,
 };
 
 export type {
@@ -382,5 +406,5 @@ export type {
   PasswordInputProps,
   CheckboxProps,
   RadioGroupProps,
-  FormGroupProps
+  FormGroupProps,
 };

@@ -1,17 +1,20 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
-  helperText?: string
-  icon?: React.ReactNode
-  rightIcon?: React.ReactNode
+  label?: string;
+  error?: string;
+  helperText?: string;
+  icon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, error, helperText, icon, rightIcon, ...props }, ref) => {
+  (
+    { className, type, label, error, helperText, icon, rightIcon, ...props },
+    ref,
+  ) => {
     return (
       <div className="space-y-2">
         {label && (
@@ -33,7 +36,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               icon && "pl-10",
               rightIcon && "pr-10",
               error && "border-destructive focus-visible:ring-destructive",
-              className
+              className,
             )}
             ref={ref}
             {...props}
@@ -53,9 +56,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <p className="text-sm text-muted-foreground">{helperText}</p>
         )}
       </div>
-    )
-  }
-)
-Input.displayName = "Input"
+    );
+  },
+);
+Input.displayName = "Input";
 
-export { Input }
+export { Input };

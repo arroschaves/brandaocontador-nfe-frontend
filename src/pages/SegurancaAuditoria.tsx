@@ -4,15 +4,15 @@
  * Conformidade com legislação 2025/2026
  */
 
-import React, { useState } from 'react';
-import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { 
-  Shield, 
-  Activity, 
-  Users, 
-  HardDrive, 
-  Monitor, 
+import React, { useState } from "react";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import {
+  Shield,
+  Activity,
+  Users,
+  HardDrive,
+  Monitor,
   Search,
   Filter,
   Download,
@@ -30,18 +30,18 @@ import {
   Database,
   Server,
   Wifi,
-  WifiOff
-} from 'lucide-react';
+  WifiOff,
+} from "lucide-react";
 
 interface LogEntry {
   id: string;
   timestamp: string;
   usuario: string;
   acao: string;
-  modulo: 'NFe' | 'CTe' | 'MDFe' | 'Eventos' | 'Sistema';
+  modulo: "NFe" | "CTe" | "MDFe" | "Eventos" | "Sistema";
   detalhes: string;
   ip: string;
-  status: 'Sucesso' | 'Erro' | 'Aviso';
+  status: "Sucesso" | "Erro" | "Aviso";
 }
 
 interface SessaoUsuario {
@@ -50,35 +50,38 @@ interface SessaoUsuario {
   ip: string;
   inicioSessao: string;
   ultimaAtividade: string;
-  status: 'Ativa' | 'Inativa';
+  status: "Ativa" | "Inativa";
   dispositivo: string;
 }
 
 interface StatusSEFAZ {
   uf: string;
   servico: string;
-  status: 'Online' | 'Offline' | 'Instável';
+  status: "Online" | "Offline" | "Instável";
   ultimaVerificacao: string;
   tempoResposta: number;
 }
 
 export function SegurancaAuditoria() {
-  const [abaAtiva, setAbaAtiva] = useState<'logs' | 'sessoes' | 'backup' | 'monitoramento'>('logs');
-  const [filtroLog, setFiltroLog] = useState('');
-  const [filtroModulo, setFiltroModulo] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState('');
+  const [abaAtiva, setAbaAtiva] = useState<
+    "logs" | "sessoes" | "backup" | "monitoramento"
+  >("logs");
+  const [filtroLog, setFiltroLog] = useState("");
+  const [filtroModulo, setFiltroModulo] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("");
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [sessoes, setSessoes] = useState<SessaoUsuario[]>([]);
   const [statusSEFAZ, setStatusSEFAZ] = useState<StatusSEFAZ[]>([]);
 
-  const logsFiltrados = logs.filter(log => {
-    const matchTexto = log.acao.toLowerCase().includes(filtroLog.toLowerCase()) ||
-                      log.detalhes.toLowerCase().includes(filtroLog.toLowerCase()) ||
-                      log.usuario.toLowerCase().includes(filtroLog.toLowerCase());
+  const logsFiltrados = logs.filter((log) => {
+    const matchTexto =
+      log.acao.toLowerCase().includes(filtroLog.toLowerCase()) ||
+      log.detalhes.toLowerCase().includes(filtroLog.toLowerCase()) ||
+      log.usuario.toLowerCase().includes(filtroLog.toLowerCase());
     const matchModulo = !filtroModulo || log.modulo === filtroModulo;
     const matchStatus = !filtroStatus || log.status === filtroStatus;
-    
+
     return matchTexto && matchModulo && matchStatus;
   });
 
@@ -111,7 +114,7 @@ export function SegurancaAuditoria() {
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <select
             value={filtroModulo}
             onChange={(e) => setFiltroModulo(e.target.value)}
@@ -124,7 +127,7 @@ export function SegurancaAuditoria() {
             <option value="Eventos">Eventos</option>
             <option value="Sistema">Sistema</option>
           </select>
-          
+
           <select
             value={filtroStatus}
             onChange={(e) => setFiltroStatus(e.target.value)}
@@ -135,7 +138,7 @@ export function SegurancaAuditoria() {
             <option value="Erro">Erro</option>
             <option value="Aviso">Aviso</option>
           </select>
-          
+
           <input
             type="date"
             defaultValue="2024-01-15"
@@ -146,34 +149,42 @@ export function SegurancaAuditoria() {
         {/* Lista de logs */}
         <div className="space-y-3">
           {logsFiltrados.map((log) => (
-            <div key={log.id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <div
+              key={log.id}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+            >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-sm text-gray-500">{log.timestamp}</span>
+                    <span className="text-sm text-gray-500">
+                      {log.timestamp}
+                    </span>
                     <Badge variant="outline">{log.modulo}</Badge>
-                    <Badge variant={
-                      log.status === 'Sucesso' ? 'success' :
-                      log.status === 'Erro' ? 'destructive' : 'secondary'
-                    }>
+                    <Badge
+                      variant={
+                        log.status === "Sucesso"
+                          ? "success"
+                          : log.status === "Erro"
+                            ? "destructive"
+                            : "secondary"
+                      }
+                    >
                       {log.status}
                     </Badge>
                   </div>
-                  
+
                   <div className="mb-2">
                     <span className="font-medium">{log.acao}</span>
-                    <span className="text-gray-600 ml-2">por {log.usuario}</span>
+                    <span className="text-gray-600 ml-2">
+                      por {log.usuario}
+                    </span>
                   </div>
-                  
-                  <div className="text-sm text-gray-600">
-                    {log.detalhes}
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 mt-1">
-                    IP: {log.ip}
-                  </div>
+
+                  <div className="text-sm text-gray-600">{log.detalhes}</div>
+
+                  <div className="text-xs text-gray-500 mt-1">IP: {log.ip}</div>
                 </div>
-                
+
                 <button className="flex items-center gap-1 px-3 py-1 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 text-sm">
                   <Eye className="h-3 w-3" />
                   Detalhes
@@ -211,16 +222,23 @@ export function SegurancaAuditoria() {
 
         <div className="space-y-4">
           {sessoes.map((sessao) => (
-            <div key={sessao.id} className="p-4 border border-gray-200 rounded-lg">
+            <div
+              key={sessao.id}
+              className="p-4 border border-gray-200 rounded-lg"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h4 className="font-medium">{sessao.usuario}</h4>
-                    <Badge variant={sessao.status === 'Ativa' ? 'success' : 'secondary'}>
+                    <Badge
+                      variant={
+                        sessao.status === "Ativa" ? "success" : "secondary"
+                      }
+                    >
                       {sessao.status}
                     </Badge>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                     <div>
                       <span>IP: </span>
@@ -232,22 +250,24 @@ export function SegurancaAuditoria() {
                     </div>
                     <div>
                       <span>Última atividade: </span>
-                      <span className="font-medium">{sessao.ultimaAtividade}</span>
+                      <span className="font-medium">
+                        {sessao.ultimaAtividade}
+                      </span>
                     </div>
                   </div>
-                  
+
                   <div className="text-sm text-gray-600 mt-2">
                     <span>Dispositivo: </span>
                     <span className="font-medium">{sessao.dispositivo}</span>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2 ml-4">
                   <button className="flex items-center gap-1 px-3 py-1 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 text-sm">
                     <Eye className="h-3 w-3" />
                     Detalhes
                   </button>
-                  {sessao.status === 'Ativa' && (
+                  {sessao.status === "Ativa" && (
                     <button className="flex items-center gap-1 px-3 py-1 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 text-sm">
                       <Lock className="h-3 w-3" />
                       Encerrar
@@ -261,8 +281,10 @@ export function SegurancaAuditoria() {
       </Card>
 
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-6">Configurações de Segurança</h3>
-        
+        <h3 className="text-lg font-semibold mb-6">
+          Configurações de Segurança
+        </h3>
+
         <div className="space-y-6">
           <div className="p-4 border border-gray-200 rounded-lg">
             <div className="flex items-center justify-between mb-4">
@@ -302,7 +324,11 @@ export function SegurancaAuditoria() {
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium">Auditoria Completa</h4>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="sr-only peer"
+                />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
@@ -319,7 +345,7 @@ export function SegurancaAuditoria() {
     <div className="space-y-6">
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-6">Status do Backup</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="p-4 bg-green-50 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -329,7 +355,7 @@ export function SegurancaAuditoria() {
             <div className="text-2xl font-bold text-green-600">15/01/2024</div>
             <div className="text-sm text-green-600">02:00 - 245 MB</div>
           </div>
-          
+
           <div className="p-4 bg-blue-50 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="h-5 w-5 text-blue-600" />
@@ -338,7 +364,7 @@ export function SegurancaAuditoria() {
             <div className="text-2xl font-bold text-blue-600">16/01/2024</div>
             <div className="text-sm text-blue-600">02:00 - Automático</div>
           </div>
-          
+
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <HardDrive className="h-5 w-5 text-gray-600" />
@@ -351,18 +377,46 @@ export function SegurancaAuditoria() {
 
         <div className="space-y-4">
           <h4 className="font-medium">Histórico de Backups</h4>
-          
+
           {[
-            { data: '15/01/2024 02:00', tamanho: '245 MB', status: 'Sucesso', tipo: 'Automático' },
-            { data: '14/01/2024 02:00', tamanho: '243 MB', status: 'Sucesso', tipo: 'Automático' },
-            { data: '13/01/2024 15:30', tamanho: '240 MB', status: 'Sucesso', tipo: 'Manual' },
-            { data: '13/01/2024 02:00', tamanho: '238 MB', status: 'Erro', tipo: 'Automático' },
-            { data: '12/01/2024 02:00', tamanho: '235 MB', status: 'Sucesso', tipo: 'Automático' }
+            {
+              data: "15/01/2024 02:00",
+              tamanho: "245 MB",
+              status: "Sucesso",
+              tipo: "Automático",
+            },
+            {
+              data: "14/01/2024 02:00",
+              tamanho: "243 MB",
+              status: "Sucesso",
+              tipo: "Automático",
+            },
+            {
+              data: "13/01/2024 15:30",
+              tamanho: "240 MB",
+              status: "Sucesso",
+              tipo: "Manual",
+            },
+            {
+              data: "13/01/2024 02:00",
+              tamanho: "238 MB",
+              status: "Erro",
+              tipo: "Automático",
+            },
+            {
+              data: "12/01/2024 02:00",
+              tamanho: "235 MB",
+              status: "Sucesso",
+              tipo: "Automático",
+            },
           ].map((backup, index) => (
-            <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+            <div
+              key={index}
+              className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+            >
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  {backup.status === 'Sucesso' ? (
+                  {backup.status === "Sucesso" ? (
                     <CheckCircle className="h-4 w-4 text-green-600" />
                   ) : (
                     <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -372,7 +426,7 @@ export function SegurancaAuditoria() {
                 <Badge variant="outline">{backup.tipo}</Badge>
                 <span className="text-sm text-gray-600">{backup.tamanho}</span>
               </div>
-              
+
               <div className="flex gap-2">
                 <button className="flex items-center gap-1 px-3 py-1 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 text-sm">
                   <Download className="h-3 w-3" />
@@ -410,7 +464,7 @@ export function SegurancaAuditoria() {
             <div className="text-2xl font-bold text-green-600">8</div>
             <div className="text-sm text-green-600">serviços</div>
           </div>
-          
+
           <div className="p-4 bg-yellow-50 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="h-5 w-5 text-yellow-600" />
@@ -419,7 +473,7 @@ export function SegurancaAuditoria() {
             <div className="text-2xl font-bold text-yellow-600">2</div>
             <div className="text-sm text-yellow-600">serviços</div>
           </div>
-          
+
           <div className="p-4 bg-red-50 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <WifiOff className="h-5 w-5 text-red-600" />
@@ -436,30 +490,40 @@ export function SegurancaAuditoria() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    {status.status === 'Online' ? (
+                    {status.status === "Online" ? (
                       <Wifi className="h-4 w-4 text-green-600" />
-                    ) : status.status === 'Instável' ? (
+                    ) : status.status === "Instável" ? (
                       <AlertTriangle className="h-4 w-4 text-yellow-600" />
                     ) : (
                       <WifiOff className="h-4 w-4 text-red-600" />
                     )}
-                    <Badge variant={
-                      status.status === 'Online' ? 'success' :
-                      status.status === 'Instável' ? 'secondary' : 'destructive'
-                    }>
+                    <Badge
+                      variant={
+                        status.status === "Online"
+                          ? "success"
+                          : status.status === "Instável"
+                            ? "secondary"
+                            : "destructive"
+                      }
+                    >
                       {status.status}
                     </Badge>
                   </div>
-                  
+
                   <div>
-                    <span className="font-medium">{status.uf} - {status.servico}</span>
+                    <span className="font-medium">
+                      {status.uf} - {status.servico}
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="text-right text-sm text-gray-600">
                   <div>Última verificação: {status.ultimaVerificacao}</div>
                   <div>
-                    Tempo resposta: {status.tempoResposta > 0 ? `${status.tempoResposta}ms` : 'N/A'}
+                    Tempo resposta:{" "}
+                    {status.tempoResposta > 0
+                      ? `${status.tempoResposta}ms`
+                      : "N/A"}
                   </div>
                 </div>
               </div>
@@ -469,20 +533,28 @@ export function SegurancaAuditoria() {
       </Card>
 
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-6">Configurações de Monitoramento</h3>
-        
+        <h3 className="text-lg font-semibold mb-6">
+          Configurações de Monitoramento
+        </h3>
+
         <div className="space-y-6">
           <div className="p-4 border border-gray-200 rounded-lg">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium">Verificação Automática</h4>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="sr-only peer"
+                />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Intervalo:</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Intervalo:
+                </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                   <option value="5">5 minutos</option>
                   <option value="10">10 minutos</option>
@@ -491,7 +563,9 @@ export function SegurancaAuditoria() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Timeout:</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Timeout:
+                </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                   <option value="10">10 segundos</option>
                   <option value="30">30 segundos</option>
@@ -505,7 +579,11 @@ export function SegurancaAuditoria() {
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium">Alertas de Indisponibilidade</h4>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="sr-only peer"
+                />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
@@ -546,44 +624,44 @@ export function SegurancaAuditoria() {
         <div className="mb-6">
           <nav className="flex space-x-8">
             <button
-              onClick={() => setAbaAtiva('logs')}
+              onClick={() => setAbaAtiva("logs")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'logs'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "logs"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <Activity className="h-4 w-4 inline mr-2" />
               Logs
             </button>
             <button
-              onClick={() => setAbaAtiva('sessoes')}
+              onClick={() => setAbaAtiva("sessoes")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'sessoes'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "sessoes"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <Users className="h-4 w-4 inline mr-2" />
               Sessões
             </button>
             <button
-              onClick={() => setAbaAtiva('backup')}
+              onClick={() => setAbaAtiva("backup")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'backup'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "backup"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <HardDrive className="h-4 w-4 inline mr-2" />
               Backup
             </button>
             <button
-              onClick={() => setAbaAtiva('monitoramento')}
+              onClick={() => setAbaAtiva("monitoramento")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'monitoramento'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "monitoramento"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <Monitor className="h-4 w-4 inline mr-2" />
@@ -593,10 +671,10 @@ export function SegurancaAuditoria() {
         </div>
 
         {/* Conteúdo das abas */}
-        {abaAtiva === 'logs' && renderLogs()}
-        {abaAtiva === 'sessoes' && renderSessoes()}
-        {abaAtiva === 'backup' && renderBackup()}
-        {abaAtiva === 'monitoramento' && renderMonitoramento()}
+        {abaAtiva === "logs" && renderLogs()}
+        {abaAtiva === "sessoes" && renderSessoes()}
+        {abaAtiva === "backup" && renderBackup()}
+        {abaAtiva === "monitoramento" && renderMonitoramento()}
       </div>
     </div>
   );

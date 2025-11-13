@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { cn } from '../../lib/utils';
-import { X } from 'lucide-react';
+import React, { useEffect } from "react";
+import { cn } from "../../lib/utils";
+import { X } from "lucide-react";
 
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export interface ModalHeaderProps {
@@ -26,10 +26,10 @@ export interface ModalFooterProps {
 }
 
 const sizeClasses = {
-  sm: 'max-w-md',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
+  sm: "max-w-md",
+  md: "max-w-lg",
+  lg: "max-w-2xl",
+  xl: "max-w-4xl",
 };
 
 const Modal: React.FC<ModalProps> = ({
@@ -37,23 +37,23 @@ const Modal: React.FC<ModalProps> = ({
   onClose,
   children,
   className,
-  size = 'md',
+  size = "md",
 }) => {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
 
@@ -66,13 +66,13 @@ const Modal: React.FC<ModalProps> = ({
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div
         className={cn(
           "relative w-full mx-4 bg-background rounded-lg shadow-lg border",
           sizeClasses[size],
-          className
+          className,
         )}
         onClick={(e) => e.stopPropagation()}
       >
@@ -84,7 +84,7 @@ const Modal: React.FC<ModalProps> = ({
           <X className="h-4 w-4" />
           <span className="sr-only">Fechar</span>
         </button>
-        
+
         {children}
       </div>
     </div>
@@ -100,16 +100,17 @@ const ModalHeader: React.FC<ModalHeaderProps> = ({ children, className }) => {
 };
 
 const ModalBody: React.FC<ModalBodyProps> = ({ children, className }) => {
-  return (
-    <div className={cn("p-6 pt-0", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("p-6 pt-0", className)}>{children}</div>;
 };
 
 const ModalFooter: React.FC<ModalFooterProps> = ({ children, className }) => {
   return (
-    <div className={cn("flex items-center justify-end space-x-2 p-6 pt-4 border-t", className)}>
+    <div
+      className={cn(
+        "flex items-center justify-end space-x-2 p-6 pt-4 border-t",
+        className,
+      )}
+    >
       {children}
     </div>
   );

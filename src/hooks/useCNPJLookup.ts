@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
-import { cnpjService, CNPJData, CEPData } from '../services/cnpjService';
-import { validarCNPJ, validarCEP } from '../utils/validations';
+import { useState, useCallback, useEffect } from "react";
+import { cnpjService, CNPJData, CEPData } from "../services/cnpjService";
+import { validarCNPJ, validarCEP } from "../utils/validations";
 
 interface UseCNPJLookupOptions {
   autoSearch?: boolean;
@@ -20,57 +20,61 @@ export const useCNPJLookup = (options: UseCNPJLookupOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<CNPJData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [lastSearchedCNPJ, setLastSearchedCNPJ] = useState<string>('');
+  const [lastSearchedCNPJ, setLastSearchedCNPJ] = useState<string>("");
 
   const {
     autoSearch = true,
     debounceMs = 1000,
     onDataFound,
-    onError
+    onError,
   } = options;
 
-  const searchCNPJ = useCallback(async (cnpj: string): Promise<CNPJData | null> => {
-    if (!cnpj || !validarCNPJ(cnpj)) {
-      setError('CNPJ inválido');
-      return null;
-    }
-
-    // Evita buscar o mesmo CNPJ novamente
-    if (cnpj === lastSearchedCNPJ && data) {
-      return data;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setLastSearchedCNPJ(cnpj);
-
-    try {
-      const result = await cnpjService.buscarDadosCNPJ(cnpj);
-      setData(result);
-      
-      if (result && onDataFound) {
-        onDataFound(result);
+  const searchCNPJ = useCallback(
+    async (cnpj: string): Promise<CNPJData | null> => {
+      if (!cnpj || !validarCNPJ(cnpj)) {
+        setError("CNPJ inválido");
+        return null;
       }
-      
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar dados do CNPJ';
-      setError(errorMessage);
-      
-      if (onError) {
-        onError(errorMessage);
+
+      // Evita buscar o mesmo CNPJ novamente
+      if (cnpj === lastSearchedCNPJ && data) {
+        return data;
       }
-      
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [lastSearchedCNPJ, data, onDataFound, onError]);
+
+      setIsLoading(true);
+      setError(null);
+      setLastSearchedCNPJ(cnpj);
+
+      try {
+        const result = await cnpjService.buscarDadosCNPJ(cnpj);
+        setData(result);
+
+        if (result && onDataFound) {
+          onDataFound(result);
+        }
+
+        return result;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Erro ao buscar dados do CNPJ";
+        setError(errorMessage);
+
+        if (onError) {
+          onError(errorMessage);
+        }
+
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [lastSearchedCNPJ, data, onDataFound, onError],
+  );
 
   const debouncedSearch = useCallback(
     (() => {
       let timeoutId: NodeJS.Timeout;
-      
+
       return (cnpj: string) => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
@@ -80,14 +84,14 @@ export const useCNPJLookup = (options: UseCNPJLookupOptions = {}) => {
         }, debounceMs);
       };
     })(),
-    [autoSearch, debounceMs, searchCNPJ]
+    [autoSearch, debounceMs, searchCNPJ],
   );
 
   const reset = useCallback(() => {
     setData(null);
     setError(null);
     setIsLoading(false);
-    setLastSearchedCNPJ('');
+    setLastSearchedCNPJ("");
   }, []);
 
   return {
@@ -96,7 +100,7 @@ export const useCNPJLookup = (options: UseCNPJLookupOptions = {}) => {
     isLoading,
     data,
     error,
-    reset
+    reset,
   };
 };
 
@@ -104,57 +108,56 @@ export const useCEPLookup = (options: UseCEPLookupOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<CEPData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [lastSearchedCEP, setLastSearchedCEP] = useState<string>('');
+  const [lastSearchedCEP, setLastSearchedCEP] = useState<string>("");
 
-  const {
-    autoSearch = true,
-    debounceMs = 800,
-    onDataFound,
-    onError
-  } = options;
+  const { autoSearch = true, debounceMs = 800, onDataFound, onError } = options;
 
-  const searchCEP = useCallback(async (cep: string): Promise<CEPData | null> => {
-    if (!cep || !validarCEP(cep)) {
-      setError('CEP inválido');
-      return null;
-    }
-
-    // Evita buscar o mesmo CEP novamente
-    if (cep === lastSearchedCEP && data) {
-      return data;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setLastSearchedCEP(cep);
-
-    try {
-      const result = await cnpjService.buscarDadosCEP(cep);
-      setData(result);
-      
-      if (result && onDataFound) {
-        onDataFound(result);
+  const searchCEP = useCallback(
+    async (cep: string): Promise<CEPData | null> => {
+      if (!cep || !validarCEP(cep)) {
+        setError("CEP inválido");
+        return null;
       }
-      
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar dados do CEP';
-      setError(errorMessage);
-      
-      if (onError) {
-        onError(errorMessage);
+
+      // Evita buscar o mesmo CEP novamente
+      if (cep === lastSearchedCEP && data) {
+        return data;
       }
-      
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [lastSearchedCEP, data, onDataFound, onError]);
+
+      setIsLoading(true);
+      setError(null);
+      setLastSearchedCEP(cep);
+
+      try {
+        const result = await cnpjService.buscarDadosCEP(cep);
+        setData(result);
+
+        if (result && onDataFound) {
+          onDataFound(result);
+        }
+
+        return result;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Erro ao buscar dados do CEP";
+        setError(errorMessage);
+
+        if (onError) {
+          onError(errorMessage);
+        }
+
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [lastSearchedCEP, data, onDataFound, onError],
+  );
 
   const debouncedSearch = useCallback(
     (() => {
       let timeoutId: NodeJS.Timeout;
-      
+
       return (cep: string) => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
@@ -164,14 +167,14 @@ export const useCEPLookup = (options: UseCEPLookupOptions = {}) => {
         }, debounceMs);
       };
     })(),
-    [autoSearch, debounceMs, searchCEP]
+    [autoSearch, debounceMs, searchCEP],
   );
 
   const reset = useCallback(() => {
     setData(null);
     setError(null);
     setIsLoading(false);
-    setLastSearchedCEP('');
+    setLastSearchedCEP("");
   }, []);
 
   return {
@@ -180,7 +183,7 @@ export const useCEPLookup = (options: UseCEPLookupOptions = {}) => {
     isLoading,
     data,
     error,
-    reset
+    reset,
   };
 };
 

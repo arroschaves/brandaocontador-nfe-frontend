@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   FileText,
   CheckCircle,
@@ -19,13 +19,21 @@ import {
   Calendar,
   Users,
   Shield,
-  Zap
-} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { nfeService, api } from '../services/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, StatsCard, MetricCard } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge, StatusBadge } from '../components/ui/badge';
+  Zap,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { nfeService, api } from "../services/api";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  StatsCard,
+  MetricCard,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge, StatusBadge } from "../components/ui/badge";
 
 interface DashboardStats {
   total: number;
@@ -40,36 +48,34 @@ interface RecentNFe {
   numero: string;
   destinatario: string;
   valor: number;
-  status: 'emitida' | 'pendente' | 'cancelada';
+  status: "emitida" | "pendente" | "cancelada";
   dataEmissao: string;
 }
 
 interface SystemStatus {
-  sefaz: 'online' | 'offline';
-  database: 'online' | 'offline';
-  api: 'online' | 'offline';
+  sefaz: "online" | "offline";
+  database: "online" | "offline";
+  api: "online" | "offline";
 }
 
 const Dashboard: React.FC = () => {
   const { user, checkPermission } = useAuth();
-  
-
 
   const [stats, setStats] = useState<DashboardStats>({
     total: 0,
     emitidas: 0,
     canceladas: 0,
     pendentes: 0,
-    valorTotal: 0
+    valorTotal: 0,
   });
   const [recentNfes, setRecentNfes] = useState<RecentNFe[]>([]);
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
-    sefaz: 'online',
-    database: 'online',
-    api: 'online'
+    sefaz: "online",
+    database: "online",
+    api: "online",
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     loadDashboardData();
@@ -78,35 +84,39 @@ const Dashboard: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      setError('');
-      
+      setError("");
+
       // Buscar histórico de NFes, status do sistema e health público
       const [histResp, statusResp, healthResp] = await Promise.all([
-        nfeService.historico({ page: 1, limit: 10 }).catch(() => ({ data: { data: {} } })),
+        nfeService
+          .historico({ page: 1, limit: 10 })
+          .catch(() => ({ data: { data: {} } })),
         nfeService.status().catch(() => ({ data: {} })),
-        api.get('/api/health').catch(() => ({ data: {} }))
+        api.get("/api/health").catch(() => ({ data: {} })),
       ]);
 
       // Mapear NFes recentes - com fallback para estruturas diferentes de resposta
       const histData = histResp?.data?.data || histResp?.data || {};
       const nfes = histData.nfes || [];
-      
-      const recent = nfes.map((item: any) => ({
-        id: item.id?.toString?.() || String(item.id),
-        numero: item.numero || item.numero,
-        destinatario: item.destinatario_nome || item.destinatario,
-        valor: Number(item.valor_total || item.valor || 0) || 0,
-        status: item.status === 'autorizada' ? 'emitida' : item.status,
-        dataEmissao: item.data_emissao || item.dataEmissao
-      })).filter((nfe) => nfe.numero && nfe.id);
+
+      const recent = nfes
+        .map((item: any) => ({
+          id: item.id?.toString?.() || String(item.id),
+          numero: item.numero || item.numero,
+          destinatario: item.destinatario_nome || item.destinatario,
+          valor: Number(item.valor_total || item.valor || 0) || 0,
+          status: item.status === "autorizada" ? "emitida" : item.status,
+          dataEmissao: item.data_emissao || item.dataEmissao,
+        }))
+        .filter((nfe) => nfe.numero && nfe.id);
 
       setRecentNfes(recent);
 
       // Calcular estatísticas a partir do histórico
       const total = histData.pagination?.totalItems ?? recent.length ?? 0;
-      const emitidas = recent.filter((n) => n.status === 'emitida').length;
-      const canceladas = recent.filter((n) => n.status === 'cancelada').length;
-      const pendentes = recent.filter((n) => n.status === 'pendente').length;
+      const emitidas = recent.filter((n) => n.status === "emitida").length;
+      const canceladas = recent.filter((n) => n.status === "cancelada").length;
+      const pendentes = recent.filter((n) => n.status === "pendente").length;
       const valorTotal = recent.reduce((sum, n) => sum + (n.valor || 0), 0);
 
       setStats({
@@ -114,23 +124,25 @@ const Dashboard: React.FC = () => {
         emitidas,
         canceladas,
         pendentes,
-        valorTotal
+        valorTotal,
       });
 
       // Mapear status do sistema - com fallbacks
-      const sefazStatus = statusResp?.data?.dados?.status || statusResp?.data?.status;
+      const sefazStatus =
+        statusResp?.data?.dados?.status || statusResp?.data?.status;
       const sefazOnline = sefazStatus?.sefaz?.disponivel ?? true; // Assume online se não responder
-      const dbConnected = (healthResp?.data?.bancoDados === 'conectado' || healthResp?.data?.status === 'ok');
-      const apiOnline = (healthResp?.data?.status === 'ok');
+      const dbConnected =
+        healthResp?.data?.bancoDados === "conectado" ||
+        healthResp?.data?.status === "ok";
+      const apiOnline = healthResp?.data?.status === "ok";
 
       setSystemStatus({
-        sefaz: sefazOnline ? 'online' : 'offline',
-        database: dbConnected ? 'online' : 'offline',
-        api: apiOnline ? 'online' : 'offline'
+        sefaz: sefazOnline ? "online" : "offline",
+        database: dbConnected ? "online" : "offline",
+        api: apiOnline ? "online" : "offline",
       });
-      
     } catch (error) {
-      console.error('Erro ao carregar dashboard:', error);
+      console.error("Erro ao carregar dashboard:", error);
       // Não define erro para permitir exibição do dashboard com dados vazios
       setRecentNfes([]);
       setStats({
@@ -138,7 +150,7 @@ const Dashboard: React.FC = () => {
         emitidas: 0,
         canceladas: 0,
         pendentes: 0,
-        valorTotal: 0
+        valorTotal: 0,
       });
     } finally {
       setLoading(false);
@@ -172,11 +184,11 @@ const Dashboard: React.FC = () => {
                 Bem-vindo, {user?.nome}
               </p>
               <p className="text-primary-foreground/60 text-sm mt-1">
-                {new Date().toLocaleDateString('pt-BR', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                {new Date().toLocaleDateString("pt-BR", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 })}
               </p>
             </div>
@@ -186,11 +198,13 @@ const Dashboard: React.FC = () => {
                 <span className="text-sm font-medium">Sistema Online</span>
               </div>
               <div className="text-right">
-                <p className="text-sm text-primary-foreground/60">Último acesso</p>
+                <p className="text-sm text-primary-foreground/60">
+                  Último acesso
+                </p>
                 <p className="text-sm font-medium">
-                  {new Date().toLocaleTimeString('pt-BR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  {new Date().toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </p>
               </div>
@@ -224,8 +238,12 @@ const Dashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {hasPermission('nfe.emitir') && (
-              <Button asChild size="lg" className="h-auto p-6 flex-col space-y-2">
+            {hasPermission("nfe.emitir") && (
+              <Button
+                asChild
+                size="lg"
+                className="h-auto p-6 flex-col space-y-2"
+              >
                 <Link to="/emitir-nfe">
                   <Plus className="h-8 w-8" />
                   <span className="font-medium">Emitir NFe</span>
@@ -233,8 +251,13 @@ const Dashboard: React.FC = () => {
                 </Link>
               </Button>
             )}
-            {hasPermission('nfe.consultar') && (
-              <Button asChild variant="outline" size="lg" className="h-auto p-6 flex-col space-y-2">
+            {hasPermission("nfe.consultar") && (
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-auto p-6 flex-col space-y-2"
+              >
                 <Link to="/historico">
                   <History className="h-8 w-8" />
                   <span className="font-medium">Histórico</span>
@@ -242,15 +265,25 @@ const Dashboard: React.FC = () => {
                 </Link>
               </Button>
             )}
-            <Button asChild variant="outline" size="lg" className="h-auto p-6 flex-col space-y-2">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="h-auto p-6 flex-col space-y-2"
+            >
               <Link to="/relatorios">
                 <BarChart3 className="h-8 w-8" />
                 <span className="font-medium">Relatórios</span>
                 <span className="text-xs opacity-80">Análises fiscais</span>
               </Link>
             </Button>
-            {hasPermission('configuracoes.editar') && (
-              <Button asChild variant="outline" size="lg" className="h-auto p-6 flex-col space-y-2">
+            {hasPermission("configuracoes.editar") && (
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-auto p-6 flex-col space-y-2"
+              >
                 <Link to="/configuracoes">
                   <Settings className="h-8 w-8" />
                   <span className="font-medium">Configurações</span>
@@ -279,23 +312,31 @@ const Dashboard: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    {systemStatus.sefaz === 'online' ? (
+                    {systemStatus.sefaz === "online" ? (
                       <Wifi className="h-5 w-5 text-success" />
                     ) : (
                       <WifiOff className="h-5 w-5 text-destructive" />
                     )}
                     <div>
                       <p className="font-medium">SEFAZ</p>
-                      <p className="text-xs text-muted-foreground">Receita Federal</p>
+                      <p className="text-xs text-muted-foreground">
+                        Receita Federal
+                      </p>
                     </div>
                   </div>
-                  <Badge variant={systemStatus.sefaz === 'online' ? 'success' : 'destructive'}>
-                    {systemStatus.sefaz === 'online' ? 'Online' : 'Offline'}
+                  <Badge
+                    variant={
+                      systemStatus.sefaz === "online"
+                        ? "success"
+                        : "destructive"
+                    }
+                  >
+                    {systemStatus.sefaz === "online" ? "Online" : "Offline"}
                   </Badge>
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="border-0 bg-muted/30">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -303,16 +344,24 @@ const Dashboard: React.FC = () => {
                     <Server className="h-5 w-5 text-success" />
                     <div>
                       <p className="font-medium">Banco de Dados</p>
-                      <p className="text-xs text-muted-foreground">PostgreSQL</p>
+                      <p className="text-xs text-muted-foreground">
+                        PostgreSQL
+                      </p>
                     </div>
                   </div>
-                  <Badge variant={systemStatus.database === 'online' ? 'success' : 'destructive'}>
-                    {systemStatus.database === 'online' ? 'Online' : 'Offline'}
+                  <Badge
+                    variant={
+                      systemStatus.database === "online"
+                        ? "success"
+                        : "destructive"
+                    }
+                  >
+                    {systemStatus.database === "online" ? "Online" : "Offline"}
                   </Badge>
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="border-0 bg-muted/30">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -323,8 +372,12 @@ const Dashboard: React.FC = () => {
                       <p className="text-xs text-muted-foreground">Backend</p>
                     </div>
                   </div>
-                  <Badge variant={systemStatus.api === 'online' ? 'success' : 'destructive'}>
-                    {systemStatus.api === 'online' ? 'Online' : 'Offline'}
+                  <Badge
+                    variant={
+                      systemStatus.api === "online" ? "success" : "destructive"
+                    }
+                  >
+                    {systemStatus.api === "online" ? "Online" : "Offline"}
                   </Badge>
                 </div>
               </CardContent>
@@ -349,7 +402,7 @@ const Dashboard: React.FC = () => {
           description="Autorizadas pela SEFAZ"
           icon={CheckCircle}
           variant="success"
-          trend={stats.emitidas > 0 ? 'up' : undefined}
+          trend={stats.emitidas > 0 ? "up" : undefined}
         />
 
         <StatsCard
@@ -370,14 +423,14 @@ const Dashboard: React.FC = () => {
 
         <StatsCard
           title="Valor Total"
-          value={new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
+          value={new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
           }).format(stats.valorTotal)}
           description="Faturamento acumulado"
           icon={DollarSign}
           variant="default"
-          trend={stats.valorTotal > 0 ? 'up' : undefined}
+          trend={stats.valorTotal > 0 ? "up" : undefined}
         />
       </div>
 
@@ -406,9 +459,7 @@ const Dashboard: React.FC = () => {
               </CardDescription>
             </div>
             <Button asChild variant="outline" size="sm">
-              <Link to="/historico">
-                Ver todas
-              </Link>
+              <Link to="/historico">Ver todas</Link>
             </Button>
           </div>
         </CardHeader>
@@ -430,14 +481,18 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
-                      <div className={`p-2 rounded-lg ${
-                        nfe.status === 'emitida' ? 'bg-green-100' :
-                        nfe.status === 'cancelada' ? 'bg-red-100' :
-                        'bg-yellow-100'
-                      }`}>
-                        {nfe.status === 'emitida' ? (
+                      <div
+                        className={`p-2 rounded-lg ${
+                          nfe.status === "emitida"
+                            ? "bg-green-100"
+                            : nfe.status === "cancelada"
+                              ? "bg-red-100"
+                              : "bg-yellow-100"
+                        }`}
+                      >
+                        {nfe.status === "emitida" ? (
                           <CheckCircle className="h-5 w-5 text-green-600" />
-                        ) : nfe.status === 'cancelada' ? (
+                        ) : nfe.status === "cancelada" ? (
                           <AlertCircle className="h-5 w-5 text-red-600" />
                         ) : (
                           <Clock className="h-5 w-5 text-yellow-600" />
@@ -445,16 +500,20 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">NFe {nfe.numero}</p>
-                      <p className="text-sm text-gray-600">{nfe.destinatario}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        NFe {nfe.numero}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {nfe.destinatario}
+                      </p>
                       <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                         <Calendar className="h-3 w-3" />
-                        {new Date(nfe.dataEmissao).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
+                        {new Date(nfe.dataEmissao).toLocaleDateString("pt-BR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </p>
                     </div>
@@ -462,9 +521,9 @@ const Dashboard: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
                       <p className="text-sm font-medium text-gray-900">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
                         }).format(nfe.valor)}
                       </p>
                       <StatusBadge status={nfe.status} />
@@ -482,7 +541,5 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
-
-
 
 export default Dashboard;

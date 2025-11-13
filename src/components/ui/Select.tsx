@@ -1,18 +1,21 @@
-import * as React from "react"
-import { ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface SelectProps
   extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string
-  error?: string
-  helperText?: string
-  options: Array<{ value: string; label: string; disabled?: boolean }>
-  placeholder?: string
+  label?: string;
+  error?: string;
+  helperText?: string;
+  options: Array<{ value: string; label: string; disabled?: boolean }>;
+  placeholder?: string;
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, helperText, options, placeholder, ...props }, ref) => {
+  (
+    { className, label, error, helperText, options, placeholder, ...props },
+    ref,
+  ) => {
     return (
       <div className="space-y-2">
         {label && (
@@ -26,7 +29,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             className={cn(
               "flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none transition-colors",
               error && "border-destructive focus-visible:ring-destructive",
-              className
+              className,
             )}
             ref={ref}
             {...props}
@@ -37,8 +40,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             )}
             {options.map((option) => (
-              <option 
-                key={option.value} 
+              <option
+                key={option.value}
                 value={option.value}
                 disabled={option.disabled}
               >
@@ -57,9 +60,9 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           <p className="text-sm text-muted-foreground">{helperText}</p>
         )}
       </div>
-    )
-  }
-)
-Select.displayName = "Select"
+    );
+  },
+);
+Select.displayName = "Select";
 
-export { Select }
+export { Select };

@@ -1,8 +1,8 @@
-import React from 'react';
-import { Loader2 } from 'lucide-react';
+import React from "react";
+import { Loader2 } from "lucide-react";
 
 interface LoadingProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   text?: string;
   className?: string;
   fullScreen?: boolean;
@@ -10,7 +10,7 @@ interface LoadingProps {
 }
 
 interface SpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 
@@ -21,26 +21,28 @@ interface SkeletonProps {
 }
 
 const Loading: React.FC<LoadingProps> = ({
-  size = 'md',
+  size = "md",
   text,
-  className = '',
+  className = "",
   fullScreen = false,
-  overlay = false
+  overlay = false,
 }) => {
   const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-6 w-6',
-    lg: 'h-8 w-8'
+    sm: "h-4 w-4",
+    md: "h-6 w-6",
+    lg: "h-8 w-8",
   };
 
   const textSizeClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg'
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-lg",
   };
 
   const LoadingContent = () => (
-    <div className={`flex flex-col items-center justify-center space-y-3 ${className}`}>
+    <div
+      className={`flex flex-col items-center justify-center space-y-3 ${className}`}
+    >
       <Loader2 className={`${sizeClasses[size]} animate-spin text-blue-600`} />
       {text && (
         <p className={`${textSizeClasses[size]} text-gray-600 font-medium`}>
@@ -69,11 +71,11 @@ const Loading: React.FC<LoadingProps> = ({
   return <LoadingContent />;
 };
 
-const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className = '' }) => {
+const Spinner: React.FC<SpinnerProps> = ({ size = "md", className = "" }) => {
   const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-5 w-5',
-    lg: 'h-6 w-6'
+    sm: "h-4 w-4",
+    md: "h-5 w-5",
+    lg: "h-6 w-6",
   };
 
   return (
@@ -81,10 +83,10 @@ const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className = '' }) => {
   );
 };
 
-const Skeleton: React.FC<SkeletonProps> = ({ 
-  className = '', 
-  lines = 1, 
-  avatar = false 
+const Skeleton: React.FC<SkeletonProps> = ({
+  className = "",
+  lines = 1,
+  avatar = false,
 }) => {
   return (
     <div className={`animate-pulse ${className}`}>
@@ -97,7 +99,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
           </div>
         </div>
       )}
-      
+
       <div className="space-y-3">
         {Array.from({ length: lines }).map((_, index) => (
           <div key={index} className="space-y-2">
@@ -118,29 +120,35 @@ interface TableSkeletonProps {
   className?: string;
 }
 
-const TableSkeleton: React.FC<TableSkeletonProps> = ({ 
-  rows = 5, 
-  columns = 4, 
-  className = '' 
+const TableSkeleton: React.FC<TableSkeletonProps> = ({
+  rows = 5,
+  columns = 4,
+  className = "",
 }) => {
   return (
     <div className={`animate-pulse ${className}`}>
-      <div className="grid gap-4 mb-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+      <div
+        className="grid gap-4 mb-4"
+        style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+      >
         {Array.from({ length: columns }).map((_, index) => (
-          <div key={`header-${index}`} className="h-4 bg-gray-300 rounded"></div>
+          <div
+            key={`header-${index}`}
+            className="h-4 bg-gray-300 rounded"
+          ></div>
         ))}
       </div>
-      
+
       <div className="space-y-3">
         {Array.from({ length: rows }).map((_, rowIndex) => (
-          <div 
-            key={`row-${rowIndex}`} 
-            className="grid gap-4" 
+          <div
+            key={`row-${rowIndex}`}
+            className="grid gap-4"
             style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
           >
             {Array.from({ length: columns }).map((_, colIndex) => (
-              <div 
-                key={`cell-${rowIndex}-${colIndex}`} 
+              <div
+                key={`cell-${rowIndex}-${colIndex}`}
                 className="h-4 bg-gray-200 rounded"
               ></div>
             ))}
@@ -156,9 +164,14 @@ interface CardSkeletonProps {
   className?: string;
 }
 
-const CardSkeleton: React.FC<CardSkeletonProps> = ({ count = 3, className = '' }) => {
+const CardSkeleton: React.FC<CardSkeletonProps> = ({
+  count = 3,
+  className = "",
+}) => {
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}>
+    <div
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}
+    >
       {Array.from({ length: count }).map((_, index) => (
         <div key={index} className="animate-pulse">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -169,13 +182,13 @@ const CardSkeleton: React.FC<CardSkeletonProps> = ({ count = 3, className = '' }
                 <div className="h-3 bg-gray-300 rounded w-1/2"></div>
               </div>
             </div>
-            
+
             <div className="space-y-3">
               <div className="h-4 bg-gray-300 rounded"></div>
               <div className="h-4 bg-gray-300 rounded w-5/6"></div>
               <div className="h-4 bg-gray-300 rounded w-4/6"></div>
             </div>
-            
+
             <div className="mt-6 flex space-x-3">
               <div className="h-8 bg-gray-300 rounded w-20"></div>
               <div className="h-8 bg-gray-300 rounded w-16"></div>
@@ -208,20 +221,13 @@ const useLoading = (initialState = false): UseLoadingReturn => {
   return { loading, setLoading, withLoading };
 };
 
-export { 
-  Loading, 
-  Spinner, 
-  Skeleton, 
-  TableSkeleton, 
-  CardSkeleton, 
-  useLoading 
-};
+export { Loading, Spinner, Skeleton, TableSkeleton, CardSkeleton, useLoading };
 
-export type { 
-  LoadingProps, 
-  SpinnerProps, 
-  SkeletonProps, 
-  TableSkeletonProps, 
+export type {
+  LoadingProps,
+  SpinnerProps,
+  SkeletonProps,
+  TableSkeletonProps,
   CardSkeletonProps,
-  UseLoadingReturn
+  UseLoadingReturn,
 };

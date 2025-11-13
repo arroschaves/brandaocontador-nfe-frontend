@@ -3,30 +3,44 @@
  * Conformidade com legislação 2025/2026
  */
 
-import React, { useState } from 'react';
-import { FormularioMDFe } from '../components/mdfe/FormularioMDFe';
-import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { FileText, ArrowLeft, Download, Send, CheckCircle, AlertTriangle, Truck } from 'lucide-react';
-import { DadosMDFe, calcularMDFe, gerarObservacoesMDFe } from '../utils/calculosMDFe';
+import React, { useState } from "react";
+import { FormularioMDFe } from "../components/mdfe/FormularioMDFe";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import {
+  FileText,
+  ArrowLeft,
+  Download,
+  Send,
+  CheckCircle,
+  AlertTriangle,
+  Truck,
+} from "lucide-react";
+import {
+  DadosMDFe,
+  calcularMDFe,
+  gerarObservacoesMDFe,
+} from "../utils/calculosMDFe";
 
 export function EmitirMDFe() {
-  const [etapa, setEtapa] = useState<'formulario' | 'preview' | 'enviado'>('formulario');
+  const [etapa, setEtapa] = useState<"formulario" | "preview" | "enviado">(
+    "formulario",
+  );
   const [dadosMDFe, setDadosMDFe] = useState<DadosMDFe | null>(null);
   const [calculoResult, setCalculoResult] = useState<any>(null);
   const [enviando, setEnviando] = useState(false);
 
   const handleSubmit = async (dados: DadosMDFe) => {
     setEnviando(true);
-    
+
     try {
       // Simular envio para SEFAZ
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       setDadosMDFe(dados);
-      setEtapa('enviado');
+      setEtapa("enviado");
     } catch (error) {
-      console.error('Erro ao enviar MDFe:', error);
+      console.error("Erro ao enviar MDFe:", error);
     } finally {
       setEnviando(false);
     }
@@ -36,11 +50,11 @@ export function EmitirMDFe() {
     const resultado = calcularMDFe(dados);
     setDadosMDFe(dados);
     setCalculoResult(resultado);
-    setEtapa('preview');
+    setEtapa("preview");
   };
 
   const voltarFormulario = () => {
-    setEtapa('formulario');
+    setEtapa("formulario");
   };
 
   const confirmarEnvio = () => {
@@ -49,7 +63,7 @@ export function EmitirMDFe() {
     }
   };
 
-  if (etapa === 'formulario') {
+  if (etapa === "formulario") {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,7 +73,8 @@ export function EmitirMDFe() {
               Emitir MDFe
             </h1>
             <p className="mt-2 text-gray-600">
-              Manifesto Eletrônico de Documentos Fiscais - Conformidade 2025/2026
+              Manifesto Eletrônico de Documentos Fiscais - Conformidade
+              2025/2026
             </p>
           </div>
 
@@ -69,7 +84,7 @@ export function EmitirMDFe() {
     );
   }
 
-  if (etapa === 'preview' && dadosMDFe && calculoResult) {
+  if (etapa === "preview" && dadosMDFe && calculoResult) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,8 +112,14 @@ export function EmitirMDFe() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Status da Validação</h2>
-                <Badge variant={calculoResult.validacoes.valido ? 'success' : 'destructive'}>
-                  {calculoResult.validacoes.valido ? 'Válido para envio' : 'Contém erros'}
+                <Badge
+                  variant={
+                    calculoResult.validacoes.valido ? "success" : "destructive"
+                  }
+                >
+                  {calculoResult.validacoes.valido
+                    ? "Válido para envio"
+                    : "Contém erros"}
                 </Badge>
               </div>
 
@@ -109,9 +130,11 @@ export function EmitirMDFe() {
                     Erros encontrados:
                   </h3>
                   <ul className="list-disc list-inside text-red-700 text-sm space-y-1">
-                    {calculoResult.validacoes.erros.map((erro: string, index: number) => (
-                      <li key={index}>{erro}</li>
-                    ))}
+                    {calculoResult.validacoes.erros.map(
+                      (erro: string, index: number) => (
+                        <li key={index}>{erro}</li>
+                      ),
+                    )}
                   </ul>
                 </div>
               )}
@@ -120,9 +143,11 @@ export function EmitirMDFe() {
                 <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
                   <h3 className="font-medium text-yellow-900 mb-2">Avisos:</h3>
                   <ul className="list-disc list-inside text-yellow-700 text-sm space-y-1">
-                    {calculoResult.validacoes.avisos.map((aviso: string, index: number) => (
-                      <li key={index}>{aviso}</li>
-                    ))}
+                    {calculoResult.validacoes.avisos.map(
+                      (aviso: string, index: number) => (
+                        <li key={index}>{aviso}</li>
+                      ),
+                    )}
                   </ul>
                 </div>
               )}
@@ -131,11 +156,15 @@ export function EmitirMDFe() {
             {/* Dados do MDFe */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Dados do Transporte</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Dados do Transporte
+                </h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tipo de Emitente:</span>
-                    <span className="font-medium">{dadosMDFe.tipoEmitente}</span>
+                    <span className="font-medium">
+                      {dadosMDFe.tipoEmitente}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Modal:</span>
@@ -143,7 +172,9 @@ export function EmitirMDFe() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tipo de Transporte:</span>
-                    <span className="font-medium">{dadosMDFe.tipoTransporte}</span>
+                    <span className="font-medium">
+                      {dadosMDFe.tipoTransporte}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">UF Início:</span>
@@ -163,19 +194,27 @@ export function EmitirMDFe() {
                     <>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Placa:</span>
-                        <span className="font-medium">{dadosMDFe.veiculo.placa}</span>
+                        <span className="font-medium">
+                          {dadosMDFe.veiculo.placa}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">RENAVAM:</span>
-                        <span className="font-medium">{dadosMDFe.veiculo.renavam}</span>
+                        <span className="font-medium">
+                          {dadosMDFe.veiculo.renavam}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Tara:</span>
-                        <span className="font-medium">{dadosMDFe.veiculo.tara} kg</span>
+                        <span className="font-medium">
+                          {dadosMDFe.veiculo.tara} kg
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Capacidade:</span>
-                        <span className="font-medium">{dadosMDFe.veiculo.capacidadeKg} kg</span>
+                        <span className="font-medium">
+                          {dadosMDFe.veiculo.capacidadeKg} kg
+                        </span>
                       </div>
                     </>
                   )}
@@ -185,7 +224,9 @@ export function EmitirMDFe() {
 
             {/* Documentos vinculados */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Documentos Vinculados</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Documentos Vinculados
+              </h3>
               {dadosMDFe.documentosVinculados.length > 0 ? (
                 <div className="space-y-4">
                   {dadosMDFe.documentosVinculados.map((doc, index) => (
@@ -197,11 +238,15 @@ export function EmitirMDFe() {
                         </div>
                         <div>
                           <span className="text-gray-600">Chave:</span>
-                          <span className="font-mono text-xs ml-2">{doc.chave}</span>
+                          <span className="font-mono text-xs ml-2">
+                            {doc.chave}
+                          </span>
                         </div>
                         <div>
                           <span className="text-gray-600">Valor:</span>
-                          <span className="font-medium ml-2">R$ {doc.valor.toFixed(2)}</span>
+                          <span className="font-medium ml-2">
+                            R$ {doc.valor.toFixed(2)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -219,26 +264,28 @@ export function EmitirMDFe() {
               <h3 className="text-lg font-semibold mb-4">Valores e Impostos</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="text-sm text-blue-600 mb-1">Valor Total da Carga</div>
+                  <div className="text-sm text-blue-600 mb-1">
+                    Valor Total da Carga
+                  </div>
                   <div className="text-xl font-bold text-blue-900">
                     R$ {dadosMDFe.valorTotalCarga.toFixed(2)}
                   </div>
                 </div>
-                
+
                 <div className="p-4 bg-green-50 rounded-lg">
                   <div className="text-sm text-green-600 mb-1">Peso Total</div>
                   <div className="text-xl font-bold text-green-900">
                     {dadosMDFe.pesoTotal.toFixed(3)} kg
                   </div>
                 </div>
-                
+
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <div className="text-sm text-purple-600 mb-1">ICMS</div>
                   <div className="text-xl font-bold text-purple-900">
                     R$ {calculoResult.impostos.icms.toFixed(2)}
                   </div>
                 </div>
-                
+
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <div className="text-sm text-gray-600 mb-1">Total</div>
                   <div className="text-xl font-bold text-gray-900">
@@ -248,7 +295,9 @@ export function EmitirMDFe() {
               </div>
 
               {/* Impostos 2026 */}
-              {(calculoResult.impostos.ibs || calculoResult.impostos.cbs || calculoResult.impostos.is) && (
+              {(calculoResult.impostos.ibs ||
+                calculoResult.impostos.cbs ||
+                calculoResult.impostos.is) && (
                 <div className="mt-6">
                   <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Badge variant="outline">2026</Badge>
@@ -306,7 +355,7 @@ export function EmitirMDFe() {
                     Baixar XML
                   </button>
                 </div>
-                
+
                 <button
                   onClick={confirmarEnvio}
                   disabled={!calculoResult.validacoes.valido || enviando}
@@ -332,7 +381,7 @@ export function EmitirMDFe() {
     );
   }
 
-  if (etapa === 'enviado') {
+  if (etapa === "enviado") {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -340,17 +389,20 @@ export function EmitirMDFe() {
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            
+
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
               MDFe Enviado com Sucesso!
             </h1>
-            
+
             <p className="text-gray-600 mb-8">
-              Seu Manifesto Eletrônico de Documentos Fiscais foi enviado para a SEFAZ e está sendo processado.
+              Seu Manifesto Eletrônico de Documentos Fiscais foi enviado para a
+              SEFAZ e está sendo processado.
             </p>
 
             <Card className="p-6 text-left mb-8">
-              <h2 className="text-lg font-semibold mb-4">Informações do MDFe</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                Informações do MDFe
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Número:</span>
@@ -362,23 +414,27 @@ export function EmitirMDFe() {
                 </div>
                 <div>
                   <span className="text-gray-600">Chave de Acesso:</span>
-                  <span className="font-mono text-xs ml-2">35240114200166000187580010000000011234567890</span>
+                  <span className="font-mono text-xs ml-2">
+                    35240114200166000187580010000000011234567890
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Status:</span>
-                  <Badge variant="success" className="ml-2">Autorizado</Badge>
+                  <Badge variant="success" className="ml-2">
+                    Autorizado
+                  </Badge>
                 </div>
               </div>
             </Card>
 
             <div className="flex justify-center gap-4">
               <button
-                onClick={() => setEtapa('formulario')}
+                onClick={() => setEtapa("formulario")}
                 className="px-6 py-2 text-green-600 bg-green-100 rounded-lg hover:bg-green-200"
               >
                 Emitir Novo MDFe
               </button>
-              
+
               <button className="flex items-center gap-2 px-6 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700">
                 <Download className="h-4 w-4" />
                 Baixar DAMDFE

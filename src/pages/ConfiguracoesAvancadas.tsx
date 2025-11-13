@@ -4,17 +4,17 @@
  * Conformidade com legislação 2025/2026
  */
 
-import React, { useState } from 'react';
-import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { 
-  Settings, 
-  Shield, 
-  Building2, 
-  Server, 
-  Bell, 
-  HardDrive, 
-  Users, 
+import React, { useState } from "react";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import {
+  Settings,
+  Shield,
+  Building2,
+  Server,
+  Bell,
+  HardDrive,
+  Users,
   Upload,
   Download,
   Key,
@@ -29,15 +29,15 @@ import {
   EyeOff,
   Plus,
   Trash2,
-  Edit
-} from 'lucide-react';
+  Edit,
+} from "lucide-react";
 
 interface Certificado {
   id: string;
   nome: string;
-  tipo: 'A1' | 'A3';
+  tipo: "A1" | "A3";
   validade: string;
-  status: 'Válido' | 'Vencido' | 'Próximo ao vencimento';
+  status: "Válido" | "Vencido" | "Próximo ao vencimento";
   cnpj: string;
 }
 
@@ -45,13 +45,15 @@ interface Usuario {
   id: string;
   nome: string;
   email: string;
-  perfil: 'Administrador' | 'Contador' | 'Operador';
-  status: 'Ativo' | 'Inativo';
+  perfil: "Administrador" | "Contador" | "Operador";
+  status: "Ativo" | "Inativo";
   ultimoAcesso: string;
 }
 
 export function ConfiguracoesAvancadas() {
-  const [abaAtiva, setAbaAtiva] = useState<'certificados' | 'empresa' | 'sefaz' | 'alertas' | 'backup' | 'usuarios'>('certificados');
+  const [abaAtiva, setAbaAtiva] = useState<
+    "certificados" | "empresa" | "sefaz" | "alertas" | "backup" | "usuarios"
+  >("certificados");
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const [certificados, setCertificados] = useState<Certificado[]>([]);
@@ -71,20 +73,28 @@ export function ConfiguracoesAvancadas() {
 
         <div className="space-y-4">
           {certificados.map((cert) => (
-            <div key={cert.id} className="p-4 border border-gray-200 rounded-lg">
+            <div
+              key={cert.id}
+              className="p-4 border border-gray-200 rounded-lg"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h4 className="font-medium">{cert.nome}</h4>
                     <Badge variant="outline">{cert.tipo}</Badge>
-                    <Badge variant={
-                      cert.status === 'Válido' ? 'success' :
-                      cert.status === 'Vencido' ? 'destructive' : 'secondary'
-                    }>
+                    <Badge
+                      variant={
+                        cert.status === "Válido"
+                          ? "success"
+                          : cert.status === "Vencido"
+                            ? "destructive"
+                            : "secondary"
+                      }
+                    >
                       {cert.status}
                     </Badge>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                     <div>
                       <span>CNPJ: </span>
@@ -93,12 +103,12 @@ export function ConfiguracoesAvancadas() {
                     <div>
                       <span>Validade: </span>
                       <span className="font-medium">
-                        {new Date(cert.validade).toLocaleDateString('pt-BR')}
+                        {new Date(cert.validade).toLocaleDateString("pt-BR")}
                       </span>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2 ml-4">
                   <button className="flex items-center gap-1 px-3 py-1 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 text-sm">
                     <Eye className="h-3 w-3" />
@@ -121,8 +131,13 @@ export function ConfiguracoesAvancadas() {
           </div>
           <ul className="text-sm text-yellow-700 space-y-1">
             <li>• Certificados A1: Armazenados no computador (arquivo .pfx)</li>
-            <li>• Certificados A3: Armazenados em token/cartão (requer driver)</li>
-            <li>• Renovar certificados antes do vencimento para evitar interrupções</li>
+            <li>
+              • Certificados A3: Armazenados em token/cartão (requer driver)
+            </li>
+            <li>
+              • Renovar certificados antes do vencimento para evitar
+              interrupções
+            </li>
             <li>• Manter backup dos certificados em local seguro</li>
           </ul>
         </div>
@@ -134,7 +149,7 @@ export function ConfiguracoesAvancadas() {
     <div className="space-y-6">
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-6">Dados da Empresa</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -146,7 +161,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nome Fantasia
@@ -157,7 +172,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               CNPJ *
@@ -168,7 +183,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Inscrição Estadual
@@ -179,7 +194,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Regime Tributário *
@@ -190,7 +205,7 @@ export function ConfiguracoesAvancadas() {
               <option value="lucro_real">Lucro Real</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               CNAE Principal
@@ -204,7 +219,7 @@ export function ConfiguracoesAvancadas() {
         </div>
 
         <h4 className="text-md font-semibold mt-8 mb-4">Endereço</h4>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -216,7 +231,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Logradouro *
@@ -227,7 +242,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Número *
@@ -238,7 +253,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Complemento
@@ -249,7 +264,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Bairro *
@@ -260,7 +275,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Cidade *
@@ -271,7 +286,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               UF *
@@ -299,7 +314,7 @@ export function ConfiguracoesAvancadas() {
     <div className="space-y-6">
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-6">Parâmetros SEFAZ</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -310,7 +325,7 @@ export function ConfiguracoesAvancadas() {
               <option value="homologacao">Homologação</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Timeout (segundos)
@@ -321,7 +336,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Série NFe
@@ -332,7 +347,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Próximo Número NFe
@@ -343,7 +358,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Série CTe
@@ -354,7 +369,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Próximo Número CTe
@@ -365,7 +380,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Série MDFe
@@ -376,7 +391,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Próximo Número MDFe
@@ -424,19 +439,25 @@ export function ConfiguracoesAvancadas() {
     <div className="space-y-6">
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-6">Configurações de Alertas</h3>
-        
+
         <div className="space-y-6">
           <div className="p-4 border border-gray-200 rounded-lg">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium">Vencimento de Certificados</h4>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="sr-only peer"
+                />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Alertar com antecedência de:</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Alertar com antecedência de:
+                </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                   <option value="30">30 dias</option>
                   <option value="60">60 dias</option>
@@ -444,7 +465,9 @@ export function ConfiguracoesAvancadas() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Enviar por:</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Enviar por:
+                </label>
                 <div className="flex gap-4">
                   <label className="flex items-center">
                     <input type="checkbox" defaultChecked className="mr-2" />
@@ -463,13 +486,19 @@ export function ConfiguracoesAvancadas() {
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium">Falhas na SEFAZ</h4>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="sr-only peer"
+                />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Alertar após:</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Alertar após:
+                </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                   <option value="1">1 falha</option>
                   <option value="3">3 falhas consecutivas</option>
@@ -477,7 +506,9 @@ export function ConfiguracoesAvancadas() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Enviar por:</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Enviar por:
+                </label>
                 <div className="flex gap-4">
                   <label className="flex items-center">
                     <input type="checkbox" defaultChecked className="mr-2" />
@@ -502,7 +533,9 @@ export function ConfiguracoesAvancadas() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Limite mensal:</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Limite mensal:
+                </label>
                 <input
                   type="number"
                   defaultValue="1000"
@@ -510,7 +543,9 @@ export function ConfiguracoesAvancadas() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Alertar quando atingir:</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Alertar quando atingir:
+                </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                   <option value="80">80% do limite</option>
                   <option value="90">90% do limite</option>
@@ -535,7 +570,7 @@ export function ConfiguracoesAvancadas() {
     <div className="space-y-6">
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-6">Configurações de Backup</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -546,7 +581,7 @@ export function ConfiguracoesAvancadas() {
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Frequência
@@ -557,7 +592,7 @@ export function ConfiguracoesAvancadas() {
               <option value="mensal">Mensal</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Horário
@@ -568,7 +603,7 @@ export function ConfiguracoesAvancadas() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Manter backups por
@@ -660,17 +695,24 @@ export function ConfiguracoesAvancadas() {
 
         <div className="space-y-4">
           {usuarios.map((usuario) => (
-            <div key={usuario.id} className="p-4 border border-gray-200 rounded-lg">
+            <div
+              key={usuario.id}
+              className="p-4 border border-gray-200 rounded-lg"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h4 className="font-medium">{usuario.nome}</h4>
                     <Badge variant="outline">{usuario.perfil}</Badge>
-                    <Badge variant={usuario.status === 'Ativo' ? 'success' : 'secondary'}>
+                    <Badge
+                      variant={
+                        usuario.status === "Ativo" ? "success" : "secondary"
+                      }
+                    >
                       {usuario.status}
                     </Badge>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                     <div>
                       <span>Email: </span>
@@ -678,11 +720,13 @@ export function ConfiguracoesAvancadas() {
                     </div>
                     <div>
                       <span>Último acesso: </span>
-                      <span className="font-medium">{usuario.ultimoAcesso}</span>
+                      <span className="font-medium">
+                        {usuario.ultimoAcesso}
+                      </span>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2 ml-4">
                   <button className="flex items-center gap-1 px-3 py-1 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 text-sm">
                     <Edit className="h-3 w-3" />
@@ -704,9 +748,15 @@ export function ConfiguracoesAvancadas() {
             <span className="font-medium">Perfis de Usuário</span>
           </div>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• <strong>Administrador:</strong> Acesso total ao sistema</li>
-            <li>• <strong>Contador:</strong> Emissão, eventos e relatórios</li>
-            <li>• <strong>Operador:</strong> Apenas emissão de documentos</li>
+            <li>
+              • <strong>Administrador:</strong> Acesso total ao sistema
+            </li>
+            <li>
+              • <strong>Contador:</strong> Emissão, eventos e relatórios
+            </li>
+            <li>
+              • <strong>Operador:</strong> Apenas emissão de documentos
+            </li>
           </ul>
         </div>
       </Card>
@@ -730,66 +780,66 @@ export function ConfiguracoesAvancadas() {
         <div className="mb-6">
           <nav className="flex space-x-8">
             <button
-              onClick={() => setAbaAtiva('certificados')}
+              onClick={() => setAbaAtiva("certificados")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'certificados'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "certificados"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <Shield className="h-4 w-4 inline mr-2" />
               Certificados
             </button>
             <button
-              onClick={() => setAbaAtiva('empresa')}
+              onClick={() => setAbaAtiva("empresa")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'empresa'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "empresa"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <Building2 className="h-4 w-4 inline mr-2" />
               Empresa
             </button>
             <button
-              onClick={() => setAbaAtiva('sefaz')}
+              onClick={() => setAbaAtiva("sefaz")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'sefaz'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "sefaz"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <Server className="h-4 w-4 inline mr-2" />
               SEFAZ
             </button>
             <button
-              onClick={() => setAbaAtiva('alertas')}
+              onClick={() => setAbaAtiva("alertas")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'alertas'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "alertas"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <Bell className="h-4 w-4 inline mr-2" />
               Alertas
             </button>
             <button
-              onClick={() => setAbaAtiva('backup')}
+              onClick={() => setAbaAtiva("backup")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'backup'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "backup"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <HardDrive className="h-4 w-4 inline mr-2" />
               Backup
             </button>
             <button
-              onClick={() => setAbaAtiva('usuarios')}
+              onClick={() => setAbaAtiva("usuarios")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                abaAtiva === 'usuarios'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                abaAtiva === "usuarios"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               <Users className="h-4 w-4 inline mr-2" />
@@ -799,12 +849,12 @@ export function ConfiguracoesAvancadas() {
         </div>
 
         {/* Conteúdo das abas */}
-        {abaAtiva === 'certificados' && renderCertificados()}
-        {abaAtiva === 'empresa' && renderEmpresa()}
-        {abaAtiva === 'sefaz' && renderSEFAZ()}
-        {abaAtiva === 'alertas' && renderAlertas()}
-        {abaAtiva === 'backup' && renderBackup()}
-        {abaAtiva === 'usuarios' && renderUsuarios()}
+        {abaAtiva === "certificados" && renderCertificados()}
+        {abaAtiva === "empresa" && renderEmpresa()}
+        {abaAtiva === "sefaz" && renderSEFAZ()}
+        {abaAtiva === "alertas" && renderAlertas()}
+        {abaAtiva === "backup" && renderBackup()}
+        {abaAtiva === "usuarios" && renderUsuarios()}
       </div>
     </div>
   );

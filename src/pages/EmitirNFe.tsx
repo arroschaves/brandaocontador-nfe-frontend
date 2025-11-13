@@ -3,11 +3,11 @@
  * Sistema completo de emissão com cálculos automáticos
  */
 
-import React from 'react'
-import FormularioNFe from '../components/nfe/FormularioNFe'
+import React from "react";
+import FormularioNFe from "../components/nfe/FormularioNFe";
 
 const EmitirNFe: React.FC = () => {
-  return <FormularioNFe />
-}
+  return <FormularioNFe />;
+};
 
-export default EmitirNFe
+export default EmitirNFe;

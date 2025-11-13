@@ -1,6 +1,6 @@
-import React from 'react';
-import { LucideIcon, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { LucideIcon, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -33,8 +33,8 @@ interface PageHeaderProps {
 interface PageContentProps {
   children: React.ReactNode;
   className?: string;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  padding?: "none" | "sm" | "md" | "lg";
 }
 
 interface SectionProps {
@@ -44,9 +44,9 @@ interface SectionProps {
   icon?: LucideIcon;
   actions?: React.ReactNode;
   className?: string;
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  padding?: "none" | "sm" | "md" | "lg";
   border?: boolean;
-  background?: 'white' | 'gray' | 'transparent';
+  background?: "white" | "gray" | "transparent";
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -56,7 +56,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   showBackButton = false,
   backTo,
   actions,
-  breadcrumbs
+  breadcrumbs,
 }) => {
   const navigate = useNavigate();
 
@@ -77,9 +77,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             <ol className="flex items-center space-x-2">
               {breadcrumbs.map((item, index) => (
                 <li key={index} className="flex items-center">
-                  {index > 0 && (
-                    <span className="text-gray-400 mx-2">/</span>
-                  )}
+                  {index > 0 && <span className="text-gray-400 mx-2">/</span>}
                   {item.href && !item.current ? (
                     <button
                       onClick={() => navigate(item.href!)}
@@ -88,9 +86,11 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                       {item.label}
                     </button>
                   ) : (
-                    <span className={`text-sm font-medium ${
-                      item.current ? 'text-gray-900' : 'text-gray-500'
-                    }`}>
+                    <span
+                      className={`text-sm font-medium ${
+                        item.current ? "text-gray-900" : "text-gray-500"
+                      }`}
+                    >
                       {item.label}
                     </span>
                   )}
@@ -113,7 +113,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                   <ArrowLeft className="h-5 w-5" />
                 </button>
               )}
-              
+
               <div className="flex items-center space-x-3">
                 {Icon && (
                   <div className="p-2 bg-blue-100 rounded-lg">
@@ -122,22 +122,16 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                 )}
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-                  {subtitle && (
-                    <p className="text-gray-600 mt-1">{subtitle}</p>
-                  )}
+                  {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
                 </div>
               </div>
             </div>
-            
+
             {actions && (
-              <div className="flex items-center space-x-2">
-                {actions}
-              </div>
+              <div className="flex items-center space-x-2">{actions}</div>
             )}
           </div>
-          {subtitle && (
-            <p className="text-sm text-gray-600 mt-2">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-sm text-gray-600 mt-2">{subtitle}</p>}
         </div>
       </div>
     </div>
@@ -146,42 +140,44 @@ const PageHeader: React.FC<PageHeaderProps> = ({
 
 const PageContent: React.FC<PageContentProps> = ({
   children,
-  className = '',
-  maxWidth = 'full',
-  padding = 'md'
+  className = "",
+  maxWidth = "full",
+  padding = "md",
 }) => {
   const getMaxWidthClasses = () => {
     switch (maxWidth) {
-      case 'sm':
-        return 'max-w-2xl';
-      case 'md':
-        return 'max-w-4xl';
-      case 'lg':
-        return 'max-w-6xl';
-      case 'xl':
-        return 'max-w-7xl';
-      case '2xl':
-        return 'max-w-8xl';
+      case "sm":
+        return "max-w-2xl";
+      case "md":
+        return "max-w-4xl";
+      case "lg":
+        return "max-w-6xl";
+      case "xl":
+        return "max-w-7xl";
+      case "2xl":
+        return "max-w-8xl";
       default:
-        return 'max-w-full';
+        return "max-w-full";
     }
   };
 
   const getPaddingClasses = () => {
     switch (padding) {
-      case 'none':
-        return '';
-      case 'sm':
-        return 'p-4';
-      case 'lg':
-        return 'p-8';
+      case "none":
+        return "";
+      case "sm":
+        return "p-4";
+      case "lg":
+        return "p-8";
       default:
-        return 'p-6';
+        return "p-6";
     }
   };
 
   return (
-    <div className={`${getMaxWidthClasses()} mx-auto ${getPaddingClasses()} ${className}`}>
+    <div
+      className={`${getMaxWidthClasses()} mx-auto ${getPaddingClasses()} ${className}`}
+    >
       {children}
     </div>
   );
@@ -193,39 +189,41 @@ const Section: React.FC<SectionProps> = ({
   subtitle,
   icon: Icon,
   actions,
-  className = '',
-  padding = 'md',
+  className = "",
+  padding = "md",
   border = false,
-  background = 'transparent'
+  background = "transparent",
 }) => {
   const getPaddingClasses = () => {
     switch (padding) {
-      case 'none':
-        return '';
-      case 'sm':
-        return 'p-4';
-      case 'lg':
-        return 'p-8';
+      case "none":
+        return "";
+      case "sm":
+        return "p-4";
+      case "lg":
+        return "p-8";
       default:
-        return 'p-6';
+        return "p-6";
     }
   };
 
   const getBackgroundClasses = () => {
     switch (background) {
-      case 'white':
-        return 'bg-white';
-      case 'gray':
-        return 'bg-gray-50';
+      case "white":
+        return "bg-white";
+      case "gray":
+        return "bg-gray-50";
       default:
-        return '';
+        return "";
     }
   };
 
-  const borderClasses = border ? 'border border-gray-200 rounded-lg' : '';
+  const borderClasses = border ? "border border-gray-200 rounded-lg" : "";
 
   return (
-    <section className={`${getBackgroundClasses()} ${borderClasses} ${getPaddingClasses()} ${className}`}>
+    <section
+      className={`${getBackgroundClasses()} ${borderClasses} ${getPaddingClasses()} ${className}`}
+    >
       {(title || subtitle || actions) && (
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
@@ -243,15 +241,13 @@ const Section: React.FC<SectionProps> = ({
               )}
             </div>
           </div>
-          
+
           {actions && (
-            <div className="flex items-center space-x-2">
-              {actions}
-            </div>
+            <div className="flex items-center space-x-2">{actions}</div>
           )}
         </div>
       )}
-      
+
       {children}
     </section>
   );
@@ -266,7 +262,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   backTo,
   actions,
   breadcrumbs,
-  className = ''
+  className = "",
 }) => {
   return (
     <div className={`min-h-screen bg-gray-50 ${className}`}>
@@ -279,11 +275,9 @@ const PageLayout: React.FC<PageLayoutProps> = ({
         actions={actions}
         breadcrumbs={breadcrumbs}
       />
-      
+
       <main className="flex-1">
-        <PageContent>
-          {children}
-        </PageContent>
+        <PageContent>{children}</PageContent>
       </main>
     </div>
   );
@@ -293,24 +287,24 @@ const PageLayout: React.FC<PageLayoutProps> = ({
 interface TwoColumnLayoutProps {
   sidebar: React.ReactNode;
   main: React.ReactNode;
-  sidebarWidth?: 'sm' | 'md' | 'lg';
+  sidebarWidth?: "sm" | "md" | "lg";
   className?: string;
 }
 
 const TwoColumnLayout: React.FC<TwoColumnLayoutProps> = ({
   sidebar,
   main,
-  sidebarWidth = 'md',
-  className = ''
+  sidebarWidth = "md",
+  className = "",
 }) => {
   const getSidebarWidthClasses = () => {
     switch (sidebarWidth) {
-      case 'sm':
-        return 'lg:w-1/4';
-      case 'lg':
-        return 'lg:w-2/5';
+      case "sm":
+        return "lg:w-1/4";
+      case "lg":
+        return "lg:w-2/5";
       default:
-        return 'lg:w-1/3';
+        return "lg:w-1/3";
     }
   };
 
@@ -319,20 +313,12 @@ const TwoColumnLayout: React.FC<TwoColumnLayoutProps> = ({
       <aside className={`${getSidebarWidthClasses()} mb-6 lg:mb-0`}>
         {sidebar}
       </aside>
-      <main className="flex-1">
-        {main}
-      </main>
+      <main className="flex-1">{main}</main>
     </div>
   );
 };
 
-export {
-  PageLayout,
-  PageHeader,
-  PageContent,
-  Section,
-  TwoColumnLayout
-};
+export { PageLayout, PageHeader, PageContent, Section, TwoColumnLayout };
 
 export type {
   PageLayoutProps,
@@ -340,5 +326,5 @@ export type {
   PageContentProps,
   SectionProps,
   BreadcrumbItem,
-  TwoColumnLayoutProps
+  TwoColumnLayoutProps,
 };

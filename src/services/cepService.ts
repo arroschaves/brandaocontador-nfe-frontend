@@ -18,12 +18,12 @@ export interface CEPData {
 
 export interface CEPError {
   message: string;
-  provider: 'viacep' | 'brasilapi' | 'unknown';
+  provider: "viacep" | "brasilapi" | "unknown";
 }
 
 class CEPService {
-  private readonly VIACEP_URL = 'https://viacep.com.br/ws';
-  private readonly BRASILAPI_URL = 'https://brasilapi.com.br/api/cep/v2';
+  private readonly VIACEP_URL = "https://viacep.com.br/ws";
+  private readonly BRASILAPI_URL = "https://brasilapi.com.br/api/cep/v2";
   private requestCache: Map<string, CEPData> = new Map();
   private cacheTimeout = 3600000; // 1 hora em ms
 
@@ -39,8 +39,8 @@ class CEPService {
       // Validação básica
       if (cepLimpo.length !== 8) {
         throw {
-          message: 'CEP deve ter 8 dígitos',
-          provider: 'unknown'
+          message: "CEP deve ter 8 dígitos",
+          provider: "unknown",
         } as CEPError;
       }
 
@@ -57,7 +57,7 @@ class CEPService {
         this.requestCache.set(cepLimpo, resultado);
         return resultado;
       } catch (viaCEPError) {
-        console.warn('ViaCEP falhou, tentando BrasilAPI...', viaCEPError);
+        console.warn("ViaCEP falhou, tentando BrasilAPI...", viaCEPError);
 
         // Fallback: tenta BrasilAPI
         try {
@@ -66,10 +66,11 @@ class CEPService {
           this.requestCache.set(cepLimpo, resultado);
           return resultado;
         } catch (brasilapiError) {
-          console.error('BrasilAPI também falhou', brasilapiError);
+          console.error("BrasilAPI também falhou", brasilapiError);
           throw {
-            message: 'CEP não encontrado. Tente novamente ou insira o endereço manualmente.',
-            provider: 'unknown'
+            message:
+              "CEP não encontrado. Tente novamente ou insira o endereço manualmente.",
+            provider: "unknown",
           } as CEPError;
         }
       }
@@ -78,8 +79,8 @@ class CEPService {
         throw error;
       }
       throw {
-        message: error instanceof Error ? error.message : 'Erro ao buscar CEP',
-        provider: 'unknown'
+        message: error instanceof Error ? error.message : "Erro ao buscar CEP",
+        provider: "unknown",
       } as CEPError;
     }
   }
@@ -92,11 +93,11 @@ class CEPService {
 
     try {
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        timeout: 5000
+        timeout: 5000,
       } as any);
 
       if (!response.ok) {
@@ -107,23 +108,25 @@ class CEPService {
 
       // ViaCEP retorna erro com propriedade "erro": true
       if (data.erro) {
-        throw new Error('CEP não encontrado no ViaCEP');
+        throw new Error("CEP não encontrado no ViaCEP");
       }
 
       return {
         cep: this.formatarCEP(data.cep),
-        logradouro: data.logradouro || '',
-        complemento: data.complemento || '',
-        bairro: data.bairro || '',
-        localidade: data.localidade || '',
-        uf: data.uf || '',
-        ibge: data.ibge || '',
-        gia: data.gia || '',
-        ddd: data.ddd || '',
-        siafi: data.siafi || ''
+        logradouro: data.logradouro || "",
+        complemento: data.complemento || "",
+        bairro: data.bairro || "",
+        localidade: data.localidade || "",
+        uf: data.uf || "",
+        ibge: data.ibge || "",
+        gia: data.gia || "",
+        ddd: data.ddd || "",
+        siafi: data.siafi || "",
       };
     } catch (error) {
-      throw new Error(`ViaCEP: ${error instanceof Error ? error.message : 'Erro na requisição'}`);
+      throw new Error(
+        `ViaCEP: ${error instanceof Error ? error.message : "Erro na requisição"}`,
+      );
     }
   }
 
@@ -135,11 +138,11 @@ class CEPService {
 
     try {
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        timeout: 5000
+        timeout: 5000,
       } as any);
 
       if (!response.ok) {
@@ -149,24 +152,26 @@ class CEPService {
       const data = await response.json();
 
       // BrasilAPI retorna erro em response.status ou com um objeto de erro
-      if (data.status === 400 || data.message === 'CEP NAO ENCONTRADO') {
-        throw new Error('CEP não encontrado no BrasilAPI');
+      if (data.status === 400 || data.message === "CEP NAO ENCONTRADO") {
+        throw new Error("CEP não encontrado no BrasilAPI");
       }
 
       return {
         cep: this.formatarCEP(data.cep),
-        logradouro: data.street || '',
-        complemento: data.complemento || '',
-        bairro: data.neighborhood || '',
-        localidade: data.city || '',
-        uf: data.state || '',
-        ibge: data.ibge || '',
-        gia: '',
-        ddd: '',
-        siafi: ''
+        logradouro: data.street || "",
+        complemento: data.complemento || "",
+        bairro: data.neighborhood || "",
+        localidade: data.city || "",
+        uf: data.state || "",
+        ibge: data.ibge || "",
+        gia: "",
+        ddd: "",
+        siafi: "",
       };
     } catch (error) {
-      throw new Error(`BrasilAPI: ${error instanceof Error ? error.message : 'Erro na requisição'}`);
+      throw new Error(
+        `BrasilAPI: ${error instanceof Error ? error.message : "Erro na requisição"}`,
+      );
     }
   }
 
@@ -174,7 +179,7 @@ class CEPService {
    * Remove caracteres especiais do CEP
    */
   private limparCEP(cep: string): string {
-    return cep.replace(/[^\d]/g, '');
+    return cep.replace(/[^\d]/g, "");
   }
 
   /**
@@ -182,7 +187,7 @@ class CEPService {
    */
   private formatarCEP(cep: string): string {
     const cepLimpo = this.limparCEP(cep);
-    return cepLimpo.replace(/(\d{5})(\d{3})/, '$1-$2');
+    return cepLimpo.replace(/(\d{5})(\d{3})/, "$1-$2");
   }
 
   /**
@@ -190,11 +195,11 @@ class CEPService {
    */
   private isErrorObject(value: unknown): value is CEPError {
     return (
-      typeof value === 'object' &&
+      typeof value === "object" &&
       value !== null &&
-      'message' in value &&
-      'provider' in value &&
-      typeof (value as any).message === 'string'
+      "message" in value &&
+      "provider" in value &&
+      typeof (value as any).message === "string"
     );
   }
 

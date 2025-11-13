@@ -54,49 +54,49 @@ export interface DadosNFeBackend {
 
 // Mapeamentos de conversão
 const TIPO_OPERACAO_MAP: Record<string, number> = {
-  'entrada': 0,
-  'saida': 1
+  entrada: 0,
+  saida: 1,
 };
 
 const FINALIDADE_MAP: Record<string, number> = {
-  'normal': 1,
-  'complementar': 2,
-  'ajuste': 3,
-  'devolucao': 4
+  normal: 1,
+  complementar: 2,
+  ajuste: 3,
+  devolucao: 4,
 };
 
 const PRESENCA_COMPRADOR_MAP: Record<string, number> = {
-  'nao_se_aplica': 0,
-  'presencial': 1,
-  'internet': 2,
-  'teleatendimento': 3,
-  'nfce_entrega_domicilio': 4,
-  'presencial_fora_estabelecimento': 5,
-  'outros': 9
+  nao_se_aplica: 0,
+  presencial: 1,
+  internet: 2,
+  teleatendimento: 3,
+  nfce_entrega_domicilio: 4,
+  presencial_fora_estabelecimento: 5,
+  outros: 9,
 };
 
 // Códigos de municípios mais comuns (pode ser expandido)
 const CODIGO_MUNICIPIO_MAP: Record<string, string> = {
-  'São Paulo-SP': '3550308',
-  'Rio de Janeiro-RJ': '3304557',
-  'Belo Horizonte-MG': '3106200',
-  'Brasília-DF': '5300108',
-  'Salvador-BA': '2927408',
-  'Fortaleza-CE': '2304400',
-  'Curitiba-PR': '4106902',
-  'Recife-PE': '2611606',
-  'Porto Alegre-RS': '4314902',
-  'Manaus-AM': '1302603',
-  'Belém-PA': '1501402',
-  'Goiânia-GO': '5208707',
-  'Guarulhos-SP': '3518800',
-  'Campinas-SP': '3509502',
-  'São Luís-MA': '2111300',
-  'São Gonçalo-RJ': '3304904',
-  'Maceió-AL': '2704302',
-  'Duque de Caxias-RJ': '3301702',
-  'Natal-RN': '2408102',
-  'Teresina-PI': '2211001'
+  "São Paulo-SP": "3550308",
+  "Rio de Janeiro-RJ": "3304557",
+  "Belo Horizonte-MG": "3106200",
+  "Brasília-DF": "5300108",
+  "Salvador-BA": "2927408",
+  "Fortaleza-CE": "2304400",
+  "Curitiba-PR": "4106902",
+  "Recife-PE": "2611606",
+  "Porto Alegre-RS": "4314902",
+  "Manaus-AM": "1302603",
+  "Belém-PA": "1501402",
+  "Goiânia-GO": "5208707",
+  "Guarulhos-SP": "3518800",
+  "Campinas-SP": "3509502",
+  "São Luís-MA": "2111300",
+  "São Gonçalo-RJ": "3304904",
+  "Maceió-AL": "2704302",
+  "Duque de Caxias-RJ": "3301702",
+  "Natal-RN": "2408102",
+  "Teresina-PI": "2211001",
 };
 
 /**
@@ -108,68 +108,73 @@ const CODIGO_MUNICIPIO_MAP: Record<string, string> = {
 async function obterDadosEmitente() {
   try {
     // Importa o serviço de API dinamicamente para evitar dependências circulares
-    const { emitenteService } = await import('../services/api');
-    
+    const { emitenteService } = await import("../services/api");
+
     const response = await emitenteService.getConfig();
-    
+
     if (response.data && response.data.sucesso && response.data.emitente) {
       return response.data.emitente;
     }
-    
+
     // Se não há configuração, retorna dados padrão
     return {
-      nome: 'EMPRESA NÃO CONFIGURADA',
-      cnpj: '00000000000000',
-      inscricaoEstadual: 'ISENTO',
+      nome: "EMPRESA NÃO CONFIGURADA",
+      cnpj: "00000000000000",
+      inscricaoEstadual: "ISENTO",
       endereco: {
-        cep: '00000000',
-        logradouro: 'NÃO CONFIGURADO',
-        numero: 'S/N',
-        bairro: 'CENTRO',
-        municipio: 'São Paulo',
-        uf: 'SP'
+        cep: "00000000",
+        logradouro: "NÃO CONFIGURADO",
+        numero: "S/N",
+        bairro: "CENTRO",
+        municipio: "São Paulo",
+        uf: "SP",
       },
-      regimeTributario: 'SimplesNacional'
+      regimeTributario: "SimplesNacional",
     };
   } catch (error) {
     // Em caso de erro, retorna dados padrão para não quebrar o sistema
     return {
-      nome: 'EMPRESA NÃO CONFIGURADA',
-      cnpj: '00000000000000',
-      inscricaoEstadual: 'ISENTO',
+      nome: "EMPRESA NÃO CONFIGURADA",
+      cnpj: "00000000000000",
+      inscricaoEstadual: "ISENTO",
       endereco: {
-        cep: '00000000',
-        logradouro: 'NÃO CONFIGURADO',
-        numero: 'S/N',
-        bairro: 'CENTRO',
-        municipio: 'São Paulo',
-        uf: 'SP'
+        cep: "00000000",
+        logradouro: "NÃO CONFIGURADO",
+        numero: "S/N",
+        bairro: "CENTRO",
+        municipio: "São Paulo",
+        uf: "SP",
       },
-      regimeTributario: 'SimplesNacional'
+      regimeTributario: "SimplesNacional",
     };
   }
 }
 
-export async function convertToBackendFormat(dadosFrontend: any): Promise<DadosNFeBackend> {
+export async function convertToBackendFormat(
+  dadosFrontend: any,
+): Promise<DadosNFeBackend> {
   // Calcular totais
   const totais = calcularTotais(dadosFrontend.itens || []);
-  
+
   // Preparar destinatário
   const destinatario = prepararDestinatario(dadosFrontend.destinatario);
-  
+
   // Usar dados do emitente fornecidos ou buscar configuração
-  const emitente = dadosFrontend.emitente || await obterDadosEmitente();
-  
+  const emitente = dadosFrontend.emitente || (await obterDadosEmitente());
+
   if (!emitente) {
-    throw new Error('Dados do emitente não configurados. Configure os dados da empresa nas Configurações.');
+    throw new Error(
+      "Dados do emitente não configurados. Configure os dados da empresa nas Configurações.",
+    );
   }
-  
+
   return {
-    naturezaOperacao: dadosFrontend.naturezaOperacao || 'Venda',
-    serie: dadosFrontend.serie || '1',
+    naturezaOperacao: dadosFrontend.naturezaOperacao || "Venda",
+    serie: dadosFrontend.serie || "1",
     tipoOperacao: TIPO_OPERACAO_MAP[dadosFrontend.tipoOperacao] ?? 1,
     finalidade: FINALIDADE_MAP[dadosFrontend.finalidade] ?? 1,
-    presencaComprador: PRESENCA_COMPRADOR_MAP[dadosFrontend.presencaComprador] ?? 1,
+    presencaComprador:
+      PRESENCA_COMPRADOR_MAP[dadosFrontend.presencaComprador] ?? 1,
     consumidorFinal: parseInt(dadosFrontend.consumidorFinal) || 9, // 0=Contribuinte, 1=Consumidor Final, 9=Não Contribuinte
     dataEmissao: dadosFrontend.dataEmissao,
     dataSaida: dadosFrontend.dataSaida,
@@ -177,7 +182,7 @@ export async function convertToBackendFormat(dadosFrontend: any): Promise<DadosN
     itens: dadosFrontend.itens || [],
     totais,
     observacoes: dadosFrontend.observacoes,
-    emitente
+    emitente,
   };
 }
 
@@ -186,30 +191,31 @@ export async function convertToBackendFormat(dadosFrontend: any): Promise<DadosN
  */
 function prepararDestinatario(dest: any) {
   if (!dest) {
-    throw new Error('Dados do destinatário são obrigatórios');
+    throw new Error("Dados do destinatário são obrigatórios");
   }
 
-  const documento = (dest.documento || '').replace(/\D/g, '');
-  const isEmpresa = dest.tipo === 'pj' || documento.length === 14;
-  
+  const documento = (dest.documento || "").replace(/\D/g, "");
+  const isEmpresa = dest.tipo === "pj" || documento.length === 14;
+
   // Obter código do município
   const chaveCodigoMunicipio = `${dest.endereco?.municipio}-${dest.endereco?.uf}`;
-  const codigoMunicipio = CODIGO_MUNICIPIO_MAP[chaveCodigoMunicipio] || '3550308'; // Default São Paulo
+  const codigoMunicipio =
+    CODIGO_MUNICIPIO_MAP[chaveCodigoMunicipio] || "3550308"; // Default São Paulo
 
   const destinatario: any = {
-    nome: dest.nome || '',
+    nome: dest.nome || "",
     email: dest.email,
     telefone: dest.telefone,
     endereco: {
-      cep: (dest.endereco?.cep || '').replace(/\D/g, ''),
-      logradouro: dest.endereco?.logradouro || '',
-      numero: dest.endereco?.numero || '',
+      cep: (dest.endereco?.cep || "").replace(/\D/g, ""),
+      logradouro: dest.endereco?.logradouro || "",
+      numero: dest.endereco?.numero || "",
       complemento: dest.endereco?.complemento,
-      bairro: dest.endereco?.bairro || '',
-      municipio: dest.endereco?.municipio || dest.endereco?.cidade || '', // Backend espera 'municipio'
-      uf: dest.endereco?.uf || 'SP',
-      codigoMunicipio
-    }
+      bairro: dest.endereco?.bairro || "",
+      municipio: dest.endereco?.municipio || dest.endereco?.cidade || "", // Backend espera 'municipio'
+      uf: dest.endereco?.uf || "SP",
+      codigoMunicipio,
+    },
   };
 
   // Adicionar CPF ou CNPJ específico (backend espera campos separados)
@@ -230,21 +236,27 @@ function prepararDestinatario(dest: any) {
  */
 function calcularTotais(itens: any[]) {
   const valorProdutos = itens.reduce((total, item) => {
-    return total + (item.valorTotal || (item.quantidade * item.valorUnitario) || 0);
+    return (
+      total + (item.valorTotal || item.quantidade * item.valorUnitario || 0)
+    );
   }, 0);
 
   return {
     valorProdutos,
     valorTotal: valorProdutos,
     baseCalculoICMS: 0, // Simplificado para este exemplo
-    valorICMS: 0 // Simplificado para este exemplo
+    valorICMS: 0, // Simplificado para este exemplo
   };
 }
 
 /**
  * Adiciona código de município se não existir no mapeamento
  */
-export function adicionarCodigoMunicipio(municipio: string, uf: string, codigo: string) {
+export function adicionarCodigoMunicipio(
+  municipio: string,
+  uf: string,
+  codigo: string,
+) {
   const chave = `${municipio}-${uf}`;
   CODIGO_MUNICIPIO_MAP[chave] = codigo;
 }

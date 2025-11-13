@@ -1,20 +1,36 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, Download, Eye, X, Calendar, FileText, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { PageLayout } from '../components/layout/PageLayout';
-import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
-import { Badge } from '../components/ui/badge';
-import { StatusBadge } from '../components/ui/StatusBadge';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from '../components/ui/Modal';
-import { Loading, TableSkeleton } from '../components/ui/Loading';
-import { useToast } from '../contexts/ToastContext';
-import { useNFe } from '../hooks/useNFe';
-import notificationService from '../services/notificationService';
-import errorService from '../services/errorService';
-import { buildApiUrl, API_ENDPOINTS } from '../config/api';
-import { api } from '../services/api';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Search,
+  Filter,
+  Download,
+  Eye,
+  X,
+  Calendar,
+  FileText,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { PageLayout } from "../components/layout/PageLayout";
+import { Card, CardHeader, CardTitle, CardBody } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/Input";
+import { Select } from "../components/ui/Select";
+import { Badge } from "../components/ui/badge";
+import { StatusBadge } from "../components/ui/StatusBadge";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "../components/ui/Modal";
+import { Loading, TableSkeleton } from "../components/ui/Loading";
+import { useToast } from "../contexts/ToastContext";
+import { useNFe } from "../hooks/useNFe";
+import notificationService from "../services/notificationService";
+import errorService from "../services/errorService";
+import { buildApiUrl, API_ENDPOINTS } from "../config/api";
+import { api } from "../services/api";
 
 interface NFe {
   id: string;
@@ -24,7 +40,7 @@ interface NFe {
   destinatario: string;
   documento: string;
   valor: number;
-  status: 'autorizada' | 'cancelada' | 'rejeitada' | 'pendente' | 'processando';
+  status: "autorizada" | "cancelada" | "rejeitada" | "pendente" | "processando";
   dataEmissao: string;
   dataAutorizacao?: string;
   protocolo?: string;
@@ -50,38 +66,36 @@ interface PaginacaoNFe {
   totalPaginas: number;
 }
 
-
-
 function Historico() {
   const [nfes, setNfes] = useState<NFe[]>([]);
   const [loading, setLoading] = useState(true);
   const [carregandoMais, setCarregandoMais] = useState(false);
   const [filtros, setFiltros] = useState<FiltrosNFe>({
-    numero: '',
-    chave: '',
-    destinatario: '',
-    status: '',
-    dataInicio: '',
-    dataFim: '',
-    valorMinimo: '',
-    valorMaximo: ''
+    numero: "",
+    chave: "",
+    destinatario: "",
+    status: "",
+    dataInicio: "",
+    dataFim: "",
+    valorMinimo: "",
+    valorMaximo: "",
   });
   const [paginacao, setPaginacao] = useState<PaginacaoNFe>({
     pagina: 1,
     itensPorPagina: 10,
     totalItens: 0,
-    totalPaginas: 0
+    totalPaginas: 0,
   });
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [filters, setFilters] = useState<FiltrosNFe>({
-    numero: '',
-    chave: '',
-    destinatario: '',
-    status: '',
-    dataInicio: '',
-    dataFim: '',
-    valorMinimo: '',
-    valorMaximo: ''
+    numero: "",
+    chave: "",
+    destinatario: "",
+    status: "",
+    dataInicio: "",
+    dataFim: "",
+    valorMinimo: "",
+    valorMaximo: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -92,45 +106,47 @@ function Historico() {
   const { buscarNFes, cancelarNFe } = useNFe();
 
   // Funcao para buscar NFes com filtros e paginacao
-  const buscarNFesComFiltros = useCallback(async (novaPagina = 1, novosFiltros = filtros) => {
-    try {
-      if (novaPagina === 1) {
-        setLoading(true);
-      } else {
-        setCarregandoMais(true);
+  const buscarNFesComFiltros = useCallback(
+    async (novaPagina = 1, novosFiltros = filtros) => {
+      try {
+        if (novaPagina === 1) {
+          setLoading(true);
+        } else {
+          setCarregandoMais(true);
+        }
+
+        const params = {
+          pagina: novaPagina.toString(),
+          limite: paginacao.itensPorPagina.toString(),
+          ...Object.fromEntries(
+            Object.entries(novosFiltros).filter(([_, value]) => value !== ""),
+          ),
+        };
+
+        const response = await api.get("/api/nfe/historico", { params });
+        const data = response.data;
+
+        if (novaPagina === 1) {
+          setNfes(data.nfes);
+        } else {
+          setNfes((prev) => [...prev, ...data.nfes]);
+        }
+
+        setPaginacao({
+          pagina: novaPagina,
+          itensPorPagina: data.limite,
+          totalItens: data.total,
+          totalPaginas: Math.ceil(data.total / data.limite),
+        });
+      } catch (error) {
+        errorService.handleApiError(error);
+      } finally {
+        setLoading(false);
+        setCarregandoMais(false);
       }
-
-      const params = {
-        pagina: novaPagina.toString(),
-        limite: paginacao.itensPorPagina.toString(),
-        ...Object.fromEntries(
-          Object.entries(novosFiltros).filter(([_, value]) => value !== '')
-        )
-      };
-
-      const response = await api.get('/api/nfe/historico', { params });
-      const data = response.data;
-      
-      if (novaPagina === 1) {
-        setNfes(data.nfes);
-      } else {
-        setNfes(prev => [...prev, ...data.nfes]);
-      }
-
-      setPaginacao({
-        pagina: novaPagina,
-        itensPorPagina: data.limite,
-        totalItens: data.total,
-        totalPaginas: Math.ceil(data.total / data.limite)
-      });
-
-    } catch (error) {
-      errorService.handleApiError(error);
-    } finally {
-      setLoading(false);
-      setCarregandoMais(false);
-    }
-  }, [filtros, paginacao.itensPorPagina]);
+    },
+    [filtros, paginacao.itensPorPagina],
+  );
 
   // Carregar dados iniciais
   useEffect(() => {
@@ -146,14 +162,14 @@ function Historico() {
   // Funcao para limpar filtros
   const limparFiltros = useCallback(() => {
     const filtrosLimpos: FiltrosNFe = {
-      numero: '',
-      chave: '',
-      destinatario: '',
-      status: '',
-      dataInicio: '',
-      dataFim: '',
-      valorMinimo: '',
-      valorMaximo: ''
+      numero: "",
+      chave: "",
+      destinatario: "",
+      status: "",
+      dataInicio: "",
+      dataFim: "",
+      valorMinimo: "",
+      valorMaximo: "",
     };
     setFiltros(filtrosLimpos);
     buscarNFesComFiltros(1, filtrosLimpos);
@@ -164,7 +180,12 @@ function Historico() {
     if (paginacao.pagina < paginacao.totalPaginas && !carregandoMais) {
       buscarNFesComFiltros(paginacao.pagina + 1);
     }
-  }, [buscarNFesComFiltros, paginacao.pagina, paginacao.totalPaginas, carregandoMais]);
+  }, [
+    buscarNFesComFiltros,
+    paginacao.pagina,
+    paginacao.totalPaginas,
+    carregandoMais,
+  ]);
 
   // Funcao para visualizar detalhes da NFe
   const visualizarNFe = useCallback((nfe: NFe) => {
@@ -173,40 +194,42 @@ function Historico() {
   }, []);
 
   // Funcao para cancelar NFe
-  const handleCancelarNFe = useCallback(async (nfe: NFe) => {
-    try {
-      const motivo = prompt('Digite o motivo do cancelamento:');
-      if (!motivo) return;
+  const handleCancelarNFe = useCallback(
+    async (nfe: NFe) => {
+      try {
+        const motivo = prompt("Digite o motivo do cancelamento:");
+        if (!motivo) return;
 
-      notificationService.loading('Cancelando NFe...');
-      
-      await api.post('/api/nfe/cancelar', {
-        chave: nfe.chave,
-        motivo
-      });
+        notificationService.loading("Cancelando NFe...");
 
-      notificationService.success('NFe cancelada com sucesso!');
-      buscarNFesComFiltros(paginacao.pagina);
-      
-    } catch (error) {
-      errorService.handleNfeError(error);
-    }
-  }, [buscarNFesComFiltros, paginacao.pagina]);
+        await api.post("/api/nfe/cancelar", {
+          chave: nfe.chave,
+          motivo,
+        });
+
+        notificationService.success("NFe cancelada com sucesso!");
+        buscarNFesComFiltros(paginacao.pagina);
+      } catch (error) {
+        errorService.handleNfeError(error);
+      }
+    },
+    [buscarNFesComFiltros, paginacao.pagina],
+  );
 
   // Funcao para download de arquivos
-  const downloadArquivo = useCallback(async (nfe: NFe, tipo: 'xml' | 'pdf') => {
+  const downloadArquivo = useCallback(async (nfe: NFe, tipo: "xml" | "pdf") => {
     try {
       notificationService.loading(`Gerando ${tipo.toUpperCase()}...`);
-      
+
       const response = await api.get(`/api/nfe/download/${tipo}/${nfe.chave}`, {
-        responseType: 'blob'
+        responseType: "blob",
       });
 
-      const blob = new Blob([response.data], { 
-        type: tipo === 'xml' ? 'application/xml' : 'application/pdf' 
+      const blob = new Blob([response.data], {
+        type: tipo === "xml" ? "application/xml" : "application/pdf",
       });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `NFe_${nfe.numero}.${tipo}`;
       document.body.appendChild(a);
@@ -215,29 +238,31 @@ function Historico() {
       document.body.removeChild(a);
 
       notificationService.success(`${tipo.toUpperCase()} baixado com sucesso!`);
-      
     } catch (error) {
       errorService.handleApiError(error);
     }
   }, []);
 
   // Funcao para atualizar filtros
-  const handleFilterChange = useCallback((field: keyof FiltrosNFe, value: string) => {
-    setFiltros(prev => ({ ...prev, [field]: value }));
-    setFilters(prev => ({ ...prev, [field]: value }));
-  }, []);
+  const handleFilterChange = useCallback(
+    (field: keyof FiltrosNFe, value: string) => {
+      setFiltros((prev) => ({ ...prev, [field]: value }));
+      setFilters((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
 
   // Funcao para limpar filtros
   const clearFilters = useCallback(() => {
     const filtrosLimpos: FiltrosNFe = {
-      numero: '',
-      chave: '',
-      destinatario: '',
-      status: '',
-      dataInicio: '',
-      dataFim: '',
-      valorMinimo: '',
-      valorMaximo: ''
+      numero: "",
+      chave: "",
+      destinatario: "",
+      status: "",
+      dataInicio: "",
+      dataFim: "",
+      valorMinimo: "",
+      valorMaximo: "",
     };
     setFiltros(filtrosLimpos);
     setFilters(filtrosLimpos);
@@ -259,17 +284,26 @@ function Historico() {
   }, []);
 
   // Funcoes de acao
-  const handleViewDetails = useCallback((nfe: NFe) => {
-    visualizarNFe(nfe);
-  }, [visualizarNFe]);
+  const handleViewDetails = useCallback(
+    (nfe: NFe) => {
+      visualizarNFe(nfe);
+    },
+    [visualizarNFe],
+  );
 
-  const handleDownloadXML = useCallback((nfe: NFe) => {
-    downloadArquivo(nfe, 'xml');
-  }, [downloadArquivo]);
+  const handleDownloadXML = useCallback(
+    (nfe: NFe) => {
+      downloadArquivo(nfe, "xml");
+    },
+    [downloadArquivo],
+  );
 
-  const handleDownloadPDF = useCallback((nfe: NFe) => {
-    downloadArquivo(nfe, 'pdf');
-  }, [downloadArquivo]);
+  const handleDownloadPDF = useCallback(
+    (nfe: NFe) => {
+      downloadArquivo(nfe, "pdf");
+    },
+    [downloadArquivo],
+  );
 
   // Funcoes de formatacao
   const formatDate = useCallback((date: string) => {
@@ -282,49 +316,61 @@ function Historico() {
 
   // Funcao para formatar moeda
   const formatarMoeda = useCallback((valor: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(valor);
   }, []);
 
   // Funcao para formatar data
   const formatarData = useCallback((data: string) => {
-    return new Date(data).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(data).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }, []);
 
   // Funcao para obter cor do status
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
-      case 'autorizada': return 'bg-green-100 text-green-800';
-    case 'cancelada': return 'bg-red-100 text-red-800';
-    case 'rejeitada': return 'bg-red-100 text-red-800';
-    case 'pendente': return 'bg-yellow-100 text-yellow-800';
-    case 'processando': return 'bg-blue-100 text-blue-800';
-    default: return 'bg-gray-100 text-gray-800';
+      case "autorizada":
+        return "bg-green-100 text-green-800";
+      case "cancelada":
+        return "bg-red-100 text-red-800";
+      case "rejeitada":
+        return "bg-red-100 text-red-800";
+      case "pendente":
+        return "bg-yellow-100 text-yellow-800";
+      case "processando":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   }, []);
 
   // Funcao para obter texto do status
   const getStatusText = useCallback((status: string) => {
     switch (status) {
-      case 'autorizada': return 'Autorizada';
-    case 'cancelada': return 'Cancelada';
-    case 'rejeitada': return 'Rejeitada';
-    case 'pendente': return 'Pendente';
-    case 'processando': return 'Processando';
-      default: return status;
+      case "autorizada":
+        return "Autorizada";
+      case "cancelada":
+        return "Cancelada";
+      case "rejeitada":
+        return "Rejeitada";
+      case "pendente":
+        return "Pendente";
+      case "processando":
+        return "Processando";
+      default:
+        return status;
     }
   }, []);
 
   // Verificar se ha filtros ativos
-  const temFiltrosAtivos = Object.values(filtros).some(valor => valor !== '');
+  const temFiltrosAtivos = Object.values(filtros).some((valor) => valor !== "");
 
   if (loading && nfes.length === 0) {
     return (
@@ -359,7 +405,7 @@ function Historico() {
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="h-4 w-4 mr-2" />
-                {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
+                {showFilters ? "Ocultar" : "Mostrar"} Filtros
               </Button>
             </div>
           </CardHeader>
@@ -372,7 +418,9 @@ function Historico() {
                   </label>
                   <Input
                     value={filters.numero}
-                    onChange={(e) => handleFilterChange('numero', e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange("numero", e.target.value)
+                    }
                     placeholder="Numero da NFe"
                   />
                 </div>
@@ -382,7 +430,9 @@ function Historico() {
                   </label>
                   <Input
                     value={filters.serie}
-                    onChange={(e) => handleFilterChange('serie', e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange("serie", e.target.value)
+                    }
                     placeholder="Serie da NFe"
                   />
                 </div>
@@ -392,7 +442,9 @@ function Historico() {
                   </label>
                   <Input
                     value={filters.destinatario}
-                    onChange={(e) => handleFilterChange('destinatario', e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange("destinatario", e.target.value)
+                    }
                     placeholder="Nome ou documento"
                   />
                 </div>
@@ -402,7 +454,9 @@ function Historico() {
                   </label>
                   <Select
                     value={filters.status}
-                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange("status", e.target.value)
+                    }
                   >
                     <option value="">Todos os status</option>
                     <option value="autorizada">Autorizada</option>
@@ -418,7 +472,9 @@ function Historico() {
                   <Input
                     type="date"
                     value={filters.dataInicio}
-                    onChange={(e) => handleFilterChange('dataInicio', e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange("dataInicio", e.target.value)
+                    }
                   />
                 </div>
                 <div>
@@ -428,7 +484,9 @@ function Historico() {
                   <Input
                     type="date"
                     value={filters.dataFim}
-                    onChange={(e) => handleFilterChange('dataFim', e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange("dataFim", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -523,7 +581,7 @@ function Historico() {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              {nfe.status === 'autorizada' && (
+                              {nfe.status === "autorizada" && (
                                 <>
                                   <Button
                                     variant="outline"
@@ -553,7 +611,9 @@ function Historico() {
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between mt-6">
                     <div className="text-sm text-gray-700">
-                      Mostrando {startIndex + 1} a {Math.min(endIndex, filteredNfes.length)} de {filteredNfes.length} resultados
+                      Mostrando {startIndex + 1} a{" "}
+                      {Math.min(endIndex, filteredNfes.length)} de{" "}
+                      {filteredNfes.length} resultados
                     </div>
                     <div className="flex space-x-2">
                       <Button
@@ -564,19 +624,24 @@ function Historico() {
                       >
                         Anterior
                       </Button>
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const page = i + 1;
-                        return (
-                          <Button
-                            key={page}
-                            variant={currentPage === page ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => goToPage(page)}
-                          >
-                            {page}
-                          </Button>
-                        );
-                      })}
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          const page = i + 1;
+                          return (
+                            <Button
+                              key={page}
+                              variant={
+                                currentPage === page ? "primary" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => goToPage(page)}
+                            >
+                              {page}
+                            </Button>
+                          );
+                        },
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -612,16 +677,20 @@ function Historico() {
                     <label className="block text-sm font-medium text-gray-700">
                       Numero
                     </label>
-                    <p className="text-sm text-gray-900">{nfeSelecionada.numero}</p>
+                    <p className="text-sm text-gray-900">
+                      {nfeSelecionada.numero}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Serie
                     </label>
-                    <p className="text-sm text-gray-900">{nfeSelecionada.serie}</p>
+                    <p className="text-sm text-gray-900">
+                      {nfeSelecionada.serie}
+                    </p>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Chave de Acesso
@@ -630,12 +699,12 @@ function Historico() {
                     {nfeSelecionada.chave}
                   </p>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                    Data de Emissao
-                  </label>
+                      Data de Emissao
+                    </label>
                     <p className="text-sm text-gray-900">
                       {formatDate(nfeSelecionada.dataEmissao)}
                     </p>
@@ -647,7 +716,7 @@ function Historico() {
                     <StatusBadge status={nfeSelecionada.status} />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Destinatario
@@ -656,7 +725,7 @@ function Historico() {
                     {nfeSelecionada.destinatario} - {nfeSelecionada.documento}
                   </p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Valor Total
@@ -665,7 +734,7 @@ function Historico() {
                     {formatCurrency(nfeSelecionada.valor)}
                   </p>
                 </div>
-                
+
                 {nfeSelecionada.protocolo && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -680,7 +749,7 @@ function Historico() {
             </ModalBody>
             <ModalFooter>
               <div className="flex space-x-2">
-                {nfeSelecionada.status === 'autorizada' && (
+                {nfeSelecionada.status === "autorizada" && (
                   <>
                     <Button
                       variant="outline"

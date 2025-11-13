@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { cn } from "../../lib/utils";
 
 export interface FormGroupProps {
   children: React.ReactNode;
@@ -34,9 +34,7 @@ const FormGroup: React.FC<FormGroupProps> = ({
         </div>
       )}
       {children}
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 };

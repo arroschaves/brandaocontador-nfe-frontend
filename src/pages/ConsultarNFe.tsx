@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
-import { PageLayout } from '../components/layout/PageLayout';
-import { Card } from '../components/ui/card';
-import { FormGroup } from '../components/ui/FormGroup';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/button';
-import { Loading } from '../components/ui/Loading';
-import { StatusBadge } from '../components/ui/StatusBadge';
-import { Badge } from '../components/ui/badge';
-import { useToast } from '../contexts/ToastContext';
-import { useNFe } from '../hooks/useNFe';
-import { Search, Download, Mail, FileText, Calendar, User, Building, DollarSign } from 'lucide-react';
+import React, { useState } from "react";
+import { PageLayout } from "../components/layout/PageLayout";
+import { Card } from "../components/ui/card";
+import { FormGroup } from "../components/ui/FormGroup";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/button";
+import { Loading } from "../components/ui/Loading";
+import { StatusBadge } from "../components/ui/StatusBadge";
+import { Badge } from "../components/ui/badge";
+import { useToast } from "../contexts/ToastContext";
+import { useNFe } from "../hooks/useNFe";
+import {
+  Search,
+  Download,
+  Mail,
+  FileText,
+  Calendar,
+  User,
+  Building,
+  DollarSign,
+} from "lucide-react";
 
 interface NFe {
   id: string;
@@ -22,27 +31,28 @@ interface NFe {
     documento: string;
   };
   valorTotal: number;
-  status: 'autorizada' | 'cancelada' | 'rejeitada' | 'pendente';
+  status: "autorizada" | "cancelada" | "rejeitada" | "pendente";
   protocolo?: string;
 }
 
 export const ConsultarNFe: React.FC = () => {
-  const [chaveAcesso, setChaveAcesso] = useState('');
+  const [chaveAcesso, setChaveAcesso] = useState("");
   const [nfeEncontrada, setNfeEncontrada] = useState<NFe | null>(null);
-  const [emailEnvio, setEmailEnvio] = useState('');
+  const [emailEnvio, setEmailEnvio] = useState("");
   const [showEmailModal, setShowEmailModal] = useState(false);
-  
-  const { loadNFeByChave, downloadXML, downloadPDF, enviarEmail, isLoading } = useNFe();
+
+  const { loadNFeByChave, downloadXML, downloadPDF, enviarEmail, isLoading } =
+    useNFe();
   const { showToast } = useToast();
 
   const handleConsultar = async () => {
     if (!chaveAcesso.trim()) {
-      showToast('Digite a chave de acesso da NFe', 'warning');
+      showToast("Digite a chave de acesso da NFe", "warning");
       return;
     }
 
     if (chaveAcesso.length !== 44) {
-      showToast('Chave de acesso deve ter 44 dígitos', 'warning');
+      showToast("Chave de acesso deve ter 44 dígitos", "warning");
       return;
     }
 
@@ -66,7 +76,7 @@ export const ConsultarNFe: React.FC = () => {
 
   const handleEnviarEmail = async () => {
     if (!emailEnvio.trim()) {
-      showToast('Digite um e-mail válido', 'warning');
+      showToast("Digite um e-mail válido", "warning");
       return;
     }
 
@@ -74,39 +84,45 @@ export const ConsultarNFe: React.FC = () => {
       const sucesso = await enviarEmail(nfeEncontrada.chaveAcesso, emailEnvio);
       if (sucesso) {
         setShowEmailModal(false);
-        setEmailEnvio('');
+        setEmailEnvio("");
       }
     }
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatDocument = (documento: string) => {
     if (documento.length === 11) {
-      return documento.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      return documento.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
     } else if (documento.length === 14) {
-      return documento.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+      return documento.replace(
+        /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+        "$1.$2.$3/$4-$5",
+      );
     }
     return documento;
   };
 
   return (
-    <PageLayout title="Consultar NFe" subtitle="Consulte uma NFe pela chave de acesso">
+    <PageLayout
+      title="Consultar NFe"
+      subtitle="Consulte uma NFe pela chave de acesso"
+    >
       <div className="space-y-6">
         {/* Formulário de Consulta */}
         <Card>
@@ -115,13 +131,15 @@ export const ConsultarNFe: React.FC = () => {
               <Search className="w-5 h-5" />
               Consultar NFe
             </h2>
-            
+
             <div className="space-y-4">
               <FormGroup label="Chave de Acesso" required>
                 <Input
                   type="text"
                   value={chaveAcesso}
-                  onChange={(e) => setChaveAcesso(e.target.value.replace(/\D/g, ''))}
+                  onChange={(e) =>
+                    setChaveAcesso(e.target.value.replace(/\D/g, ""))
+                  }
                   placeholder="Digite a chave de acesso de 44 dígitos"
                   maxLength={44}
                   className="font-mono"
@@ -130,7 +148,7 @@ export const ConsultarNFe: React.FC = () => {
                   {chaveAcesso.length}/44 dígitos
                 </p>
               </FormGroup>
-              
+
               <Button
                 onClick={handleConsultar}
                 disabled={isLoading || chaveAcesso.length !== 44}
@@ -162,31 +180,43 @@ export const ConsultarNFe: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 {/* Informações Básicas */}
                 <div className="space-y-4">
-                  <h3 className="font-medium text-gray-900 border-b pb-2">Informações Básicas</h3>
-                  
+                  <h3 className="font-medium text-gray-900 border-b pb-2">
+                    Informações Básicas
+                  </h3>
+
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Número</label>
+                      <label className="text-sm font-medium text-gray-700">
+                        Número
+                      </label>
                       <p className="text-gray-900">{nfeEncontrada.numero}</p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Série</label>
+                      <label className="text-sm font-medium text-gray-700">
+                        Série
+                      </label>
                       <p className="text-gray-900">{nfeEncontrada.serie}</p>
                     </div>
-                    
+
                     <div>
                       <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
                         Data de Emissão
                       </label>
-                      <p className="text-gray-900">{formatDate(nfeEncontrada.dataEmissao)}</p>
+                      <p className="text-gray-900">
+                        {formatDate(nfeEncontrada.dataEmissao)}
+                      </p>
                     </div>
-                    
+
                     {nfeEncontrada.protocolo && (
                       <div>
-                        <label className="text-sm font-medium text-gray-700">Protocolo</label>
-                        <p className="text-gray-900 font-mono text-sm">{nfeEncontrada.protocolo}</p>
+                        <label className="text-sm font-medium text-gray-700">
+                          Protocolo
+                        </label>
+                        <p className="text-gray-900 font-mono text-sm">
+                          {nfeEncontrada.protocolo}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -198,15 +228,21 @@ export const ConsultarNFe: React.FC = () => {
                     <User className="w-4 h-4" />
                     Destinatário
                   </h3>
-                  
+
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Nome/Razão Social</label>
-                      <p className="text-gray-900">{nfeEncontrada.destinatario.nome}</p>
+                      <label className="text-sm font-medium text-gray-700">
+                        Nome/Razão Social
+                      </label>
+                      <p className="text-gray-900">
+                        {nfeEncontrada.destinatario.nome}
+                      </p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-700">CPF/CNPJ</label>
+                      <label className="text-sm font-medium text-gray-700">
+                        CPF/CNPJ
+                      </label>
                       <p className="text-gray-900 font-mono">
                         {formatDocument(nfeEncontrada.destinatario.documento)}
                       </p>
@@ -220,10 +256,12 @@ export const ConsultarNFe: React.FC = () => {
                     <DollarSign className="w-4 h-4" />
                     Valores
                   </h3>
-                  
+
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Valor Total</label>
+                      <label className="text-sm font-medium text-gray-700">
+                        Valor Total
+                      </label>
                       <p className="text-2xl font-bold text-green-600">
                         {formatCurrency(nfeEncontrada.valorTotal)}
                       </p>
@@ -234,7 +272,9 @@ export const ConsultarNFe: React.FC = () => {
 
               {/* Chave de Acesso */}
               <div className="mb-6">
-                <label className="text-sm font-medium text-gray-700">Chave de Acesso</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Chave de Acesso
+                </label>
                 <p className="text-gray-900 font-mono text-sm bg-gray-50 p-3 rounded border break-all">
                   {nfeEncontrada.chaveAcesso}
                 </p>
@@ -250,7 +290,7 @@ export const ConsultarNFe: React.FC = () => {
                   <Download className="w-4 h-4" />
                   Baixar XML
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={handleDownloadPDF}
@@ -259,7 +299,7 @@ export const ConsultarNFe: React.FC = () => {
                   <FileText className="w-4 h-4" />
                   Baixar PDF
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => setShowEmailModal(true)}
@@ -277,8 +317,10 @@ export const ConsultarNFe: React.FC = () => {
         {showEmailModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-md w-full p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Enviar NFe por E-mail</h3>
-              
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Enviar NFe por E-mail
+              </h3>
+
               <FormGroup label="E-mail do destinatário" required>
                 <Input
                   type="email"
@@ -287,19 +329,19 @@ export const ConsultarNFe: React.FC = () => {
                   placeholder="Digite o e-mail"
                 />
               </FormGroup>
-              
+
               <div className="flex gap-3 mt-6">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setShowEmailModal(false);
-                    setEmailEnvio('');
+                    setEmailEnvio("");
                   }}
                   className="flex-1"
                 >
                   Cancelar
                 </Button>
-                
+
                 <Button
                   onClick={handleEnviarEmail}
                   disabled={isLoading || !emailEnvio.trim()}
